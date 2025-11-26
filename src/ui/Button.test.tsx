@@ -4,27 +4,21 @@ import Button from './Button';
 
 describe('Button', () => {
   it('renders correctly with title', () => {
-    const { getByText } = render(
-      <Button title="Test Button" onPress={() => {}} />
-    );
+    const { getByText } = render(<Button title="Test Button" onPress={() => {}} />);
 
     expect(getByText('Test Button')).toBeTruthy();
   });
 
   it('calls onPress when pressed', () => {
     const mockOnPress = jest.fn();
-    const { getByText } = render(
-      <Button title="Test Button" onPress={mockOnPress} />
-    );
+    const { getByText } = render(<Button title="Test Button" onPress={mockOnPress} />);
 
     fireEvent.press(getByText('Test Button'));
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders primary variant by default', () => {
-    const { getByText } = render(
-      <Button title="Test Button" onPress={() => {}} />
-    );
+    const { getByText } = render(<Button title="Test Button" onPress={() => {}} />);
 
     const button = getByText('Test Button').parent;
     expect(button).toBeTruthy();
