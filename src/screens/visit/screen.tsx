@@ -12,19 +12,19 @@ export default function VisitScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1A1A1A',
+    flex: 1,
+    justifyContent: 'center',
   },
   subtitle: {
-    fontSize: 16,
     color: '#666666',
+    fontSize: 16,
     marginTop: 8,
+  },
+  title: {
+    color: '#1A1A1A',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
