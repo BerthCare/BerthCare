@@ -12,12 +12,14 @@ web-build/
 # Native
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
 *.ipa
 *.apk
+android/app/debug.keystore
 
 # Environment
 .env

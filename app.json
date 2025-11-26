@@ -13,14 +13,12 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "url": "https://u.expo.dev/[your-project-id]",
+      "url": "https://u.expo.dev/5a324903-de4d-41bb-8d29-ab44b5c2f621",
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD",
       "enabled": true
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.berthcare.mobile"
@@ -39,8 +37,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "[your-project-id]"
+        "projectId": "5a324903-de4d-41bb-8d29-ab44b5c2f621"
       }
-    }
+    },
+    "owner": "merylnlamera"
   }
 }
