@@ -12,4 +12,24 @@ config.resolver.sourceExts = [
   'android.ts',
 ];
 
+// Performance optimizations
+config.transformer.minifierConfig = {
+  // Optimize minification for faster builds
+  keep_fnames: true,
+  mangle: {
+    keep_fnames: true,
+  },
+};
+
+// Enable caching for faster subsequent builds
+config.cacheStores = [
+  {
+    name: 'filesystem',
+    type: 'FileStore',
+  },
+];
+
+// Optimize resolver for faster module resolution
+config.resolver.platforms = ['ios', 'android', 'native', 'web'];
+
 module.exports = config;

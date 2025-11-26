@@ -1022,6 +1022,35 @@ eas build --profile production --platform ios --auto-submit
 eas build --profile production --platform android --auto-submit
 ```
 
+#### Build Performance
+
+The project is optimized to maintain build times under 5 minutes for production builds:
+
+**Performance Optimizations**:
+- **Build caching enabled** for all profiles to reuse dependencies
+- **Metro bundler optimization** with filesystem caching
+- **Optimized minification** settings for faster builds
+- **Resource class configuration** for optimal performance/cost balance
+
+**Expected Build Times**:
+- Development builds: < 2 minutes
+- Preview builds: < 3 minutes  
+- Production builds: < 5 minutes
+
+**Measuring Build Performance**:
+```bash
+# Time a production build
+time eas build --profile production --platform android --non-interactive
+```
+
+**Build Performance Factors**:
+- First builds are slower (cold cache)
+- Subsequent builds are faster (warm cache)
+- Free tier users may experience queue wait times
+- Build times vary based on EAS server load
+
+For detailed build performance metrics and troubleshooting, see [BUILD_PERFORMANCE.md](./BUILD_PERFORMANCE.md).
+
 #### Best Practices
 
 1. **Use development builds** during active development
@@ -1031,6 +1060,7 @@ eas build --profile production --platform android --auto-submit
 5. **Always test updates** on preview channel before pushing to production
 6. **Document changes** in update messages for tracking
 7. **Monitor update adoption** through Expo dashboard
+8. **Monitor build performance** and optimize when builds exceed target times
 
 ## License
 

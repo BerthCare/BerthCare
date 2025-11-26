@@ -21,7 +21,8 @@
     "runtimeVersion": "1.0.0",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.berthcare.mobile"
+      "bundleIdentifier": "com.berthcare.mobile",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +31,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.berthcare.mobile"
+      "package": "com.berthcare.mobile",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -40,6 +42,11 @@
         "projectId": "5a324903-de4d-41bb-8d29-ab44b5c2f621"
       }
     },
-    "owner": "merylnlamera"
+    "owner": "merylnlamera",
+    "optimization": {
+      "web": {
+        "bundler": "metro"
+      }
+    }
   }
 }
