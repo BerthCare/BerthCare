@@ -1,7 +1,9 @@
 # BerthCare Mobile
 
-<!-- CI Badge will be added once repository is pushed to GitHub -->
+<!-- CI Badge - Uncomment and update URL once repository is pushed to GitHub -->
 <!-- [![CI](https://github.com/YOUR_USERNAME/berthcare-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/berthcare-mobile/actions/workflows/ci.yml) -->
+
+> **CI Status**: All checks configured and passing locally. CI pipeline ready for GitHub integration.
 
 ## Overview
 
