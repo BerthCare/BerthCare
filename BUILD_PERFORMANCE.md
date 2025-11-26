@@ -57,6 +57,7 @@ time npx eas-cli build --platform all --profile production --non-interactive
 - Fewer dependencies
 - Optimized Metro configuration
 - Using appropriate EAS resource classes
+- Paid EAS plan for priority queue access
 
 **Factors that slow down builds:**
 - Large asset files
@@ -64,6 +65,15 @@ time npx eas-cli build --platform all --profile production --non-interactive
 - Complex native modules
 - Disabled caching
 - Cold builds (first build without cache)
+- Free tier queue wait times (can exceed 2+ hours)
+
+**Current Optimizations Applied:**
+- ✅ Build caching enabled in all EAS profiles
+- ✅ Metro bundler filesystem caching
+- ✅ Optimized minifier configuration
+- ✅ Remote app version source to avoid conflicts
+- ✅ Upload optimization (14s for 1.4MB project)
+- ✅ Local development tools optimized (TypeScript: 1.9s, ESLint: 2.3s)
 
 ## Historical Build Times
 
@@ -71,8 +81,10 @@ time npx eas-cli build --platform all --profile production --non-interactive
 |------|----------|---------|------|-------|
 | 2025-11-26 | Local | TypeScript | 1.9s | Type checking compilation |
 | 2025-11-26 | Local | ESLint | 2.3s | Code linting |
-| 2025-11-26 | Android | Production | Pending | EAS build with optimizations |
-| 2025-11-26 | iOS | Production | Pending | EAS build with optimizations |
+| 2025-11-26 | EAS | Upload | 14s | Project upload to EAS servers |
+| 2025-11-26 | Android | Development | Queued | Free tier queue wait (170+ min) |
+| 2025-11-26 | Android | Production | Pending | Awaiting queue completion |
+| 2025-11-26 | iOS | Production | Pending | Awaiting queue completion |
 
 ## Troubleshooting Slow Builds
 
