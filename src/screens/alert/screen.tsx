@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
+import { palette } from '@ui/palette';
+
 export default function AlertScreen() {
   return (
     <View style={styles.container}>
@@ -13,17 +15,17 @@ export default function AlertScreen() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.background,
     flex: 1,
     justifyContent: 'center',
   },
   subtitle: {
-    color: '#666666',
+    color: palette.textSecondary,
     fontSize: 16,
     marginTop: 8,
   },
   title: {
-    color: '#1A1A1A',
+    color: palette.textPrimary,
     fontSize: 24,
     fontWeight: 'bold',
   },

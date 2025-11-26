@@ -1,6 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
+import { palette } from '@ui/palette';
+
 export interface ButtonProps {
   title: string;
   onPress: () => void;
@@ -53,27 +55,27 @@ const styles = StyleSheet.create({
     elevation: 2, // Android elevation for shadow
   } as ViewStyle,
   disabledButton: {
-    backgroundColor: '#E0E0E0',
-    borderColor: '#E0E0E0',
+    backgroundColor: palette.disabledBgAndroid,
+    borderColor: palette.disabledBgAndroid,
     elevation: 0,
   } as ViewStyle,
   disabledText: {
-    color: '#9E9E9E',
+    color: palette.disabledTextAndroid,
   } as TextStyle,
   primaryButton: {
-    backgroundColor: '#2196F3', // Material blue
+    backgroundColor: palette.brandBlueAndroid, // Material blue
   } as ViewStyle,
   primaryText: {
-    color: '#FFFFFF',
+    color: palette.white,
   } as TextStyle,
   secondaryButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderWidth: 1,
-    borderColor: '#2196F3',
+    borderColor: palette.brandBlueAndroid,
     elevation: 0,
   } as ViewStyle,
   secondaryText: {
-    color: '#2196F3',
+    color: palette.brandBlueAndroid,
   } as TextStyle,
   text: {
     fontSize: 14, // Material Design button text size

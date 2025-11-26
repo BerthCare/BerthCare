@@ -1,6 +1,7 @@
 # BerthCare Mobile
 
-[![CI](https://github.com/fattyageboy/berthcare-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/fattyageboy/berthcare-mobile/actions/workflows/ci.yml)
+<!-- CI Badge will be added once repository is pushed to GitHub -->
+<!-- [![CI](https://github.com/YOUR_USERNAME/berthcare-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/berthcare-mobile/actions/workflows/ci.yml) -->
 
 ## Overview
 
@@ -20,7 +21,7 @@ Built for rapid iteration during a 3-month build phase, the app supports working
 
 | Platform | Command | Result | Duration | Notes |
 | --- | --- | --- | --- | --- |
-| Android (production) | `eas build --platform android --profile production` | ✅ **Success** | **~5-10 min total** | Includes queue wait + build time. [Build Log](https://expo.dev/accounts/merylnlamera/projects/berthcare-mobile/builds/4f6f0dbf-0c29-4ac2-a277-25ff3380b213) \| [Artifact](https://expo.dev/artifacts/eas/aNUTpuwUZHjvBK2MU3VjUt.aab) |
+| Android (production) | `eas build --platform android --profile production` | ✅ **Success** | **~5-10 min total** | Includes queue wait + build time. Build logs and artifacts available in Expo dashboard. |
 | Android (local) | `eas build --platform android --profile production --local` | ❌ Failed | N/A | Requires Java 11+, system has Java 8. Local builds need proper Java setup. |
 | iOS (production) | `eas build --platform ios --profile production` | ❌ **Membership Required** | N/A | Requires paid Apple Developer Program membership ($99/year). "You have no team associated with your Apple account, cannot proceed." |
 
@@ -248,7 +249,8 @@ echo $ANDROID_HOME  # Should point to Android SDK location
 
 1. **Clone the repository** (if not already done):
    ```bash
-   git clone <repository-url>
+   # Replace with your actual repository URL when available
+   git clone https://github.com/YOUR_USERNAME/berthcare-mobile.git
    cd berthcare-mobile
    ```
 
@@ -460,13 +462,13 @@ npm test
 Run tests in watch mode:
 
 ```bash
-npm test -- --watch
+npm run test:watch
 ```
 
 Run tests with coverage:
 
 ```bash
-npm test -- --coverage
+npm run test:coverage
 ```
 
 ### Code Quality
@@ -482,7 +484,7 @@ npm run lint
 Fix auto-fixable issues:
 
 ```bash
-npm run lint -- --fix
+npm run lint:fix
 ```
 
 #### Type Checking
@@ -504,7 +506,7 @@ npm run format
 Check if code is formatted:
 
 ```bash
-npm run format -- --check
+npm run format:check
 ```
 
 ## Architecture

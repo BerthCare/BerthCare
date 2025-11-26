@@ -1,6 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
+import { palette } from '@ui/palette';
+
 export interface ButtonProps {
   title: string;
   onPress: () => void;
@@ -52,25 +54,25 @@ const styles = StyleSheet.create({
     minHeight: 48,
   } as ViewStyle,
   disabledButton: {
-    backgroundColor: '#E5E5E5',
-    borderColor: '#E5E5E5',
+    backgroundColor: palette.disabledBgIOS,
+    borderColor: palette.disabledBgIOS,
   } as ViewStyle,
   disabledText: {
-    color: '#999999',
+    color: palette.disabledTextIOS,
   } as TextStyle,
   primaryButton: {
-    backgroundColor: '#007AFF', // iOS blue
+    backgroundColor: palette.brandBlue, // iOS blue
   } as ViewStyle,
   primaryText: {
-    color: '#FFFFFF',
+    color: palette.white,
   } as TextStyle,
   secondaryButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: palette.brandBlue,
   } as ViewStyle,
   secondaryText: {
-    color: '#007AFF',
+    color: palette.brandBlue,
   } as TextStyle,
   text: {
     fontSize: 17, // iOS standard font size

@@ -1,5 +1,7 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+
+import { palette } from '@ui/palette';
 
 export default function App() {
   return (
@@ -14,7 +16,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.background,
     flex: 1,
   },
   content: {
@@ -23,12 +25,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subtitle: {
-    color: '#666666',
+    color: palette.textSecondary,
     fontSize: 16,
     marginTop: 8,
   },
   title: {
-    color: '#1A1A1A',
+    color: palette.textPrimary,
     fontSize: 32,
     fontWeight: 'bold',
   },
