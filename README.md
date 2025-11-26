@@ -42,7 +42,121 @@ Before you begin, ensure you have the following installed:
 - **Android Studio** ([Download](https://developer.android.com/studio))
 - **Android SDK** (installed via Android Studio)
 - **Android Emulator** (configured via Android Studio AVD Manager)
-- **Java Development Kit (JDK)** 11 or later
+- **Java Development Kit (JDK)** 17 or later (required for Gradle builds)
+
+**Android Studio Setup Steps**:
+
+1. **Install Java Development Kit (JDK)**:
+   
+   Android development requires Java 17 or later. Choose one of these options:
+   
+   **Option A: Install via Homebrew (macOS - Recommended)**:
+   ```bash
+   # Install OpenJDK 17
+   brew install openjdk@17
+   
+   # Add to PATH (add to ~/.zshrc or ~/.bash_profile)
+   export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+   export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+   
+   # Reload shell
+   source ~/.zshrc
+   
+   # Verify installation
+   java -version
+   # Should output: openjdk version "17.x.x"
+   ```
+   
+   **Option B: Install via Android Studio**:
+   - Android Studio includes a bundled JDK
+   - After installing Android Studio, set JAVA_HOME to the bundled JDK:
+     ```bash
+     # Add to ~/.zshrc or ~/.bash_profile
+     export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+     export PATH="$JAVA_HOME/bin:$PATH"
+     ```
+   
+   **Option C: Download from Oracle or Adoptium**:
+   - Oracle JDK: [oracle.com/java/technologies/downloads](https://www.oracle.com/java/technologies/downloads/)
+   - Adoptium (Eclipse Temurin): [adoptium.net](https://adoptium.net/)
+   - Follow installer instructions and set JAVA_HOME accordingly
+
+2. **Install Android Studio**:
+   - Download from [developer.android.com/studio](https://developer.android.com/studio)
+   - Run the installer and follow the setup wizard
+   - Choose "Standard" installation to install Android SDK, Android SDK Platform, and Android Virtual Device
+
+3. **Configure Android SDK**:
+   - Open Android Studio
+   - Go to **Preferences** (macOS) or **Settings** (Windows/Linux)
+   - Navigate to **Appearance & Behavior → System Settings → Android SDK**
+   - Ensure the following are installed under **SDK Platforms** tab:
+     - Android 13.0 (Tiramisu) - API Level 33 (recommended)
+     - Android 12.0 (S) - API Level 31
+   - Under **SDK Tools** tab, ensure these are installed:
+     - Android SDK Build-Tools
+     - Android SDK Command-line Tools
+     - Android Emulator
+     - Android SDK Platform-Tools
+     - Intel x86 Emulator Accelerator (HAXM installer) - for Intel Macs
+   - Note the **Android SDK Location** path (e.g., `/Users/username/Library/Android/sdk`)
+
+4. **Set Environment Variables**:
+   
+   Add these to your shell profile (`~/.zshrc`, `~/.bash_profile`, or `~/.bashrc`):
+   
+   ```bash
+   # Java (if installed via Homebrew)
+   export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+   export PATH="$JAVA_HOME/bin:$PATH"
+   
+   # Android SDK
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/emulator
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   export PATH=$PATH:$ANDROID_HOME/tools
+   export PATH=$PATH:$ANDROID_HOME/tools/bin
+   ```
+   
+   Then reload your shell:
+   ```bash
+   source ~/.zshrc  # or ~/.bash_profile or ~/.bashrc
+   ```
+
+5. **Create an Android Virtual Device (AVD)**:
+   - Open Android Studio
+   - Click **More Actions** → **Virtual Device Manager** (or **Tools → Device Manager**)
+   - Click **Create Device**
+   - Select a device definition (e.g., **Pixel 5** or **Pixel 6**)
+   - Click **Next**
+   - Select a system image:
+     - Recommended: **Tiramisu (API Level 33)** or **S (API Level 31)**
+     - Click **Download** if not already installed
+   - Click **Next**, then **Finish**
+   - Your AVD is now ready to use
+
+6. **Verify Android Setup**:
+   ```bash
+   # Check Java installation
+   java -version
+   # Should output: openjdk version "17.x.x" or similar
+   
+   # Check JAVA_HOME
+   echo $JAVA_HOME
+   # Should output: /opt/homebrew/opt/openjdk@17 or similar
+   
+   # Check Android SDK location
+   echo $ANDROID_HOME
+   # Should output: /Users/username/Library/Android/sdk (or similar)
+   
+   # Check adb is available
+   adb --version
+   # Should output: Android Debug Bridge version X.X.X
+   
+   # List available emulators
+   emulator -list-avds
+   # Should list your created AVD(s)
+   ```
 
 ### Verify Installation
 
@@ -95,6 +209,16 @@ This starts the Expo development server. You'll see a QR code and several option
 
 ### Run on iOS Simulator
 
+**First-time setup**: If this is your first time running the iOS app, you need to generate the native iOS project:
+
+```bash
+npx expo prebuild --platform ios --clean
+```
+
+This command generates the native iOS project files required for development builds.
+
+Then run the app:
+
 ```bash
 npm run ios
 ```
@@ -107,7 +231,30 @@ This command will:
 
 **Note**: Requires macOS with Xcode installed.
 
+**Quick iOS dev checklist**:
+- Confirm Xcode + CLTs: `xcodebuild -version`
+- First run: `npx pod-install` (or `npx expo prebuild --platform ios --clean` if native assets change)
+- Start: `npm run ios` (Metro on port 8081)
+- Verify screen shows “BerthCare / Mobile App Initialized” on load
+- Test hot reload: edit the subtitle in `src/App.tsx`, save, and confirm the simulator updates (press `Cmd+R` if it doesn’t refresh automatically)
+- If you hit a port error (e.g., `ERR_SOCKET_BAD_PORT`), make sure no process blocks 8081 and rerun outside restricted shells
+
+**Troubleshooting iOS Launch**:
+- If you see "No development build for this project is installed", run `npx expo prebuild --platform ios --clean` first
+- If you encounter runtime version errors, ensure `app.json` has `"runtimeVersion": "1.0.0"` instead of a policy object
+- The first build may take 3-5 minutes; subsequent builds are faster
+
 ### Run on Android Emulator
+
+**First-time setup**: If this is your first time running the Android app, you need to generate the native Android project:
+
+```bash
+npx expo prebuild --platform android --clean
+```
+
+This command generates the native Android project files required for development builds.
+
+Then run the app:
 
 ```bash
 npm run android
@@ -120,6 +267,24 @@ This command will:
 - Install and run the app
 
 **Note**: Ensure you have an Android Virtual Device (AVD) configured in Android Studio.
+
+**Quick Android dev checklist**:
+- Confirm Android Studio + SDK: `echo $ANDROID_HOME` (should show SDK path)
+- Confirm adb: `adb --version`
+- List AVDs: `emulator -list-avds`
+- Start emulator manually (optional): `emulator -avd YOUR_AVD_NAME`
+- First run: `npx expo prebuild --platform android --clean` (if native assets change)
+- Start: `npm run android` (Metro on port 8081)
+- Verify screen shows "BerthCare / Mobile App Initialized" on load
+- Test hot reload: edit the subtitle in `src/App.tsx`, save, and confirm the emulator updates (press `RR` in the emulator if it doesn't refresh automatically)
+- If you hit a port error, make sure no process blocks 8081 and rerun outside restricted shells
+
+**Troubleshooting Android Launch**:
+- If you see "SDK location not found", ensure `ANDROID_HOME` is set correctly and `android/local.properties` exists
+- If you see "No Android devices found", start an emulator first: `emulator -avd YOUR_AVD_NAME`
+- If you encounter "Execution failed for task ':app:installDebug'", try cleaning: `cd android && ./gradlew clean && cd ..`
+- The first build may take 5-10 minutes; subsequent builds are faster
+- If the emulator is slow, ensure hardware acceleration (HAXM on Intel, Hypervisor.framework on Apple Silicon) is enabled
 
 ### Run on Physical Device
 
@@ -354,9 +519,34 @@ npm run ios
 **Problem**: "SDK location not found"
 
 **Solution**:
-1. Create `android/local.properties` file
-2. Add: `sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk` (macOS)
-3. Or: `sdk.dir=C:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk` (Windows)
+1. Ensure `ANDROID_HOME` environment variable is set:
+   ```bash
+   echo $ANDROID_HOME
+   # Should output: /Users/YOUR_USERNAME/Library/Android/sdk (macOS)
+   ```
+2. If not set, add to your shell profile (`~/.zshrc` or `~/.bash_profile`):
+   ```bash
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   ```
+3. Reload shell: `source ~/.zshrc`
+4. Alternatively, create `android/local.properties` file:
+   ```
+   sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+   ```
+   (Windows: `sdk.dir=C:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk`)
+
+**Problem**: "No Android devices found" or "Could not find or load main class org.gradle.wrapper.GradleWrapperMain"
+
+**Solution**:
+```bash
+# Start an emulator manually first
+emulator -list-avds  # List available AVDs
+emulator -avd YOUR_AVD_NAME  # Start specific AVD
+
+# Or open Android Studio → Device Manager → Start emulator
+# Then run: npm run android
+```
 
 **Problem**: "Execution failed for task ':app:installDebug'"
 
@@ -367,8 +557,72 @@ cd android
 ./gradlew clean
 cd ..
 
+# Clear Metro cache
+npm start -- --clear
+
 # Rebuild
 npm run android
+```
+
+**Problem**: "INSTALL_FAILED_INSUFFICIENT_STORAGE"
+
+**Solution**:
+1. Open Android Studio → Device Manager
+2. Click the pencil icon next to your AVD
+3. Click "Show Advanced Settings"
+4. Increase "Internal Storage" (e.g., to 2048 MB or higher)
+5. Click "Finish" and restart the emulator
+
+**Problem**: Emulator is very slow or unresponsive
+
+**Solution**:
+1. Ensure hardware acceleration is enabled:
+   - **Intel Macs**: Install HAXM via Android Studio SDK Manager
+   - **Apple Silicon Macs**: Use ARM64 system images (not x86)
+2. Increase emulator RAM:
+   - Open Device Manager → Edit AVD → Show Advanced Settings
+   - Increase RAM to 2048 MB or higher
+3. Use a newer API level (API 31+) for better performance
+4. Close other resource-intensive applications
+
+**Problem**: "adb: command not found"
+
+**Solution**:
+```bash
+# Add Android SDK platform-tools to PATH
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# Or install adb via Homebrew (macOS)
+brew install android-platform-tools
+
+# Verify
+adb --version
+```
+
+**Problem**: "Unable to locate a Java Runtime" or "Could not find or load main class org.gradle.wrapper.GradleWrapperMain"
+
+**Solution**:
+```bash
+# Check if Java is installed
+java -version
+
+# If not installed, install via Homebrew (macOS)
+brew install openjdk@17
+
+# Set JAVA_HOME (add to ~/.zshrc or ~/.bash_profile)
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# Reload shell
+source ~/.zshrc
+
+# Verify
+java -version
+echo $JAVA_HOME
+
+# If using Android Studio's bundled JDK
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
 #### Dependency Issues
