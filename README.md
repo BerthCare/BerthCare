@@ -507,6 +507,183 @@ config.resolver.sourceExts = [
 ];
 ```
 
+## Building and Deployment
+
+### Expo Application Services (EAS)
+
+The project uses **EAS Build** for creating production-ready builds and **EAS Update** for over-the-air updates.
+
+#### Initial Setup
+
+1. **Install EAS CLI** (if not already installed):
+   ```bash
+   npm install -g eas-cli
+   ```
+
+2. **Login to Expo**:
+   ```bash
+   eas login
+   ```
+
+3. **Configure your project**:
+   ```bash
+   eas build:configure
+   ```
+   
+   This will prompt you to create an Expo account and link your project. Update the `projectId` in `app.json` with your actual project ID.
+
+#### Build Profiles
+
+The project includes three build profiles configured in `eas.json`:
+
+- **development**: For internal testing with development client
+- **preview**: For internal distribution (TestFlight/Internal Testing)
+- **production**: For app store submission
+
+#### Creating Builds
+
+**Development Builds** (for testing with custom native code):
+```bash
+# iOS development build
+npm run build:dev:ios
+# or: eas build --profile development --platform ios
+
+# Android development build
+npm run build:dev:android
+# or: eas build --profile development --platform android
+```
+
+**Preview Builds** (for internal testing):
+```bash
+# iOS preview build
+npm run build:preview:ios
+# or: eas build --profile preview --platform ios
+
+# Android preview build
+npm run build:preview:android
+# or: eas build --profile preview --platform android
+```
+
+**Production Builds** (for app stores):
+```bash
+# iOS production build
+npm run build:prod:ios
+# or: eas build --profile production --platform ios
+
+# Android production build
+npm run build:prod:android
+# or: eas build --profile production --platform android
+
+# Build for both platforms
+npm run build:all
+# or: eas build --profile production --platform all
+```
+
+#### Over-the-Air (OTA) Updates
+
+EAS Update allows you to deploy JavaScript and asset updates without going through app store review.
+
+**Publishing Updates**:
+
+```bash
+# Publish to preview channel
+npm run update:preview "Fix: Updated visit screen layout"
+# or: eas update --branch preview --message "Fix: Updated visit screen layout"
+
+# Publish to production channel
+npm run update:production "Release: Version 1.0.1 - Bug fixes"
+# or: eas update --branch production --message "Release: Version 1.0.1 - Bug fixes"
+```
+
+**Update Behavior**:
+- Updates are checked on app launch (`checkAutomatically: "ON_LOAD"`)
+- Updates download in the background
+- New version applies on next app restart
+- Fallback to cached version if update fails
+
+**What Can Be Updated**:
+- JavaScript code changes
+- React components and screens
+- Assets (images, fonts)
+- Configuration in `app.json` (some fields)
+
+**What Requires a New Build**:
+- Native code changes (iOS/Android)
+- Native module additions
+- Changes to `ios/` or `android/` directories
+- App version or build number changes
+- Permissions or entitlements changes
+
+#### Build Configuration
+
+**eas.json** defines build profiles:
+
+```json
+{
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview"
+    },
+    "production": {
+      "channel": "production"
+    }
+  }
+}
+```
+
+**app.json** configures updates:
+
+```json
+{
+  "updates": {
+    "url": "https://u.expo.dev/[your-project-id]",
+    "checkAutomatically": "ON_LOAD",
+    "enabled": true
+  },
+  "runtimeVersion": {
+    "policy": "appVersion"
+  }
+}
+```
+
+#### Monitoring Builds
+
+After starting a build:
+
+1. View build progress in terminal
+2. Or visit: https://expo.dev/accounts/[your-account]/projects/berthcare-mobile/builds
+3. Download builds when complete
+4. Install on devices for testing
+
+#### Distribution
+
+**iOS (TestFlight)**:
+```bash
+# Build and submit to TestFlight
+eas build --profile production --platform ios --auto-submit
+```
+
+**Android (Internal Testing)**:
+```bash
+# Build and submit to Google Play Internal Testing
+eas build --profile production --platform android --auto-submit
+```
+
+#### Best Practices
+
+1. **Use development builds** during active development
+2. **Use preview builds** for internal team testing
+3. **Use production builds** for app store submission
+4. **Use OTA updates** for quick fixes and minor updates during pilot phase
+5. **Always test updates** on preview channel before pushing to production
+6. **Document changes** in update messages for tracking
+7. **Monitor update adoption** through Expo dashboard
+
 ## License
 
 Proprietary - BerthCare
