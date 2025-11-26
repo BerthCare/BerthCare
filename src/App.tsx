@@ -14,22 +14,22 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
+    flex: 1,
   },
   content: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1A1A1A',
   },
   subtitle: {
-    fontSize: 16,
     color: '#666666',
+    fontSize: 16,
     marginTop: 8,
+  },
+  title: {
+    color: '#1A1A1A',
+    fontSize: 32,
+    fontWeight: 'bold',
   },
 });
