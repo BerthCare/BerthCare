@@ -1,6 +1,6 @@
 # BerthCare Mobile
 
-[![CI](https://github.com/BerthCare/BerthCare/actions/workflows/ci.yml/badge.svg)](https://github.com/BerthCare/BerthCare/actions/workflows/ci.yml)
+[![Mobile CI](https://github.com/BerthCare/BerthCare/actions/workflows/berthcare-mobile/.github/workflows/ci.yml/badge.svg)](https://github.com/BerthCare/BerthCare/actions/workflows/berthcare-mobile/.github/workflows/ci.yml)
 
 React Native + Expo (SDK 54, RN 0.81, TypeScript 5.9) app that helps caregivers log home care visits in under 60 seconds across three flows: **Today**, **Visit**, and **Alert**. Built with an offline-first data layer, Expo custom dev builds, and OTA updates for rapid pilot releases.
 
