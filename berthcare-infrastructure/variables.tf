@@ -9,6 +9,18 @@ variable "project_name" {
   default     = "berthcare"
 }
 
+variable "domain_name" {
+  type        = string
+  description = "Fully qualified domain name for the environment (e.g., staging.berthcare.com)."
+  default     = "example.com"
+}
+
+variable "route53_zone_id" {
+  type        = string
+  description = "Route 53 hosted zone ID for validating DNS records."
+  default     = "Z000000EXAMPLE"
+}
+
 variable "vpc_cidr" {
   type        = string
   description = "CIDR block for the VPC."

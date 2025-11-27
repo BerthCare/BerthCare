@@ -30,7 +30,7 @@ module "ecs" {
   max_size                    = var.max_size
   desired_capacity            = var.desired_capacity
   app_port                    = var.app_port
-  acm_certificate_arn         = var.acm_certificate_arn
+  acm_certificate_arn         = aws_acm_certificate.this.arn
   s3_bucket_arns              = concat([module.s3.photos_bucket_arn, module.s3.exports_bucket_arn], var.s3_bucket_arns)
   secrets_manager_arns        = var.secrets_manager_arns
 }
