@@ -8,7 +8,7 @@ import { HealthResponse } from '../types';
 export const getHealth = (req: Request, res: Response): void => {
   const response: HealthResponse = {
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 
   res.status(200).json(response);

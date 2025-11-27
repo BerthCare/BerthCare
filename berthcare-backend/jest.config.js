@@ -5,11 +5,11 @@ module.exports = {
   testMatch: [
     '**/__tests__/**/*.test.ts',
     '**/__tests__/**/*.spec.ts',
-    '**/__tests__/**/*.property.ts'
+    '**/__tests__/**/*.property.ts',
   ],
   roots: ['<rootDir>/src'],
   clearMocks: true,
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }]
-  }
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.jest.json' }],
+  },
 };
