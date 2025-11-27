@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -32,19 +31,8 @@ describe('Feature: backend-dev-deployment, Property 5: ECS Deployment Steps', ()
       /curl -f http:\/\/localhost:\$\{PORT:-3000\}\/health/,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(expectedPatterns, {
-          minLength: expectedPatterns.length,
-          maxLength: expectedPatterns.length,
-        }),
-        (patterns) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(workflowContent)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    expectedPatterns.forEach((pattern) => {
+      expect(pattern.test(workflowContent)).toBe(true);
+    });
   });
 });

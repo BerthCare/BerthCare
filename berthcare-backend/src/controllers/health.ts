@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
+import packageJson from '../../package.json';
 import { HealthResponse } from '../types';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { version } = require('../../package.json') as { version: string };
+const version = typeof packageJson.version === 'string' ? packageJson.version : '0.0.0';
 
 /**
  * Health check controller

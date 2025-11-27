@@ -4,14 +4,15 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # DATABASE_URL must be provided at build time for Prisma generation
-ARG DATABASE_URL="postgresql://CHANGE_ME:CHANGE_ME@localhost:5432/berthcare"
+ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
-COPY package*.json ./
+# Ensure Prisma schema is available before npm ci (prisma generate runs during install)
+COPY package*.json prisma.config.ts ./
+COPY prisma ./prisma
 RUN npm ci
 
-COPY tsconfig.json prisma.config.ts ./
-COPY prisma ./prisma
+COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build

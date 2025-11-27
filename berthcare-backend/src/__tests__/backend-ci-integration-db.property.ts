@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -62,19 +61,8 @@ describe('Feature: backend-ci-pipeline, Property 3: Integration Test Database Co
       /npm run test:integration/,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(requiredPatterns, {
-          minLength: requiredPatterns.length,
-          maxLength: requiredPatterns.length,
-        }),
-        (patterns: RegExp[]) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(integrationJob)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    requiredPatterns.forEach((pattern) => {
+      expect(pattern.test(integrationJob)).toBe(true);
+    });
   });
 });

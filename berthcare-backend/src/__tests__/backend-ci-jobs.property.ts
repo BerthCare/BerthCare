@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -27,6 +26,9 @@ const extractJobsSection = (content: string) => {
 };
 
 const extractJobBlock = (jobsSection: string, jobId: string) => {
+  if (!/^[a-zA-Z0-9_-]+$/.test(jobId)) {
+    throw new Error(`Invalid jobId: ${jobId}`);
+  }
   const jobRegex = new RegExp(
     `^ {2}${jobId}:\\n([\\s\\S]*?)(?=^ {2}(?! )[a-zA-Z0-9_-]+:|(?![\\s\\S]))`,
     'm'
@@ -102,23 +104,12 @@ describe('Feature: backend-ci-pipeline, Property 2: Required CI Jobs Presence', 
       },
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(requiredJobs, {
-          minLength: requiredJobs.length,
-          maxLength: requiredJobs.length,
-        }),
-        (jobs: { id: string; patterns: RegExp[] }[]) => {
-          const jobsSection = extractJobsSection(workflowContent);
-          jobs.forEach(({ id, patterns }) => {
-            const jobBlock = extractJobBlock(jobsSection, id);
-            patterns.forEach((pattern: RegExp) => {
-              expect(pattern.test(jobBlock)).toBe(true);
-            });
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    const jobsSection = extractJobsSection(workflowContent);
+    requiredJobs.forEach(({ id, patterns }) => {
+      const jobBlock = extractJobBlock(jobsSection, id);
+      patterns.forEach((pattern: RegExp) => {
+        expect(pattern.test(jobBlock)).toBe(true);
+      });
+    });
   });
 });

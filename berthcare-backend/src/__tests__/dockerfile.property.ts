@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const dockerfilePath = path.resolve(__dirname, '..', '..', 'Dockerfile');
 
@@ -31,19 +30,8 @@ describe('Feature: backend-dev-deployment, Property 2: Docker Build Configuratio
       /EXPOSE\s+3000/,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(requiredPatterns, {
-          minLength: requiredPatterns.length,
-          maxLength: requiredPatterns.length,
-        }),
-        (patterns) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(dockerfileContent)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    requiredPatterns.forEach((pattern) => {
+      expect(pattern.test(dockerfileContent)).toBe(true);
+    });
   });
 });

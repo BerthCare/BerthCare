@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -30,19 +29,8 @@ describe('Feature: backend-dev-deployment, Property 1: Workflow Trigger Configur
       /defaults:\s*\n\s{2}run:\s*\n\s{4}working-directory:\s*berthcare-backend/,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(expectedPatterns, {
-          minLength: expectedPatterns.length,
-          maxLength: expectedPatterns.length,
-        }),
-        (patterns) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(workflowContent)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    expectedPatterns.forEach((pattern) => {
+      expect(pattern.test(workflowContent)).toBe(true);
+    });
   });
 });

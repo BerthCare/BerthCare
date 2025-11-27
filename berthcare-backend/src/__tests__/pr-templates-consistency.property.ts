@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 type TemplateUnderTest = {
   name: string;
@@ -61,25 +60,14 @@ describe('Feature: branch-protection-pr-templates, Property 2: PR Template Consi
   }));
 
   it('ensures each repository template contains the shared required sections', () => {
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(templates, {
-          minLength: templates.length,
-          maxLength: templates.length,
-        }),
-        (permutedTemplates) => {
-          permutedTemplates.forEach(({ content }) => {
-            requiredSections.forEach((section) => {
-              const headingRegex = new RegExp(`^${section}\\s*$`, 'm');
-              expect(headingRegex.test(content)).toBe(true);
-            });
+    templates.forEach(({ content }) => {
+      requiredSections.forEach((section) => {
+        const headingRegex = new RegExp(`^${section}\\s*$`, 'm');
+        expect(headingRegex.test(content)).toBe(true);
+      });
 
-            const extracted = extractRequiredSections(content);
-            expect(extracted).toEqual(requiredSections);
-          });
-        }
-      ),
-      { numRuns: 100 }
-    );
+      const extracted = extractRequiredSections(content);
+      expect(extracted).toEqual(requiredSections);
+    });
   });
 });

@@ -31,6 +31,16 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-dev
           aws-region: ca-central-1
 
+      - name: Validate assumed AWS account
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          if [ "$ACCOUNT_ID" != "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+            echo "ERROR: Assumed account $ACCOUNT_ID does not match expected ${{ secrets.AWS_ACCOUNT_ID }}"
+            exit 1
+          fi
+          echo "Validated AWS account $ACCOUNT_ID"
+
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -73,12 +83,27 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-dev
           aws-region: ca-central-1
 
+      - name: Validate assumed AWS account
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          if [ "$ACCOUNT_ID" != "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+            echo "ERROR: Assumed account $ACCOUNT_ID does not match expected ${{ secrets.AWS_ACCOUNT_ID }}"
+            exit 1
+          fi
+          echo "Validated AWS account $ACCOUNT_ID"
+
       - name: Download task definition
         id: task-def
         run: |
           aws ecs describe-task-definition \
             --task-definition "$TASK_FAMILY" \
             --query taskDefinition > task-definition.json
+
+          # Remove read-only fields before re-registering
+          jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities)' \
+            task-definition.json > task-definition.clean.json
+          mv task-definition.clean.json task-definition.json
 
       - name: Prepare image URI
         id: image
@@ -103,6 +128,11 @@ jobs:
             }
 
           echo "$container_overrides" > task-definition.json
+
+          if ! jq --arg NAME "$CONTAINER_NAME" '.containerDefinitions[] | select(.name == $NAME) | .healthCheck.command' task-definition.json | grep -q '"CMD-SHELL"'; then
+            echo "ERROR: Health check was not injected into task definition for container $CONTAINER_NAME"
+            exit 1
+          fi
 
       - name: Register new task definition revision
         id: register

@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -27,19 +26,8 @@ describe('Feature: backend-dev-deployment, Property 3: Image Tagging Configurati
       /docker buildx build[\s\S]*-t ["']?\$ECR_REGISTRY\/\$IMAGE_NAME:latest["']?/,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(expectedPatterns, {
-          minLength: expectedPatterns.length,
-          maxLength: expectedPatterns.length,
-        }),
-        (patterns) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(workflowContent)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    expectedPatterns.forEach((pattern) => {
+      expect(pattern.test(workflowContent)).toBe(true);
+    });
   });
 });

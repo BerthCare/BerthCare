@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const requiredSections = [
   '## Description',
@@ -17,20 +16,9 @@ describe('Feature: branch-protection-pr-templates, Property 1: PR Template Conta
   it('includes all required section headings', () => {
     const templateContent = readFileSync(templatePath, 'utf8').replace(/\r\n/g, '\n');
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray([...requiredSections], {
-          minLength: requiredSections.length,
-          maxLength: requiredSections.length,
-        }),
-        (sections) => {
-          sections.forEach((section) => {
-            const headingRegex = new RegExp(`^${section}\\s*$`, 'm');
-            expect(headingRegex.test(templateContent)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 100 }
-    );
+    requiredSections.forEach((section) => {
+      const headingRegex = new RegExp(`^${section}\\s*$`, 'm');
+      expect(headingRegex.test(templateContent)).toBe(true);
+    });
   });
 });

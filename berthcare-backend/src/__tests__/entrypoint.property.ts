@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const entrypointPath = path.resolve(__dirname, '..', '..', 'docker-entrypoint.sh');
 
@@ -20,20 +19,9 @@ describe('Feature: backend-dev-deployment, Property 6: Container Entrypoint with
       /^exec node dist\/index\.js/m,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(expectedPatterns, {
-          minLength: expectedPatterns.length,
-          maxLength: expectedPatterns.length,
-        }),
-        (patterns) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(entrypointContent)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    expectedPatterns.forEach((pattern) => {
+      expect(pattern.test(entrypointContent)).toBe(true);
+    });
 
     const migrateIndex = entrypointContent.indexOf('npx prisma migrate deploy');
     const startIndex = entrypointContent.indexOf('exec node dist/index.js');

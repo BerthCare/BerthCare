@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -27,6 +26,9 @@ const extractJobsSection = (content: string) => {
 };
 
 const extractJobBlock = (jobsSection: string, jobId: string) => {
+  if (!/^[a-zA-Z0-9_-]+$/.test(jobId)) {
+    throw new Error(`Invalid jobId: ${jobId}`);
+  }
   const jobRegex = new RegExp(
     `^ {2}${jobId}:\\n([\\s\\S]*?)(?=^ {2}(?! )[a-zA-Z0-9_-]+:|(?![\\s\\S]))`,
     'm'
@@ -54,20 +56,9 @@ describe('Feature: backend-dev-deployment, Property 7: Performance Optimizations
       /--cache-to\s+type=gha,mode=max/,
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(buildExpectations, {
-          minLength: buildExpectations.length,
-          maxLength: buildExpectations.length,
-        }),
-        (patterns) => {
-          patterns.forEach((pattern) => {
-            expect(pattern.test(buildJob)).toBe(true);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+    buildExpectations.forEach((pattern) => {
+      expect(pattern.test(buildJob)).toBe(true);
+    });
 
     expect(/^\s{4}needs:/m.test(buildJob)).toBe(false);
     expect(/timeout-minutes:\s*20/.test(deployJob)).toBe(true);
