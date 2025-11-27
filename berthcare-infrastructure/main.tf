@@ -49,3 +49,13 @@ module "rds" {
   allowed_security_group_id = module.ecs.task_security_group_id
   backup_retention_period   = var.backup_retention_period
 }
+
+module "dns" {
+  source = "./modules/dns"
+
+  environment  = var.environment
+  zone_name    = var.internal_zone_name
+  vpc_id       = module.vpc.vpc_id
+  alb_dns_name = module.ecs.alb_dns_name
+  alb_zone_id  = module.ecs.alb_zone_id
+}

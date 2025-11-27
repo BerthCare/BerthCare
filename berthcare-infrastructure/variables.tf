@@ -131,3 +131,9 @@ variable "task_role_arn" {
   type        = string
   description = "IAM role ARN for ECS tasks (used for S3 bucket policies)."
 }
+
+variable "internal_zone_name" {
+  type        = string
+  description = "Private Route 53 zone for internal DNS."
+  default     = "berthcare.internal"
+}

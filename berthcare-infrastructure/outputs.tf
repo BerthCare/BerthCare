@@ -32,3 +32,13 @@ output "alb_dns_name" {
   description = "DNS name for the ALB."
   value       = module.ecs.alb_dns_name
 }
+
+output "internal_zone_id" {
+  description = "Private hosted zone ID for internal DNS."
+  value       = module.dns.zone_id
+}
+
+output "internal_alb_record" {
+  description = "FQDN for the internal ALB alias record."
+  value       = module.dns.record_fqdn
+}

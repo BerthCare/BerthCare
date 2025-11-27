@@ -4,3 +4,9 @@
 *.tfstate.backup
 *.tfvars
 .terraform.lock.hcl
+
+# Track dev tfvars for automated tests
+!environments/dev/terraform.tfvars
+
+# Go test cache
+tests/.gocache/
