@@ -31,6 +31,12 @@ android/app/debug.keystore
 # Backend build output
 berthcare-backend/dist/
 
+# Local plans/docs (untracked)
+.kiro/
+design-documentation/
+project-documentation/
+IMPLEMENTATION_PLAN.md
+
 # Terraform
 .terraform/
 *.tfstate
