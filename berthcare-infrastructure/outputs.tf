@@ -42,3 +42,13 @@ output "internal_alb_record" {
   description = "FQDN for the internal ALB alias record."
   value       = module.dns.record_fqdn
 }
+
+output "ecr_repository_url" {
+  description = "ECR repository URL for the backend image."
+  value       = aws_ecr_repository.backend.repository_url
+}
+
+output "github_actions_deploy_role_arn" {
+  description = "IAM role ARN assumed by GitHub Actions for dev deployments."
+  value       = aws_iam_role.github_actions_deploy.arn
+}

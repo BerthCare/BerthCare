@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Provide a default for Prisma that can be overridden at build time
-ARG DATABASE_URL="postgresql://postgres:postgres@localhost:5432/berthcare"
+# DATABASE_URL must be provided at build time for Prisma generation
+ARG DATABASE_URL="postgresql://CHANGE_ME:CHANGE_ME@localhost:5432/berthcare"
 ENV DATABASE_URL=${DATABASE_URL}
 
 COPY package*.json ./
