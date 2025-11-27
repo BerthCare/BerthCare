@@ -168,13 +168,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "Backend deploy to dev ${{ job.status }}",
+              "text": "Backend deploy to dev ${{ needs.deploy.result }}",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Backend Deployment (dev)*\nStatus: *${{ job.status }}*\nCommit: `${{ github.sha }}`\nAuthor: ${{ github.actor }}\nRun: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+                    "text": "*Backend Deployment (dev)*\nStatus: *${{ needs.deploy.result }}*\nCommit: `${{ github.sha }}`\nAuthor: ${{ github.actor }}\nRun: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
                   }
                 }
               ]
