@@ -5,7 +5,10 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|@testing-library)/)',
   ],
-  testMatch: ['**/__tests__/**/*.(test|spec).(ts|tsx|js)', '**/*.(test|spec).(ts|tsx|js)'],
+  testMatch: [
+    '**/__tests__/**/*.(test|spec|property).(ts|tsx|js)',
+    '**/*.(test|spec|property).(ts|tsx|js)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',

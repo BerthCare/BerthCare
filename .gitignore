@@ -33,7 +33,6 @@ berthcare-backend/dist/
 
 # Local plans/docs (untracked)
 .kiro/
-design-documentation/
 project-documentation/
 IMPLEMENTATION_PLAN.md
 
