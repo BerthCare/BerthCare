@@ -1,0 +1,50 @@
+{
+  "source": ["assets/design-tokens.json"],
+  "platforms": {
+    "ios": {
+      "transformGroup": "ios",
+      "buildPath": "assets/style-dictionary/build/ios/",
+      "files": [
+        {
+          "destination": "DesignTokens.swift",
+          "format": "ios-swift/class.swift",
+          "className": "DesignTokens"
+        }
+      ]
+    },
+    "android": {
+      "transformGroup": "android",
+      "buildPath": "assets/style-dictionary/build/android/",
+      "files": [
+        {
+          "destination": "colors.xml",
+          "format": "android/colors"
+        },
+        {
+          "destination": "dimens.xml",
+          "format": "android/dimens"
+        }
+      ]
+    },
+    "web": {
+      "transformGroup": "css",
+      "buildPath": "assets/style-dictionary/build/web/",
+      "files": [
+        {
+          "destination": "variables.css",
+          "format": "css/variables"
+        }
+      ]
+    },
+    "reactNative": {
+      "transformGroup": "js",
+      "buildPath": "assets/style-dictionary/build/react-native/",
+      "files": [
+        {
+          "destination": "tokens.js",
+          "format": "javascript/es6"
+        }
+      ]
+    }
+  }
+}

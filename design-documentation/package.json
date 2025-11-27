@@ -1,0 +1,15 @@
+{
+  "name": "design-documentation",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run tokens:build",
+    "tokens:build": "style-dictionary build --config assets/style-dictionary/config.json",
+    "tokens:clean": "node -e \"const fs=require('fs');const path='assets/style-dictionary/build';fs.readdirSync(path).filter(n=>n!=='.gitkeep').forEach(n=>fs.rmSync(path+'/'+n,{recursive:true,force:true}));\"",
+    "tokens:test": "npm run tokens:clean && node --test \"tests/**/*.test.js\"",
+    "test": "npm run tokens:test"
+  },
+  "devDependencies": {
+    "style-dictionary": "^3.7.2"
+  }
+}
