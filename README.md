@@ -1,6 +1,6 @@
 # BerthCare Mobile
 
-[![CI](https://github.com/berthcare/berthcare-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/berthcare/berthcare-mobile/actions/workflows/ci.yml)
+[![CI](https://github.com/BerthCare/BerthCare/actions/workflows/ci.yml/badge.svg)](https://github.com/BerthCare/BerthCare/actions/workflows/ci.yml)
 
 > **CI Status**: All checks configured and passing locally. CI pipeline ready for GitHub integration.
 
@@ -250,8 +250,8 @@ echo $ANDROID_HOME  # Should point to Android SDK location
 
 1. **Clone the repository** (if not already done):
    ```bash
-   git clone https://github.com/berthcare/berthcare-mobile.git
-   cd berthcare-mobile
+   git clone https://github.com/BerthCare/BerthCare.git
+   cd BerthCare/berthcare-mobile
    ```
 
 2. **Install dependencies**:
