@@ -1,7 +1,6 @@
 # BerthCare Mobile
 
-<!-- CI Badge - Uncomment and update URL once repository is pushed to GitHub -->
-<!-- [![CI](https://github.com/YOUR_USERNAME/berthcare-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/berthcare-mobile/actions/workflows/ci.yml) -->
+[![CI](https://github.com/berthcare/berthcare-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/berthcare/berthcare-mobile/actions/workflows/ci.yml)
 
 > **CI Status**: All checks configured and passing locally. CI pipeline ready for GitHub integration.
 
@@ -251,8 +250,7 @@ echo $ANDROID_HOME  # Should point to Android SDK location
 
 1. **Clone the repository** (if not already done):
    ```bash
-   # Replace with your actual repository URL when available
-   git clone https://github.com/YOUR_USERNAME/berthcare-mobile.git
+   git clone https://github.com/berthcare/berthcare-mobile.git
    cd berthcare-mobile
    ```
 
