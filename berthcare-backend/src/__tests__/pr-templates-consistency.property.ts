@@ -10,7 +10,12 @@ type TemplateUnderTest = {
   content: string;
 };
 
-const requiredSections = ['## Description', '## Links to Specs', '## Test Plan', '## Screenshots'] as const;
+const requiredSections = [
+  '## Description',
+  '## Links to Specs',
+  '## Test Plan',
+  '## Screenshots',
+] as const;
 
 const repoTemplates = [
   {
@@ -19,7 +24,15 @@ const repoTemplates = [
   },
   {
     name: 'mobile',
-    path: path.resolve(__dirname, '..', '..', '..', 'berthcare-mobile', '.github', 'PULL_REQUEST_TEMPLATE.md'),
+    path: path.resolve(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'berthcare-mobile',
+      '.github',
+      'PULL_REQUEST_TEMPLATE.md'
+    ),
   },
   {
     name: 'infrastructure',
@@ -35,7 +48,8 @@ const repoTemplates = [
   },
 ] as const;
 
-const loadTemplate = (templatePath: string) => readFileSync(templatePath, 'utf8').replace(/\r\n/g, '\n');
+const loadTemplate = (templatePath: string) =>
+  readFileSync(templatePath, 'utf8').replace(/\r\n/g, '\n');
 
 const extractRequiredSections = (content: string) =>
   requiredSections.filter((section) => new RegExp(`^${section}\\s*$`, 'm').test(content));
@@ -49,9 +63,12 @@ describe('Feature: branch-protection-pr-templates, Property 2: PR Template Consi
   it('ensures each repository template contains the shared required sections', () => {
     fc.assert(
       fc.property(
-        fc.shuffledSubarray(templates, { minLength: templates.length, maxLength: templates.length }),
+        fc.shuffledSubarray(templates, {
+          minLength: templates.length,
+          maxLength: templates.length,
+        }),
         (permutedTemplates) => {
-          permutedTemplates.forEach(({ name, content }) => {
+          permutedTemplates.forEach(({ content }) => {
             requiredSections.forEach((section) => {
               const headingRegex = new RegExp(`^${section}\\s*$`, 'm');
               expect(headingRegex.test(content)).toBe(true);

@@ -1,5 +1,8 @@
 import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-// Note: Prisma 7.x requires adapter configuration for database connections
-// This will be configured when database setup is implemented
-export const prisma = new PrismaClient();
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+
+export const prisma = new PrismaClient({ adapter });

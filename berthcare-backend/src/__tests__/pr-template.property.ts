@@ -5,7 +5,12 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import fc from 'fast-check';
 
-const requiredSections = ['## Description', '## Links to Specs', '## Test Plan', '## Screenshots'] as const;
+const requiredSections = [
+  '## Description',
+  '## Links to Specs',
+  '## Test Plan',
+  '## Screenshots',
+] as const;
 const templatePath = path.resolve(__dirname, '..', '..', '.github', 'PULL_REQUEST_TEMPLATE.md');
 
 describe('Feature: branch-protection-pr-templates, Property 1: PR Template Contains All Required Sections', () => {

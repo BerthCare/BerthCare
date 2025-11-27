@@ -14,12 +14,13 @@ describe('Feature: backend-repository-setup, Property 1: Port Configuration Cons
       fc.property(fc.integer({ min: 1, max: 65535 }), (port) => {
         const app = createApp();
         const dummyServer = { close: jest.fn() } as unknown as Server;
-        const listenMock = jest.spyOn(app, 'listen').mockImplementation(
-          ((listenPort: number, callback?: () => void) => {
-            callback?.();
-            return dummyServer;
-          }) as unknown as typeof app.listen
-        );
+        const listenMock = jest.spyOn(app, 'listen').mockImplementation(((
+          listenPort: number,
+          callback?: () => void
+        ) => {
+          callback?.();
+          return dummyServer;
+        }) as unknown as typeof app.listen);
 
         const logMock = jest.spyOn(console, 'log').mockImplementation(() => {});
 
