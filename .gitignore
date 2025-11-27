@@ -2,6 +2,8 @@
 node_modules/
 .pnp
 .pnp.js
+berthcare-backend/node_modules/
+berthcare-mobile/node_modules/
 
 # Expo
 .expo/
@@ -25,6 +27,14 @@ android/app/debug.keystore
 .env
 .env.local
 .env.*.local
+
+# Backend build output
+berthcare-backend/dist/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
 
 # IDE
 .vscode/
