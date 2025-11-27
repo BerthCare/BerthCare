@@ -8,7 +8,6 @@ on:
 
 env:
   CI: true
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/berthcare_test?schema=public
 
 defaults:
   run:
@@ -94,7 +93,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/berthcare_test?schema=public
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

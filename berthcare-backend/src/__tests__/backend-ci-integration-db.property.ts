@@ -55,7 +55,7 @@ describe('Feature: backend-ci-pipeline, Property 3: Integration Test Database Co
       /--health-interval 10s/,
       /--health-timeout 5s/,
       /--health-retries 5/,
-      /DATABASE_URL:\s*postgresql:\/\/postgres:postgres@localhost:5432\/berthcare_test\?schema=public/,
+      /DATABASE_URL:\s*\${{\s*secrets\.TEST_DATABASE_URL\s*}}/,
       /npm ci/,
       /npx prisma migrate deploy/,
       /npm run test:integration/,

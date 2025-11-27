@@ -129,8 +129,8 @@ jobs:
 
           echo "$container_overrides" > task-definition.json
 
-          if ! jq --arg NAME "$CONTAINER_NAME" '.containerDefinitions[] | select(.name == $NAME) | .healthCheck.command' task-definition.json | grep -q '"CMD-SHELL"'; then
-            echo "ERROR: Health check was not injected into task definition for container $CONTAINER_NAME"
+          if ! jq --arg NAME "$CONTAINER_NAME" '.containerDefinitions[] | select(.name == $NAME) | .healthCheck | has("command") and has("interval")' task-definition.json | grep -q true; then
+            echo "ERROR: Health check structure is invalid"
             exit 1
           fi
 
