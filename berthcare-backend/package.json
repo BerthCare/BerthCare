@@ -15,8 +15,9 @@
     "format": "prettier --write \"src/**/*.{ts,js,json}\" \"eslint.config.js\" \"README.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"eslint.config.js\" \"README.md\"",
     "test": "jest",
-    "test:unit": "jest --testMatch \"**/__tests__/**/*.test.ts\"",
-    "test:integration": "jest --testMatch \"**/__tests__/**/*.integration.ts\"",
+    "test:unit": "jest --runInBand",
+    "test:integration": "jest --testMatch \"**/__tests__/**/*.integration.ts\" --passWithNoTests",
+    "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate"
   },
   "keywords": [],

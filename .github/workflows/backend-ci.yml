@@ -8,6 +8,7 @@ on:
 
 env:
   CI: true
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/berthcare_test?schema=public
 
 defaults:
   run:
@@ -26,6 +27,7 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run lint
 
   typecheck:
@@ -40,6 +42,7 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run type-check
 
   unit-tests:
@@ -54,6 +57,7 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run test:unit
 
   prisma-validate:
@@ -68,6 +72,7 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run prisma:validate
 
   integration-tests:
@@ -98,5 +103,6 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npx prisma migrate deploy
       - run: npm run test:integration
