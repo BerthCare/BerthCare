@@ -25,7 +25,7 @@ describe('Feature: backend-dev-deployment, Property 8: Notification Configuratio
       /if:\s*always\(\)/,
       /slackapi\/slack-github-action@v1\.26\.0/,
       /SLACK_WEBHOOK_URL/,
-      /Status:\s*\*\${{\s*job\.status\s*}}\*/,
+      /Status:\s*\*\${{\s*needs\.deploy\.result\s*}}\*/,
       /Commit:\s*`\${{\s*github\.sha\s*}}`/,
       /Author:\s*\${{\s*github\.actor\s*}}/,
       /actions\/runs\/\${{\s*github\.run_id\s*}}/,
