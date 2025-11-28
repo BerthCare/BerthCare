@@ -30,6 +30,27 @@ describe('Feature: mobile-api-client, Property 2: Authorization header injection
     );
   });
 
+  it('does not add Authorization when token is missing', async () => {
+    await fc.assert(
+      fc.asyncProperty(headersArb, async (callerHeaders) => {
+        const provider: TokenProvider = {
+          getAccessToken: async () => null,
+          refreshToken: async () => null,
+          clearTokens: async () => undefined,
+        };
+
+        const result = await applyAuthHeader({ ...callerHeaders }, provider, {
+          url: 'https://api.example.com/foo',
+          method: 'GET',
+          headers: { ...callerHeaders },
+        });
+
+        expect(result.Authorization).toBeUndefined();
+      }),
+      { numRuns: 20 }
+    );
+  });
+
   it('preserves existing Authorization header from caller', async () => {
     await fc.assert(
       fc.asyncProperty(tokenArb, async (token) => {

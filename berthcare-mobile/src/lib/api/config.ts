@@ -44,11 +44,14 @@ function getUpdatesChannel(): string | undefined {
 }
 
 function resolveEnvironment(envOverride?: string): EnvironmentName {
+  const defaultEnv: EnvironmentName =
+    typeof __DEV__ !== 'undefined' && __DEV__ ? 'development' : 'production';
+
   return (
     normalizeEnvironmentName(envOverride) ??
     normalizeEnvironmentName(process.env.EXPO_PUBLIC_API_ENV) ??
     normalizeEnvironmentName(getUpdatesChannel()) ??
-    (__DEV__ ? 'development' : 'production')
+    defaultEnv
   );
 }
 

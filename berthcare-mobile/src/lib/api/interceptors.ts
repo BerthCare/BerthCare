@@ -21,6 +21,12 @@ const refreshState: {
   queue: [],
 };
 
+// For test isolation only.
+export function __resetRefreshState(): void {
+  refreshState.refreshing = null;
+  refreshState.queue = [];
+}
+
 function logRequest(context?: RequestContext, hasToken?: boolean): void {
   if (!context) {
     return;
@@ -129,11 +135,12 @@ export async function handle401Response<T>(
       tokensCleared = true;
     }
 
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
     const apiError =
       error instanceof ApiError
         ? error
         : new ApiError('AuthenticationError', 'Token refresh failed', {
-            ...(error ? { originalError: error as Error } : {}),
+            originalError: normalizedError,
           });
 
     drainQueueWithError(apiError);

@@ -1,6 +1,6 @@
 import { ApiError, resolveApiErrorType } from './api-error';
 import { applyAuthHeader, handle401Response } from './interceptors';
-import { buildUrl, createDefaultConfig } from './config';
+import { DEFAULT_RETRY_CONFIG, buildUrl, createDefaultConfig } from './config';
 import { executeWithRetry } from './retry';
 import type {
   ApiClientConfig,
@@ -17,7 +17,11 @@ export class ApiClient {
   private tokenProvider: TokenProvider | null = null;
 
   private constructor(config: ApiClientConfig) {
-    this.config = config;
+    this.config = {
+      ...createDefaultConfig(),
+      ...config,
+      retry: { ...DEFAULT_RETRY_CONFIG, ...(config.retry ?? {}) },
+    };
   }
 
   static configure(config: ApiClientConfig): ApiClient {
@@ -70,19 +74,31 @@ export class ApiClient {
     data?: unknown,
     options?: RequestOptions
   ): ApiRequestHandle<ApiResponse<T>> {
-    const controller = new AbortController();
+    const outerController = new AbortController();
     const promise = options?.skipRetry
-      ? this.performRequest<T>(method, path, data, options, controller, true)
+      ? this.performRequest<T>(
+          method,
+          path,
+          data,
+          { ...options, signal: outerController.signal },
+          true
+        )
       : executeWithRetry(
           (attempt) =>
-            this.performRequest<T>(method, path, data, { ...options, attempt }, controller, true),
-          { method, retryConfig: this.config.retry! }
+            this.performRequest<T>(
+              method,
+              path,
+              data,
+              { ...options, attempt, signal: outerController.signal },
+              true
+            ),
+          { method, retryConfig: this.config.retry ?? DEFAULT_RETRY_CONFIG }
         );
 
     return {
       promise,
-      controller,
-      abort: () => controller.abort(new Error('Request aborted by caller')),
+      controller: outerController,
+      abort: () => outerController.abort(new Error('Request aborted by caller')),
     };
   }
 
@@ -91,10 +107,9 @@ export class ApiClient {
     path: string,
     data?: unknown,
     options?: RequestOptions & { attempt?: number },
-    controller?: AbortController,
     allow401Refresh = true
   ): Promise<ApiResponse<T>> {
-    const abortController = controller ?? new AbortController();
+    const abortController = new AbortController();
     const baseUrl = options?.baseUrl ?? this.config.baseUrl;
     const url = buildUrl(baseUrl, path);
     const baseHeaders = {
@@ -134,7 +149,6 @@ export class ApiClient {
             path,
             data,
             { ...options, attempt: (options?.attempt ?? 0) + 1 },
-            abortController,
             false
           )
         );
@@ -155,8 +169,6 @@ export class ApiClient {
       };
     } catch (error) {
       if (abortController.signal.aborted) {
-        clearTimeout(timeoutId);
-        cleanup();
         if (timedOut) {
           throw new ApiError('TimeoutError', 'Request timed out', { isRetryable: true });
         }
@@ -164,8 +176,6 @@ export class ApiClient {
       }
 
       if (ApiError.isApiError(error)) {
-        clearTimeout(timeoutId);
-        cleanup();
         throw error;
       }
       throw new ApiError(resolveApiErrorType({ networkError: true }), 'Network error', {
