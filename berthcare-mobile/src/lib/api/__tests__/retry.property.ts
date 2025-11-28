@@ -72,14 +72,14 @@ describe('Feature: mobile-api-client, Property 6: Idempotent request retry', () 
       fc.asyncProperty(
         fc.constantFrom(...idempotentMethods),
         fc.integer({ min: 1, max: 5 }), // maxRetries
-        (method, maxRetries) =>
-          fc.integer({ min: 1, max: maxRetries + 1 }).map((successAttempt) => ({ method, maxRetries, successAttempt })),
-      ).map(async ({ method, maxRetries, successAttempt }) => {
-        let attempts = 0;
-        const expected = { ok: true };
+        fc.integer({ min: 1, max: 6 }), // success attempt upper bound, will clamp below
+        async (method, maxRetries, rawSuccessAttempt) => {
+          const successAttempt = Math.min(rawSuccessAttempt, maxRetries + 1);
+          let attempts = 0;
+          const expected = { ok: true };
 
-        const result = await executeWithRetry(
-          async () => {
+          const result = await executeWithRetry(
+            async () => {
             attempts += 1;
             if (attempts < successAttempt) {
               throw new ApiError('NetworkError', 'transient');
@@ -95,14 +95,15 @@ describe('Feature: mobile-api-client, Property 6: Idempotent request retry', () 
               backoffMultiplier: 1,
             },
           },
-        );
+          );
 
-        expect(result).toBe(expected);
-        expect(attempts).toBe(successAttempt);
-        if (successAttempt > 1) {
-          expect(attempts).toBeGreaterThan(1);
-        }
-      }),
+          expect(result).toBe(expected);
+          expect(attempts).toBe(successAttempt);
+          if (successAttempt > 1) {
+            expect(attempts).toBeGreaterThan(1);
+          }
+        },
+      ),
       { numRuns: 40 },
     );
   });

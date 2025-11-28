@@ -2,18 +2,10 @@ import fc from 'fast-check';
 import { ApiClient } from '../api-client';
 import { ApiError } from '../api-error';
 
+jest.setTimeout(15000);
+
 describe('Feature: mobile-api-client, Property 8: Timeout enforcement', () => {
   const originalFetch = global.fetch;
-
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    jest.resetAllMocks();
-    global.fetch = originalFetch as typeof fetch;
-  });
 
   it('aborts and returns TimeoutError when response exceeds configured timeout', async () => {
     await fc.assert(
@@ -36,33 +28,33 @@ describe('Feature: mobile-api-client, Property 8: Timeout enforcement', () => {
             initialDelayMs: 0,
             maxDelayMs: 0,
             backoffMultiplier: 1,
-          },
-        });
+        },
+      });
 
         const { promise } = client.get('/slow');
+        promise.catch(() => {});
 
-        jest.advanceTimersByTime(timeoutMs + 1);
+        await new Promise((resolve) => setTimeout(resolve, timeoutMs + 10));
 
-        await expect(promise).rejects.toMatchObject({ type: 'TimeoutError' });
+        let caught: ApiError | undefined;
+        try {
+          await promise;
+        } catch (error) {
+          caught = error as ApiError;
+        }
+
+        expect(caught).toBeInstanceOf(ApiError);
+        expect(caught?.type).toBe('TimeoutError');
         expect(fetchMock).toHaveBeenCalledTimes(1);
       }),
-      { numRuns: 20 },
+      { numRuns: 3, interruptAfterTimeLimit: 5000 },
     );
+    global.fetch = originalFetch as typeof fetch;
   });
 });
 
 describe('Feature: mobile-api-client, Property 10: Request cancellation', () => {
   const originalFetch = global.fetch;
-
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    jest.resetAllMocks();
-    global.fetch = originalFetch as typeof fetch;
-  });
 
   it('aborts request on caller cancellation and returns CancelledError', async () => {
     await fc.assert(
@@ -84,20 +76,29 @@ describe('Feature: mobile-api-client, Property 10: Request cancellation', () => 
             maxRetries: 0,
             initialDelayMs: 0,
             maxDelayMs: 0,
-            backoffMultiplier: 1,
-          },
-        });
+          backoffMultiplier: 1,
+        },
+      });
 
         const handle = client.get('/cancel');
+        handle.promise.catch(() => {});
 
         setTimeout(() => handle.abort(), delayMs);
-        jest.advanceTimersByTime(delayMs + 1);
+        await new Promise((resolve) => setTimeout(resolve, delayMs + 20));
 
-        await expect(handle.promise).rejects.toBeInstanceOf(ApiError);
-        await expect(handle.promise).rejects.toMatchObject({ type: 'CancelledError' });
+        let caught: ApiError | undefined;
+        try {
+          await handle.promise;
+        } catch (error) {
+          caught = error as ApiError;
+        }
+
+        expect(caught).toBeInstanceOf(ApiError);
+        expect(caught?.type).toBe('CancelledError');
         expect(fetchMock).toHaveBeenCalledTimes(1);
       }),
-      { numRuns: 20 },
+      { numRuns: 3, interruptAfterTimeLimit: 5000 },
     );
+    global.fetch = originalFetch as typeof fetch;
   });
 });

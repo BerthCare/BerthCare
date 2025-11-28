@@ -93,6 +93,8 @@ export async function handle401Response<T>(tokenProvider: TokenProvider | null, 
     throw new ApiError('AuthenticationError', 'Unauthorized (no token provider)');
   }
 
+  let tokensCleared = false;
+
   if (refreshState.refreshing) {
     return new Promise<T>((resolve, reject) => {
       refreshState.queue.push({ resolve, reject, retry: retryFn });
@@ -103,6 +105,7 @@ export async function handle401Response<T>(tokenProvider: TokenProvider | null, 
     const refreshed = await refreshAccessToken(tokenProvider);
     if (!refreshed) {
       await tokenProvider.clearTokens();
+      tokensCleared = true;
       const error = new ApiError('AuthenticationError', 'Token refresh failed: missing token');
       drainQueueWithError(error);
       throw error;
@@ -112,7 +115,10 @@ export async function handle401Response<T>(tokenProvider: TokenProvider | null, 
     await flushQueue();
     return result;
   } catch (error) {
-    await tokenProvider.clearTokens();
+    if (!tokensCleared) {
+      await tokenProvider.clearTokens();
+      tokensCleared = true;
+    }
 
     const apiError =
       error instanceof ApiError
