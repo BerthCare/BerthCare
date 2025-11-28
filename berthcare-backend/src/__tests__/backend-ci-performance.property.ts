@@ -3,7 +3,6 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import fc from 'fast-check';
 
 const workflowPath = path.resolve(
   __dirname,
@@ -27,6 +26,9 @@ const extractJobsSection = (content: string) => {
 };
 
 const extractJobBlock = (jobsSection: string, jobId: string) => {
+  if (!/^[a-zA-Z0-9_-]+$/.test(jobId)) {
+    throw new Error(`Invalid jobId: ${jobId}`);
+  }
   const jobRegex = new RegExp(
     `^ {2}${jobId}:\\n([\\s\\S]*?)(?=^ {2}(?! )[a-zA-Z0-9_-]+:|(?![\\s\\S]))`,
     'm'
@@ -92,26 +94,15 @@ describe('Feature: backend-ci-pipeline, Property 4: Performance Optimizations', 
       },
     ];
 
-    fc.assert(
-      fc.property(
-        fc.shuffledSubarray(performanceExpectations, {
-          minLength: performanceExpectations.length,
-          maxLength: performanceExpectations.length,
-        }),
-        (expectedJobs: { id: string; timeoutPattern: RegExp; cachePatterns: RegExp[] }[]) => {
-          expectedJobs.forEach(({ id, timeoutPattern, cachePatterns }) => {
-            const jobBlock = extractJobBlock(jobsSection, id);
-            expect(timeoutPattern.test(jobBlock)).toBe(true);
+    performanceExpectations.forEach(({ id, timeoutPattern, cachePatterns }) => {
+      const jobBlock = extractJobBlock(jobsSection, id);
+      expect(timeoutPattern.test(jobBlock)).toBe(true);
 
-            cachePatterns.forEach((cachePattern: RegExp) => {
-              expect(cachePattern.test(jobBlock)).toBe(true);
-            });
+      cachePatterns.forEach((cachePattern: RegExp) => {
+        expect(cachePattern.test(jobBlock)).toBe(true);
+      });
 
-            expect(/^\s{4}needs:/m.test(jobBlock)).toBe(false);
-          });
-        }
-      ),
-      { numRuns: 50 }
-    );
+      expect(/^\s{4}needs:/m.test(jobBlock)).toBe(false);
+    });
   });
 });

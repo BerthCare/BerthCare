@@ -18,6 +18,8 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,12 +28,15 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run lint
 
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,12 +45,15 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run type-check
 
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,12 +62,15 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run test:unit
 
   prisma-validate:
     name: Prisma Validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -68,6 +79,7 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npm run prisma:validate
 
   integration-tests:
@@ -89,7 +101,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/berthcare_test?schema=public
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -98,5 +110,6 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-backend/package-lock.json
       - run: npm ci
+      - run: npm run prisma:generate
       - run: npx prisma migrate deploy
       - run: npm run test:integration

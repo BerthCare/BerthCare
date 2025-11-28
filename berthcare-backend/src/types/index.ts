@@ -8,6 +8,8 @@
 export interface HealthResponse {
   status: 'healthy' | 'unhealthy';
   timestamp: string;
+  uptimeSeconds: number;
+  version: string;
 }
 
 /**

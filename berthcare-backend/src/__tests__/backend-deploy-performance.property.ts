@@ -1,5 +1,5 @@
-// **Feature: backend-ci-pipeline, Property 3: Integration Test Database Configuration**
-// **Validates: Requirements 5.1, 5.2, 5.3**
+// **Feature: backend-dev-deployment, Property 7: Performance Optimizations**
+// **Validates: Requirements 6.2, 6.3, 6.4**
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -11,7 +11,7 @@ const workflowPath = path.resolve(
   '..',
   '.github',
   'workflows',
-  'backend-ci.yml'
+  'backend-deploy-dev.yml'
 );
 
 const normalizeNewlines = (content: string) => content.replace(/\r\n/g, '\n');
@@ -26,6 +26,9 @@ const extractJobsSection = (content: string) => {
 };
 
 const extractJobBlock = (jobsSection: string, jobId: string) => {
+  if (!/^[a-zA-Z0-9_-]+$/.test(jobId)) {
+    throw new Error(`Invalid jobId: ${jobId}`);
+  }
   const jobRegex = new RegExp(
     `^ {2}${jobId}:\\n([\\s\\S]*?)(?=^ {2}(?! )[a-zA-Z0-9_-]+:|(?![\\s\\S]))`,
     'm'
@@ -38,31 +41,26 @@ const extractJobBlock = (jobsSection: string, jobId: string) => {
   return match[1];
 };
 
-describe('Feature: backend-ci-pipeline, Property 3: Integration Test Database Configuration', () => {
+describe('Feature: backend-dev-deployment, Property 7: Performance Optimizations', () => {
   const workflowContent = normalizeNewlines(readFileSync(workflowPath, 'utf8'));
 
-  it('configures postgres service, DATABASE_URL, migrations, and integration test command', () => {
+  it('enables build cache, timeboxes jobs, and allows build to run independently', () => {
     const jobsSection = extractJobsSection(workflowContent);
-    const integrationJob = extractJobBlock(jobsSection, 'integration-tests');
 
-    const requiredPatterns = [
-      /services:\s*\n\s{6}postgres:/,
-      /image:\s*postgres:16/,
-      /POSTGRES_USER:\s*postgres/,
-      /POSTGRES_PASSWORD:\s*postgres/,
-      /POSTGRES_DB:\s*berthcare_test/,
-      /--health-cmd "pg_isready -U postgres"/,
-      /--health-interval 10s/,
-      /--health-timeout 5s/,
-      /--health-retries 5/,
-      /DATABASE_URL:\s*\${{\s*secrets\.TEST_DATABASE_URL\s*}}/,
-      /npm ci/,
-      /npx prisma migrate deploy/,
-      /npm run test:integration/,
+    const buildJob = extractJobBlock(jobsSection, 'build-and-push');
+    const deployJob = extractJobBlock(jobsSection, 'deploy');
+
+    const buildExpectations = [
+      /timeout-minutes:\s*25/,
+      /--cache-from\s+type=gha/,
+      /--cache-to\s+type=gha,mode=max/,
     ];
 
-    requiredPatterns.forEach((pattern) => {
-      expect(pattern.test(integrationJob)).toBe(true);
+    buildExpectations.forEach((pattern) => {
+      expect(pattern.test(buildJob)).toBe(true);
     });
+
+    expect(/^\s{4}needs:/m.test(buildJob)).toBe(false);
+    expect(/timeout-minutes:\s*20/.test(deployJob)).toBe(true);
   });
 });

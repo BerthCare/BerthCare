@@ -149,3 +149,33 @@ variable "internal_zone_name" {
   description = "Private Route 53 zone for internal DNS."
   default     = "berthcare.internal"
 }
+
+variable "ecr_repository_name" {
+  type        = string
+  description = "Name of the ECR repository for the backend image."
+  default     = "berthcare-backend"
+}
+
+variable "ecs_service_name" {
+  type        = string
+  description = "ECS service name for the backend deployment."
+  default     = "berthcare-dev-backend"
+}
+
+variable "github_org" {
+  type        = string
+  description = "GitHub organization that owns the repository."
+  default     = "BerthCare"
+}
+
+variable "github_repo" {
+  type        = string
+  description = "GitHub repository name for the deployment workflow."
+  default     = "BerthCare"
+}
+
+variable "github_oidc_subjects" {
+  type        = list(string)
+  description = "Allowed GitHub OIDC subjects for assuming the deploy role. Defaults to the GitHub environment named after the current Terraform environment (e.g., dev)."
+  default     = []
+}
