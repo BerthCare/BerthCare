@@ -8,15 +8,25 @@ export type ApiErrorType =
   | 'ClientError'
   | 'CancelledError';
 
+export type EnvironmentName = 'development' | 'staging' | 'production';
+
+export interface EnvironmentUrls {
+  development: string;
+  staging: string;
+  production: string;
+}
+
+export interface RetryConfig {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  backoffMultiplier: number;
+}
+
 export interface ApiClientConfig {
   baseUrl: string;
   timeoutMs?: number;
-  retry?: {
-    maxRetries: number;
-    initialDelayMs: number;
-    maxDelayMs: number;
-    backoffMultiplier: number;
-  };
+  retry?: RetryConfig;
 }
 
 export interface RequestOptions {
