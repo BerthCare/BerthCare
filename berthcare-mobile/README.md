@@ -59,6 +59,64 @@ src/
 ```
 Naming stays simple (folder implies context), and path aliases are provided via `tsconfig.json` (`@/`, `@screens/`, `@ui/`, `@data/`, `@navigation/`, `@types/`, `@assets/`).
 
+## Database Architecture (Local-First with Encryption)
+- **Engine:** `react-native-quick-sqlite` with SQLCipher enabled; AES-256 at rest.
+- **Key management:** 256-bit key generated via `crypto.getRandomValues` and stored only in secure storage (`expo-secure-store`, Keychain/Keystore). Key is never logged or bundled.
+- **Initialization flow:** `DatabaseService.initialize()` → open DB → apply `PRAGMA key = ?` → create schema + indexes → run migrations → ready flag set.
+- **Schema:** Six tables (schedules, clients, visits, photos, sync_queue, audit_logs) with indexes for common queries. See `.kiro/specs/sqlite-encryption-setup/design.md` for diagrams and properties.
+- **Repositories:** Typed repositories per entity for CRUD + domain queries; base repository handles JSON serialization/deserialization of complex fields.
+- **Transactions:** `databaseService.transaction(async () => { ... })` delegates to quick-sqlite for atomic operations.
+
+### Using the DatabaseService
+```ts
+import { databaseService } from '@data/db';
+
+async function bootDatabase() {
+  await databaseService.initialize();
+}
+
+async function loadToday(caregiverId: string, dateISO: string) {
+  const schedules = await databaseService.schedules.findByDateAndCaregiver(dateISO, caregiverId);
+  return schedules;
+}
+
+async function logAudit(entityType: string, entityId: string, actorId: string, payload: unknown) {
+  await databaseService.auditLogs.create({
+    // Note: crypto.randomUUID is not available in React Native by default. See guidance below.
+    id: crypto.randomUUID(),
+    entityType,
+    entityId,
+    action: 'updated',
+    actorId,
+    actorType: 'system',
+    before: null,
+    after: JSON.stringify(payload),
+    deviceId: 'mobile',
+    createdAt: new Date().toISOString(),
+  });
+}
+```
+
+### Encryption Notes
+- The encryption key is fetched or created on first launch via `getOrCreateEncryptionKey` and stored securely; database files remain unreadable without it.
+- Initialization errors (e.g., wrong key) are logged and block further data access until resolved.
+- Tests include properties for encryption unreadability, schema idempotence, and repository CRUD guarantees.
+
+### UUID generation in React Native/Expo
+`crypto.randomUUID()` is not available in Hermes/JSC by default. Use one of these options:
+1) **Expo SDK with `expo-crypto`:** If your SDK version supports `expo-crypto`'s `randomUUID()`, call that instead.
+2) **Polyfill + uuid package (works across RN/Expo):**
+   ```bash
+   npm install react-native-get-random-values uuid
+   ```
+   ```ts
+   import 'react-native-get-random-values';
+   import { v4 as uuidv4 } from 'uuid';
+
+   const id = uuidv4();
+   ```
+Ensure the polyfill import (`react-native-get-random-values`) runs before any UUID generation.
+
 ## Development Workflow
 - **Fast Refresh:** Enabled by default. If it stops reloading, press `r` in Metro or `Cmd+R` / `RR` in simulators.
 - **Debugging:** Open dev menu with `Cmd+D` (iOS) or `Cmd+M` / `Ctrl+M` (Android). Use Chrome DevTools or React Native Debugger.
