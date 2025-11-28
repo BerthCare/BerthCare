@@ -5,7 +5,7 @@ import type { Caregiver, Prisma } from '../generated/prisma/client';
 // **Feature: prisma-database-schema, Property 5: Soft Delete Data Preservation**
 // **Validates: Requirements 4.4**
 
-type CaregiverCreateInput = Prisma.CaregiverCreateInput;
+type CaregiverCreateInput = Prisma.CaregiverUncheckedCreateInput;
 
 class MockCaregiverDelegate {
   private store = new Map<string, Caregiver>();

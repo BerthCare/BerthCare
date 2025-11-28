@@ -1,5 +1,7 @@
-import { PrismaClient, Prisma, Visit } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, Visit } from '../generated/prisma/client.js';
+import { BaseRepository } from './base.js';
+import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.VisitCreateInput;
 type UpdateData = Prisma.VisitUpdateInput;
@@ -73,7 +75,5 @@ function mergeJsonObjects(current: Prisma.JsonObject, patch: Prisma.JsonObject):
 
 const isJsonObject = (value: unknown): value is Prisma.JsonObject =>
   Boolean(value && typeof value === 'object' && !Array.isArray(value));
-
-const prisma = new PrismaClient();
 
 export const visitRepository = new VisitRepository(prisma);

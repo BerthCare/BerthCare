@@ -1,5 +1,7 @@
-import { PrismaClient, Prisma, Alert } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, Alert } from '../generated/prisma/client.js';
+import { BaseRepository } from './base.js';
+import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.AlertCreateInput;
 type UpdateData = Prisma.AlertUpdateInput;
@@ -33,7 +35,5 @@ export class AlertRepository
     });
   }
 }
-
-const prisma = new PrismaClient();
 
 export const alertRepository = new AlertRepository(prisma);

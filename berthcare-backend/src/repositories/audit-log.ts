@@ -1,5 +1,7 @@
-import { PrismaClient, Prisma, AuditLog } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, AuditLog } from '../generated/prisma/client.js';
+import { BaseRepository } from './base.js';
+import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.AuditLogCreateInput;
 type UpdateData = Prisma.AuditLogUpdateInput;
@@ -30,7 +32,5 @@ export class AuditLogRepository
     await this.prisma.auditLog.delete({ where: { id } });
   }
 }
-
-const prisma = new PrismaClient();
 
 export const auditLogRepository = new AuditLogRepository(prisma);

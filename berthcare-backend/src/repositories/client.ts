@@ -1,5 +1,7 @@
-import { PrismaClient, Prisma, Client } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, Client } from '../generated/prisma/client.js';
+import { BaseRepository } from './base.js';
+import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.ClientCreateInput;
 type UpdateData = Prisma.ClientUpdateInput;
@@ -33,7 +35,5 @@ export class ClientRepository
     });
   }
 }
-
-const prisma = new PrismaClient();
 
 export const clientRepository = new ClientRepository(prisma);

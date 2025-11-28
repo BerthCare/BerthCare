@@ -108,6 +108,7 @@ describe('Feature: prisma-database-schema, Property 6: JSONB Partial Update Merg
           syncVersion: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
+          deletedAt: null,
         };
 
         prisma.visit.seed(baseVisit);

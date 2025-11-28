@@ -5,8 +5,8 @@ import type { Caregiver, Prisma } from '../generated/prisma/client';
 // **Feature: prisma-database-schema, Property 3: CRUD Round-Trip Consistency**
 // **Validates: Requirements 4.1, 4.2**
 
-type CaregiverCreateInput = Prisma.CaregiverCreateInput;
-type CaregiverUpdateInput = Prisma.CaregiverUpdateInput;
+type CaregiverCreateInput = Prisma.CaregiverUncheckedCreateInput;
+type CaregiverUpdateInput = Prisma.CaregiverUncheckedUpdateInput;
 
 class MockCaregiverDelegate {
   private store = new Map<string, Caregiver>();

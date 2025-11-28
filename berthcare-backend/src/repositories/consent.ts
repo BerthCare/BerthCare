@@ -1,5 +1,7 @@
-import { PrismaClient, Prisma, Consent } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, Consent } from '../generated/prisma/client.js';
+import { BaseRepository } from './base.js';
+import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.ConsentCreateInput;
 type UpdateData = Prisma.ConsentUpdateInput;
@@ -33,7 +35,5 @@ export class ConsentRepository
     });
   }
 }
-
-const prisma = new PrismaClient();
 
 export const consentRepository = new ConsentRepository(prisma);

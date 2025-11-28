@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma, Photo } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import { BaseRepository } from './base.js';
 import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.PhotoCreateInput;

@@ -1,5 +1,7 @@
-import { PrismaClient, Prisma, Caregiver } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.repository.js';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, Caregiver } from '../generated/prisma/client.js';
+import { BaseRepository } from './base.js';
+import { prisma } from '../models/index.js';
 
 type CreateData = Prisma.CaregiverCreateInput;
 type UpdateData = Prisma.CaregiverUpdateInput;
@@ -38,7 +40,4 @@ export class CaregiverRepository
   }
 }
 
-const prisma = new PrismaClient();
-
 export const caregiverRepository = new CaregiverRepository(prisma);
-export type { CaregiverRepository };
