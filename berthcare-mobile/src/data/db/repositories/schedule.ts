@@ -1,32 +1,22 @@
 import { getDatabase, type DatabaseHandle } from '../manager';
 import { BaseRepository } from './base';
 import type { CreateScheduleInput, Schedule, UpdateScheduleInput } from '../types';
-
-type Row = Record<string, unknown>;
-type QueryResultRows = { rows?: { _array?: Row[] } | Row[] };
-
-const rowsFromResult = (result: QueryResultRows): Row[] => {
-  const rows = result?.rows;
-  if (Array.isArray(rows)) {
-    return rows as Row[];
-  }
-  if (rows && '_array' in rows && Array.isArray(rows._array)) {
-    return rows._array as Row[];
-  }
-  return [];
-};
+import { rowsFromResult } from './utils';
 
 export class ScheduleRepository extends BaseRepository<
   Schedule,
   CreateScheduleInput,
   UpdateScheduleInput
 > {
+  private static readonly ENTITY_TYPE = 'schedule';
+
   constructor(dbProvider: () => DatabaseHandle = getDatabase) {
     super('schedules', {}, dbProvider);
   }
 
   async create(data: CreateScheduleInput): Promise<Schedule> {
     const now = new Date().toISOString();
+    // Defaults can be overridden by provided data (useful for imports/migrations/tests).
     const record: CreateScheduleInput = {
       status: 'scheduled',
       completedAt: null,
@@ -48,7 +38,7 @@ export class ScheduleRepository extends BaseRepository<
       `SELECT s.* FROM schedules s
        INNER JOIN sync_queue q ON q.entityId = s.id
        WHERE q.entityType = ? AND q.status = ?;`,
-      ['schedule', 'pending']
+      [ScheduleRepository.ENTITY_TYPE, 'pending']
     );
 
     const rows = rowsFromResult(result);

@@ -29,11 +29,7 @@ export type CreateScheduleInput = {
   updatedAt?: ISODateTimeString;
 };
 
-export type UpdateScheduleInput = Partial<
-  Omit<Schedule, 'id' | 'createdAt' | 'updatedAt' | 'completedAt' | 'status'>
-> & {
-  status?: ScheduleStatus;
-  completedAt?: ISODateTimeString | null;
+export type UpdateScheduleInput = Partial<Omit<Schedule, 'id' | 'createdAt' | 'updatedAt'>> & {
   updatedAt?: ISODateTimeString;
 };
 
