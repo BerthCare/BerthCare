@@ -2,7 +2,12 @@ import fc from 'fast-check';
 import { ApiError, resolveApiErrorType } from '../api-error';
 import type { ApiErrorType } from '../types';
 
-const retryableTypes: ApiErrorType[] = ['NetworkError', 'TimeoutError', 'AuthenticationError', 'ServerError'];
+const retryableTypes: ApiErrorType[] = [
+  'NetworkError',
+  'TimeoutError',
+  'AuthenticationError',
+  'ServerError',
+];
 const nonRetryableTypes: ApiErrorType[] = ['ClientError', 'CancelledError'];
 
 describe('Feature: mobile-api-client, Property 9: Error type categorization', () => {
@@ -47,9 +52,9 @@ describe('Feature: mobile-api-client, Property 9: Error type categorization', ()
           }
 
           expect(type).toBe('NetworkError');
-        },
+        }
       ),
-      { numRuns: 150 },
+      { numRuns: 150 }
     );
   });
 
@@ -59,7 +64,7 @@ describe('Feature: mobile-api-client, Property 9: Error type categorization', ()
         const error = new ApiError(type, 'message');
         expect(error.isRetryable).toBe(true);
       }),
-      { numRuns: retryableTypes.length },
+      { numRuns: retryableTypes.length }
     );
   });
 
@@ -69,7 +74,7 @@ describe('Feature: mobile-api-client, Property 9: Error type categorization', ()
         const error = new ApiError(type, 'message');
         expect(error.isRetryable).toBe(false);
       }),
-      { numRuns: nonRetryableTypes.length },
+      { numRuns: nonRetryableTypes.length }
     );
   });
 
@@ -79,7 +84,7 @@ describe('Feature: mobile-api-client, Property 9: Error type categorization', ()
         const error = new ApiError('ClientError', 'message', { isRetryable: flag });
         expect(error.isRetryable).toBe(flag);
       }),
-      { numRuns: 20 },
+      { numRuns: 20 }
     );
   });
 

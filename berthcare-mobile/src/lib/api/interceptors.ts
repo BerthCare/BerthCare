@@ -29,14 +29,16 @@ function logRequest(context?: RequestContext, hasToken?: boolean): void {
   const headerKeys = Object.keys(context.headers || {});
   const tokenState = hasToken ? 'token:yes' : 'token:no';
   // Debug-level request logging (no payloads or tokens).
-  // eslint-disable-next-line no-console
-  console.debug(`[api] ${context.method.toUpperCase()} ${context.url} headers=${headerKeys.join(',')} ${tokenState}`);
+
+  console.debug(
+    `[api] ${context.method.toUpperCase()} ${context.url} headers=${headerKeys.join(',')} ${tokenState}`
+  );
 }
 
 export async function applyAuthHeader(
   headers: Record<string, string>,
   tokenProvider?: TokenProvider,
-  context?: RequestContext,
+  context?: RequestContext
 ): Promise<Record<string, string>> {
   if (!tokenProvider) {
     logRequest(context, false);
@@ -88,7 +90,10 @@ async function flushQueue(): Promise<void> {
   }
 }
 
-export async function handle401Response<T>(tokenProvider: TokenProvider | null, retryFn: () => Promise<T>): Promise<T> {
+export async function handle401Response<T>(
+  tokenProvider: TokenProvider | null,
+  retryFn: () => Promise<T>
+): Promise<T> {
   if (!tokenProvider) {
     throw new ApiError('AuthenticationError', 'Unauthorized (no token provider)');
   }
@@ -97,7 +102,11 @@ export async function handle401Response<T>(tokenProvider: TokenProvider | null, 
 
   if (refreshState.refreshing) {
     return new Promise<T>((resolve, reject) => {
-      refreshState.queue.push({ resolve, reject, retry: retryFn });
+      refreshState.queue.push({
+        resolve: resolve as (value: unknown) => void,
+        reject,
+        retry: retryFn as () => Promise<unknown>,
+      });
     });
   }
 
@@ -123,7 +132,9 @@ export async function handle401Response<T>(tokenProvider: TokenProvider | null, 
     const apiError =
       error instanceof ApiError
         ? error
-        : new ApiError('AuthenticationError', 'Token refresh failed', { originalError: error as Error | undefined });
+        : new ApiError('AuthenticationError', 'Token refresh failed', {
+            ...(error ? { originalError: error as Error } : {}),
+          });
 
     drainQueueWithError(apiError);
     throw apiError;

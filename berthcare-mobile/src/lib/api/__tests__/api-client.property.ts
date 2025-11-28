@@ -28,8 +28,8 @@ describe('Feature: mobile-api-client, Property 8: Timeout enforcement', () => {
             initialDelayMs: 0,
             maxDelayMs: 0,
             backoffMultiplier: 1,
-        },
-      });
+          },
+        });
 
         const { promise } = client.get('/slow');
         promise.catch(() => {});
@@ -47,7 +47,7 @@ describe('Feature: mobile-api-client, Property 8: Timeout enforcement', () => {
         expect(caught?.type).toBe('TimeoutError');
         expect(fetchMock).toHaveBeenCalledTimes(1);
       }),
-      { numRuns: 3, interruptAfterTimeLimit: 5000 },
+      { numRuns: 3, interruptAfterTimeLimit: 5000 }
     );
     global.fetch = originalFetch as typeof fetch;
   });
@@ -76,9 +76,9 @@ describe('Feature: mobile-api-client, Property 10: Request cancellation', () => 
             maxRetries: 0,
             initialDelayMs: 0,
             maxDelayMs: 0,
-          backoffMultiplier: 1,
-        },
-      });
+            backoffMultiplier: 1,
+          },
+        });
 
         const handle = client.get('/cancel');
         handle.promise.catch(() => {});
@@ -97,7 +97,7 @@ describe('Feature: mobile-api-client, Property 10: Request cancellation', () => 
         expect(caught?.type).toBe('CancelledError');
         expect(fetchMock).toHaveBeenCalledTimes(1);
       }),
-      { numRuns: 3, interruptAfterTimeLimit: 5000 },
+      { numRuns: 3, interruptAfterTimeLimit: 5000 }
     );
     global.fetch = originalFetch as typeof fetch;
   });

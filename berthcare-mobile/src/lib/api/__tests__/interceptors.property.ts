@@ -26,7 +26,7 @@ describe('Feature: mobile-api-client, Property 2: Authorization header injection
 
         expect(result.Authorization).toBe(`Bearer ${token}`);
       }),
-      { numRuns: 30 },
+      { numRuns: 30 }
     );
   });
 
@@ -48,7 +48,7 @@ describe('Feature: mobile-api-client, Property 2: Authorization header injection
 
         expect(result.Authorization).toBe(callerAuth);
       }),
-      { numRuns: 30 },
+      { numRuns: 30 }
     );
   });
 
@@ -74,7 +74,7 @@ describe('Feature: mobile-api-client, Property 2: Authorization header injection
 
         expect(result.Authorization).toBe(`Bearer ${token}`);
       }),
-      { numRuns: 30 },
+      { numRuns: 30 }
     );
   });
 });

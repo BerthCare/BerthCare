@@ -32,7 +32,7 @@ describe('Feature: mobile-api-client, Property 1: Base URL prepending consistenc
 
         expect(result).toBe(expected);
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 });

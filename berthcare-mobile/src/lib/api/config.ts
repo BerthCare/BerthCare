@@ -36,7 +36,8 @@ function normalizeEnvironmentName(value?: string | null): EnvironmentName | unde
 
 function getUpdatesChannel(): string | undefined {
   try {
-    return Updates.channel;
+    const channel = Updates.channel;
+    return channel ?? undefined;
   } catch {
     return undefined;
   }
@@ -77,11 +78,21 @@ export function createDefaultConfig(options?: {
   timeoutMs?: number;
   retry?: Partial<RetryConfig>;
 }): ApiClientConfig {
-  const baseUrl = options?.baseUrl ?? getBaseUrl({
-    baseUrlOverride: options?.baseUrl,
-    envOverride: options?.envOverride,
-    environmentUrls: options?.environmentUrls,
-  });
+  const baseUrlOptions = (() => {
+    const config: {
+      envOverride?: string;
+      environmentUrls?: Partial<EnvironmentUrls>;
+    } = {};
+    if (options?.envOverride) {
+      config.envOverride = options.envOverride;
+    }
+    if (options?.environmentUrls) {
+      config.environmentUrls = options.environmentUrls;
+    }
+    return Object.keys(config).length > 0 ? config : undefined;
+  })();
+
+  const baseUrl = options?.baseUrl ?? getBaseUrl(baseUrlOptions);
 
   const retry: RetryConfig | undefined = options?.retry
     ? { ...DEFAULT_RETRY_CONFIG, ...options.retry }

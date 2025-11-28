@@ -47,8 +47,8 @@ export function resolveApiErrorType(input: ErrorClassificationInput): ApiErrorTy
 
 export class ApiError extends Error {
   readonly type: ApiErrorType;
-  readonly status?: number;
-  readonly originalError?: Error;
+  readonly status: number | undefined;
+  readonly originalError: Error | undefined;
   readonly isRetryable: boolean;
 
   constructor(
@@ -65,18 +65,27 @@ export class ApiError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
 
     this.type = type;
-    this.status = options?.status;
-    this.originalError = options?.originalError;
+    this.status = options?.status ?? undefined;
+    this.originalError = options?.originalError ?? undefined;
     this.isRetryable = options?.isRetryable ?? isTypeRetryable(type);
   }
 
-  static from(message: string, input: ErrorClassificationInput & { originalError?: Error; isRetryable?: boolean }): ApiError {
+  static from(
+    message: string,
+    input: ErrorClassificationInput & { originalError?: Error; isRetryable?: boolean },
+  ): ApiError {
     const type = resolveApiErrorType(input);
-    return new ApiError(type, message, {
-      status: input.status,
-      originalError: input.originalError,
-      isRetryable: input.isRetryable,
-    });
+    const options: { status?: number; originalError?: Error; isRetryable?: boolean } = {};
+    if (input.status !== undefined) {
+      options.status = input.status;
+    }
+    if (input.originalError !== undefined) {
+      options.originalError = input.originalError;
+    }
+    if (input.isRetryable !== undefined) {
+      options.isRetryable = input.isRetryable;
+    }
+    return new ApiError(type, message, options);
   }
 
   static isApiError(error: unknown): error is ApiError {

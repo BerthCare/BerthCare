@@ -16,11 +16,17 @@ export function isIdempotentMethod(method: HttpMethod): boolean {
 }
 
 export function calculateBackoffDelay(attempt: number, config: RetryConfig): number {
-  const delay = config.initialDelayMs * Math.pow(config.backoffMultiplier, Math.max(0, attempt - 1));
+  const delay =
+    config.initialDelayMs * Math.pow(config.backoffMultiplier, Math.max(0, attempt - 1));
   return Math.min(delay, config.maxDelayMs);
 }
 
-export function shouldRetry(error: ApiError, method: HttpMethod, attempt: number, config: RetryConfig): RetryDecision {
+export function shouldRetry(
+  error: ApiError,
+  method: HttpMethod,
+  attempt: number,
+  config: RetryConfig
+): RetryDecision {
   if (attempt > config.maxRetries) {
     return { shouldRetry: false, delayMs: 0 };
   }
@@ -41,7 +47,10 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function executeWithRetry<T>(fn: (attempt: number) => Promise<T>, options: ExecuteWithRetryOptions): Promise<T> {
+export async function executeWithRetry<T>(
+  fn: (attempt: number) => Promise<T>,
+  options: ExecuteWithRetryOptions
+): Promise<T> {
   let attempt = 0;
   const { method, retryConfig } = options;
 

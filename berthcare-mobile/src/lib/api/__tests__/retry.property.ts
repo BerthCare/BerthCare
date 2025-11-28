@@ -21,13 +21,13 @@ describe('Feature: mobile-api-client, Property 4: Exponential backoff timing', (
 
           const expected = Math.min(
             initialDelayMs * Math.pow(backoffMultiplier, attempt - 1),
-            maxDelayMs,
+            maxDelayMs
           );
 
           expect(delay).toBe(expected);
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 });
@@ -53,13 +53,13 @@ describe('Feature: mobile-api-client, Property 5: Retry count limit', () => {
                 maxDelayMs: 0,
                 backoffMultiplier: 1,
               },
-            },
-          ),
+            }
+          )
         ).rejects.toBe(apiError);
 
         expect(attempts).toBe(maxRetries + 1);
       }),
-      { numRuns: 30 },
+      { numRuns: 30 }
     );
   });
 });
@@ -80,21 +80,21 @@ describe('Feature: mobile-api-client, Property 6: Idempotent request retry', () 
 
           const result = await executeWithRetry(
             async () => {
-            attempts += 1;
-            if (attempts < successAttempt) {
-              throw new ApiError('NetworkError', 'transient');
-            }
-            return expected;
-          },
-          {
-            method,
-            retryConfig: {
-              maxRetries,
-              initialDelayMs: 0,
-              maxDelayMs: 0,
-              backoffMultiplier: 1,
+              attempts += 1;
+              if (attempts < successAttempt) {
+                throw new ApiError('NetworkError', 'transient');
+              }
+              return expected;
             },
-          },
+            {
+              method,
+              retryConfig: {
+                maxRetries,
+                initialDelayMs: 0,
+                maxDelayMs: 0,
+                backoffMultiplier: 1,
+              },
+            }
           );
 
           expect(result).toBe(expected);
@@ -102,9 +102,9 @@ describe('Feature: mobile-api-client, Property 6: Idempotent request retry', () 
           if (successAttempt > 1) {
             expect(attempts).toBeGreaterThan(1);
           }
-        },
+        }
       ),
-      { numRuns: 40 },
+      { numRuns: 40 }
     );
   });
 });
@@ -132,13 +132,13 @@ describe('Feature: mobile-api-client, Property 7: Non-idempotent request no-retr
                 maxDelayMs: 0,
                 backoffMultiplier: 1,
               },
-            },
-          ),
+            }
+          )
         ).rejects.toBe(apiError);
 
         expect(attempts).toBe(1);
       }),
-      { numRuns: 10 },
+      { numRuns: 10 }
     );
   });
 });
