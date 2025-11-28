@@ -5,10 +5,221 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum CaregiverRole {
+  caregiver
+  coordinator
+}
+
+enum ScheduleStatus {
+  scheduled
+  completed
+  cancelled
+}
+
+enum SyncStatus {
+  local
+  syncing
+  synced
+  conflict
+}
+
+enum PhotoSyncStatus {
+  local
+  uploading
+  synced
+  failed
+}
+
+enum ActorType {
+  caregiver
+  coordinator
+  system
+}
+
+enum ConsentType {
+  photo
+  documentation
+  location
+}
+
+model Caregiver {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  name           String
+  phone          String
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  role           CaregiverRole
+  isActive       Boolean
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  schedules        Schedule[]
+  visits           Visit[]
+  initiatedAlerts   Alert[]      @relation("CaregiverInitiatedAlerts")
+  coordinatedAlerts Alert[]      @relation("CaregiverCoordinatedAlerts")
+  consents         Consent[]     @relation("CaregiverConsents")
+  photos          Photo[]
+
+  @@index([email])
+}
+
+model Client {
+  id               String   @id @default(uuid())
+  name             String
+  photoUrl         String?
+  address          String
+  phone            String?
+  emergencyContact String?
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  isActive         Boolean
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  schedules        Schedule[]
+  visits           Visit[]
+  alerts           Alert[]
+  consents         Consent[]
+  photos           Photo[]
+}
+
+model Schedule {
+  id              String          @id @default(uuid())
+  caregiverId     String
+  clientId        String
+  scheduledDate   DateTime        @db.Date
+  scheduledTime   DateTime        @db.Time(6)
+  durationMinutes Int
+  status          ScheduleStatus
+  completedAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  caregiver       Caregiver       @relation(fields: [caregiverId], references: [id])
+  client          Client          @relation(fields: [clientId], references: [id])
+  visit           Visit?
+
+  @@index([caregiverId, scheduledDate])
+}
+
+model Visit {
+  id                String       @id @default(uuid())
+  scheduleId        String       @unique
+  caregiverId       String
+  clientId          String
+  visitDate         DateTime     @db.Date
+  startTime         DateTime?    @db.Time(6)
+  endTime           DateTime?    @db.Time(6)
+  documentation     Json
+  photoIds          String[]
+  location          Json?
+  changedFields     String[]
+  copiedFromVisitId String?
+  syncStatus        SyncStatus
+  syncedAt          DateTime?
+  syncVersion       Int
+  deletedAt         DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  schedule          Schedule     @relation(fields: [scheduleId], references: [id])
+  caregiver         Caregiver    @relation(fields: [caregiverId], references: [id])
+  client            Client       @relation(fields: [clientId], references: [id])
+  copiedFrom        Visit?       @relation("VisitCopy", fields: [copiedFromVisitId], references: [id])
+  copies            Visit[]      @relation("VisitCopy")
+  photos            Photo[]
+
+  @@index([clientId, visitDate])
+}
+
+model Photo {
+  id                  String           @id @default(uuid())
+  visitId             String
+  clientId            String
+  caregiverId         String
+  localPath           String?
+  s3Key               String?
+  mimeType            String
+  sizeBytes           Int
+  compressedSizeBytes Int
+  width               Int
+  height              Int
+  syncStatus          PhotoSyncStatus
+  uploadedAt          DateTime?
+  deletedAt           DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  visit               Visit            @relation(fields: [visitId], references: [id])
+  caregiver           Caregiver        @relation(fields: [caregiverId], references: [id])
+  client              Client           @relation(fields: [clientId], references: [id])
+}
+
+model Alert {
+  id             String     @id @default(uuid())
+  caregiverId    String
+  clientId       String
+  coordinatorId  String
+  initiatedAt    DateTime
+  callDuration   Int?
+  note           String?
+  location       Json?
+  deletedAt      DateTime?
+  createdAt      DateTime   @default(now())
+
+  caregiver      Caregiver  @relation("CaregiverInitiatedAlerts", fields: [caregiverId], references: [id])
+  coordinator    Caregiver  @relation("CaregiverCoordinatedAlerts", fields: [coordinatorId], references: [id])
+  client         Client     @relation(fields: [clientId], references: [id])
+}
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  entityType String
+  entityId   String
+  action     String
+  actorId    String
+  actorType  ActorType
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  userAgent  String?
+  deviceId   String
+  createdAt  DateTime  @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model Consent {
+  id           String      @id @default(uuid())
+  clientId     String
+  caregiverId  String?
+  consentType  ConsentType
+  granted      Boolean
+  grantedAt    DateTime?
+  revokedAt    DateTime?
+  signatureUrl String?
+  witnessName  String?
+  deletedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  client       Client      @relation(fields: [clientId], references: [id])
+  caregiver    Caregiver?  @relation("CaregiverConsents", fields: [caregiverId], references: [id])
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  caregivers  Caregiver[]
+  clients     Client[]
 }
