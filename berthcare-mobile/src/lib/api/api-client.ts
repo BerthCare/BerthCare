@@ -1,6 +1,7 @@
-import { ApiError } from './api-error';
+import { ApiError, resolveApiErrorType } from './api-error';
 import { applyAuthHeader, handle401Response } from './interceptors';
 import { buildUrl, createDefaultConfig } from './config';
+import { executeWithRetry } from './retry';
 import type { ApiClientConfig, ApiResponse, RequestOptions, TokenProvider, HttpMethod } from './types';
 
 export class ApiClient {
@@ -48,7 +49,24 @@ export class ApiClient {
     return this.request<T>('DELETE', path, undefined, options);
   }
 
-  private async request<T>(method: HttpMethod, path: string, data?: unknown, options?: RequestOptions, allow401Refresh = true): Promise<ApiResponse<T>> {
+  private async request<T>(method: HttpMethod, path: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+    if (options?.skipRetry) {
+      return this.performRequest<T>(method, path, data, options, true);
+    }
+
+    return executeWithRetry(
+      (attempt) => this.performRequest<T>(method, path, data, { ...options, attempt }, true),
+      { method, retryConfig: this.config.retry! },
+    );
+  }
+
+  private async performRequest<T>(
+    method: HttpMethod,
+    path: string,
+    data?: unknown,
+    options?: RequestOptions & { attempt?: number },
+    allow401Refresh = true,
+  ): Promise<ApiResponse<T>> {
     const baseUrl = options?.baseUrl ?? this.config.baseUrl;
     const url = buildUrl(baseUrl, path);
     const baseHeaders = { 'Content-Type': 'application/json', Accept: 'application/json', ...(options?.headers ?? {}) };
@@ -56,32 +74,92 @@ export class ApiClient {
       ? baseHeaders
       : await applyAuthHeader(baseHeaders, this.tokenProvider ?? undefined, { url, method, headers: baseHeaders });
 
-    // Placeholder fetch; real implementation will add timeout, retry, interceptors.
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: data ? JSON.stringify(data) : undefined,
-      signal: options?.signal,
-    });
+    const timeoutMs = options?.timeoutMs ?? this.config.timeoutMs ?? 30000;
+    const abortController = new AbortController();
+    const userSignal = options?.signal;
+    const cleanup = linkAbortSignals(userSignal, abortController);
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      abortController.abort(new Error('Request timed out'));
+    }, timeoutMs);
 
-    const text = await response.text();
-    const json = text ? (JSON.parse(text) as T) : (undefined as T);
+    try {
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: data != null ? JSON.stringify(data) : undefined,
+        signal: abortController.signal,
+      });
 
-    if (!response.ok) {
       if (response.status === 401 && allow401Refresh) {
-        return handle401Response(this.tokenProvider, () => this.request(method, path, data, options, false));
+        return handle401Response(this.tokenProvider, () =>
+          this.performRequest(method, path, data, { ...options, attempt: (options?.attempt ?? 0) + 1 }, false),
+        );
       }
 
-      throw new ApiError(response.status === 401 ? 'AuthenticationError' : response.status >= 500 ? 'ServerError' : 'ClientError', 'Request failed', {
+      const text = await response.text();
+      const parsedBody = safeParseJson(text) as T;
+
+      if (!response.ok) {
+        const type = resolveApiErrorType({ status: response.status });
+        throw new ApiError(type, 'Request failed', { status: response.status });
+      }
+
+      return {
+        data: parsedBody,
         status: response.status,
-        originalError: undefined,
+        headers: Object.fromEntries(response.headers.entries()),
+      };
+    } catch (error) {
+      if (abortController.signal.aborted) {
+        clearTimeout(timeoutId);
+        cleanup();
+        if (timedOut) {
+          throw new ApiError('TimeoutError', 'Request timed out', { isRetryable: true });
+        }
+        throw new ApiError('CancelledError', 'Request was cancelled', { isRetryable: false });
+      }
+
+      if (ApiError.isApiError(error)) {
+        clearTimeout(timeoutId);
+        cleanup();
+        throw error;
+      }
+      throw new ApiError(resolveApiErrorType({ networkError: true }), 'Network error', {
+        originalError: error as Error,
       });
     }
-
-    return {
-      data: json,
-      status: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
-    };
+    finally {
+      clearTimeout(timeoutId);
+      cleanup();
+    }
   }
+}
+
+function safeParseJson<T>(value: string): T | undefined {
+  if (!value) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return undefined;
+  }
+}
+
+function linkAbortSignals(source: AbortSignal | undefined, target: AbortController): () => void {
+  if (!source) {
+    return () => {};
+  }
+
+  if (source.aborted) {
+    target.abort(source.reason);
+    return () => {};
+  }
+
+  const onAbort = () => target.abort(source.reason);
+  source.addEventListener('abort', onAbort);
+
+  return () => source.removeEventListener('abort', onAbort);
 }
