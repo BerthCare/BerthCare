@@ -12,3 +12,40 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum CaregiverRole {
+  caregiver
+  coordinator
+}
+
+enum ScheduleStatus {
+  scheduled
+  completed
+  cancelled
+}
+
+enum SyncStatus {
+  local
+  syncing
+  synced
+  conflict
+}
+
+enum PhotoSyncStatus {
+  local
+  uploading
+  synced
+  failed
+}
+
+enum ActorType {
+  caregiver
+  coordinator
+  system
+}
+
+enum ConsentType {
+  photo
+  documentation
+  location
+}
