@@ -11,7 +11,7 @@ class MockCaregiverDelegate {
   private store = new Map<string, Caregiver>();
 
   create(args: { data: CaregiverCreateInput }): Promise<Caregiver> {
-    const id = (args.data as CaregiverCreateInput & { id?: string }).id ?? randomUUID();
+    const id = args.data.id ?? randomUUID();
     const now = new Date();
     const record: Caregiver = {
       id,
@@ -19,8 +19,8 @@ class MockCaregiverDelegate {
       name: args.data.name,
       phone: args.data.phone,
       organizationId: args.data.organizationId,
-      role: args.data.role as Caregiver['role'],
-      isActive: (args.data as CaregiverCreateInput & { isActive?: boolean }).isActive ?? true,
+      role: args.data.role,
+      isActive: args.data.isActive ?? true,
       createdAt: now,
       updatedAt: now,
     };

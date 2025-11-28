@@ -11,15 +11,9 @@ const deepMerge = (current: JsonObject, patch: JsonObject): JsonObject => {
   const result: JsonObject = { ...current };
 
   Object.entries(patch).forEach(([key, value]) => {
-    if (
-      value &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      typeof result[key] === 'object' &&
-      result[key] !== null &&
-      !Array.isArray(result[key])
-    ) {
-      result[key] = deepMerge(result[key] as JsonObject, value as JsonObject);
+    const existing = result[key];
+    if (isJsonObject(value) && isJsonObject(existing)) {
+      result[key] = deepMerge(existing, value);
     } else {
       result[key] = value;
     }
@@ -27,6 +21,9 @@ const deepMerge = (current: JsonObject, patch: JsonObject): JsonObject => {
 
   return result;
 };
+
+const isJsonObject = (value: unknown): value is JsonObject =>
+  Boolean(value && typeof value === 'object' && !Array.isArray(value));
 
 class MockVisitDelegate {
   private store = new Map<string, Visit>();

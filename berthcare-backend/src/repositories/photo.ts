@@ -1,4 +1,4 @@
-import { Prisma, Photo } from '../generated/prisma/client.js';
+import { PrismaClient, Prisma, Photo } from '../generated/prisma/client.js';
 import { BaseRepository } from './base.repository.js';
 import { prisma } from '../models/index.js';
 
@@ -11,27 +11,27 @@ export class PhotoRepository
 {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async create(data: CreateData): Promise<Photo> {
+  create(data: CreateData): Promise<Photo> {
     return this.prisma.photo.create({ data });
   }
 
-  async findById(id: string): Promise<Photo | null> {
+  findById(id: string): Promise<Photo | null> {
     return this.prisma.photo.findFirst({ where: { id, deletedAt: null } });
   }
 
-  async findMany(filter: FindFilter = {}): Promise<Photo[]> {
+  findMany(filter: FindFilter = {}): Promise<Photo[]> {
     return this.prisma.photo.findMany({ where: { deletedAt: null, ...filter } });
   }
 
-  async update(id: string, data: UpdateData): Promise<Photo> {
+  update(id: string, data: UpdateData): Promise<Photo> {
     return this.prisma.photo.update({ where: { id }, data });
   }
 
-  async softDelete(id: string): Promise<void> {
-    await this.prisma.photo.update({
+  softDelete(id: string): Promise<void> {
+    return this.prisma.photo.update({
       where: { id },
       data: { deletedAt: new Date() },
-    });
+    }).then(() => undefined);
   }
 }
 

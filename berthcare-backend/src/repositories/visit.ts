@@ -60,15 +60,9 @@ function mergeJsonObjects(current: Prisma.JsonObject, patch: Prisma.JsonObject):
   const result: Prisma.JsonObject = { ...current };
 
   Object.entries(patch).forEach(([key, value]) => {
-    if (
-      value &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      typeof result[key] === 'object' &&
-      result[key] !== null &&
-      !Array.isArray(result[key])
-    ) {
-      result[key] = mergeJsonObjects(result[key] as Prisma.JsonObject, value as Prisma.JsonObject);
+    const existing = result[key];
+    if (isJsonObject(value) && isJsonObject(existing)) {
+      result[key] = mergeJsonObjects(existing, value);
     } else {
       result[key] = value;
     }
@@ -76,6 +70,9 @@ function mergeJsonObjects(current: Prisma.JsonObject, patch: Prisma.JsonObject):
 
   return result;
 }
+
+const isJsonObject = (value: unknown): value is Prisma.JsonObject =>
+  Boolean(value && typeof value === 'object' && !Array.isArray(value));
 
 const prisma = new PrismaClient();
 
