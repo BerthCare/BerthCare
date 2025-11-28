@@ -38,7 +38,7 @@ describe('Feature: mobile-api-client, Property 8: Timeout enforcement', () => {
           },
         });
 
-        const promise = client.get('/slow');
+        const { promise } = client.get('/slow');
 
         jest.advanceTimersByTime(timeoutMs + 1);
 

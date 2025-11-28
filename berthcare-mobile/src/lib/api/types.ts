@@ -49,3 +49,9 @@ export interface TokenProvider {
   refreshToken(): Promise<string | null>;
   clearTokens(): Promise<void>;
 }
+
+export interface ApiRequestHandle<T> {
+  promise: Promise<T>;
+  controller: AbortController;
+  abort: () => void;
+}
