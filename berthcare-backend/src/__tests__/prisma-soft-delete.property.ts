@@ -10,7 +10,7 @@ type CaregiverCreateInput = Prisma.CaregiverCreateInput;
 class MockCaregiverDelegate {
   private store = new Map<string, Caregiver>();
 
-  async create(args: { data: CaregiverCreateInput }): Promise<Caregiver> {
+  create(args: { data: CaregiverCreateInput }): Promise<Caregiver> {
     const id = (args.data as CaregiverCreateInput & { id?: string }).id ?? randomUUID();
     const now = new Date();
     const record: Caregiver = {
@@ -25,17 +25,17 @@ class MockCaregiverDelegate {
       updatedAt: now,
     };
     this.store.set(id, record);
-    return record;
+    return Promise.resolve(record);
   }
 
-  async findUnique(args: { where: { id?: string } }): Promise<Caregiver | null> {
+  findUnique(args: { where: { id?: string } }): Promise<Caregiver | null> {
     if (args.where.id) {
-      return this.store.get(args.where.id) ?? null;
+      return Promise.resolve(this.store.get(args.where.id) ?? null);
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async update(args: { where: { id: string }; data: Partial<Caregiver> }): Promise<Caregiver> {
+  update(args: { where: { id: string }; data: Partial<Caregiver> }): Promise<Caregiver> {
     const existing = this.store.get(args.where.id);
     if (!existing) {
       throw new Error('Not found');
@@ -43,7 +43,7 @@ class MockCaregiverDelegate {
     const updatedAt = new Date(existing.updatedAt.getTime() + 1000);
     const updated: Caregiver = { ...existing, ...args.data, updatedAt };
     this.store.set(args.where.id, updated);
-    return updated;
+    return Promise.resolve(updated);
   }
 }
 
@@ -62,8 +62,8 @@ class TestCaregiverRepository {
     return this.prisma.caregiver.findUnique({ where: { id } });
   }
 
-  async softDelete(id: string) {
-    await this.prisma.caregiver.update({ where: { id }, data: { isActive: false } });
+  softDelete(id: string) {
+    return this.prisma.caregiver.update({ where: { id }, data: { isActive: false } });
   }
 }
 

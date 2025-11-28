@@ -11,7 +11,7 @@ type CaregiverUpdateInput = Prisma.CaregiverUpdateInput;
 class MockCaregiverDelegate {
   private store = new Map<string, Caregiver>();
 
-  async create(args: { data: CaregiverCreateInput }): Promise<Caregiver> {
+  create(args: { data: CaregiverCreateInput }): Promise<Caregiver> {
     const id = (args.data as CaregiverCreateInput & { id?: string }).id ?? randomUUID();
     const now = new Date();
     const record: Caregiver = {
@@ -26,28 +26,28 @@ class MockCaregiverDelegate {
       updatedAt: now,
     };
     this.store.set(id, record);
-    return record;
+    return Promise.resolve(record);
   }
 
-  async findUnique(args: { where: { id?: string; email?: string } }): Promise<Caregiver | null> {
+  findUnique(args: { where: { id?: string; email?: string } }): Promise<Caregiver | null> {
     if (args.where.id) {
-      return this.store.get(args.where.id) ?? null;
+      return Promise.resolve(this.store.get(args.where.id) ?? null);
     }
     if (args.where.email) {
       for (const record of this.store.values()) {
         if (record.email === args.where.email) {
-          return record;
+          return Promise.resolve(record);
         }
       }
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async findMany(): Promise<Caregiver[]> {
-    return Array.from(this.store.values());
+  findMany(): Promise<Caregiver[]> {
+    return Promise.resolve(Array.from(this.store.values()));
   }
 
-  async update(args: { where: { id: string }; data: CaregiverUpdateInput }): Promise<Caregiver> {
+  update(args: { where: { id: string }; data: CaregiverUpdateInput }): Promise<Caregiver> {
     const existing = this.store.get(args.where.id);
     if (!existing) {
       throw new Error('Not found');
@@ -59,7 +59,7 @@ class MockCaregiverDelegate {
       updatedAt: now,
     };
     this.store.set(args.where.id, updated);
-    return updated;
+    return Promise.resolve(updated);
   }
 }
 
@@ -90,8 +90,8 @@ class TestCaregiverRepository {
     return this.prisma.caregiver.update({ where: { id }, data });
   }
 
-  async softDelete(id: string) {
-    await this.prisma.caregiver.update({ where: { id }, data: { isActive: false } });
+  softDelete(id: string) {
+    return this.prisma.caregiver.update({ where: { id }, data: { isActive: false } });
   }
 }
 

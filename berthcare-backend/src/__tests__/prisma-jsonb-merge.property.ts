@@ -31,15 +31,15 @@ const deepMerge = (current: JsonObject, patch: JsonObject): JsonObject => {
 class MockVisitDelegate {
   private store = new Map<string, Visit>();
 
-  seed(visit: Visit) {
+  seed(visit: Visit): void {
     this.store.set(visit.id, visit);
   }
 
-  findUnique(args: { where: { id: string } }): Visit | null {
-    return this.store.get(args.where.id) ?? null;
+  findUnique(args: { where: { id: string } }): Promise<Visit | null> {
+    return Promise.resolve(this.store.get(args.where.id) ?? null);
   }
 
-  update(args: { where: { id: string }; data: Prisma.VisitUpdateInput }): Visit {
+  update(args: { where: { id: string }; data: Prisma.VisitUpdateInput }): Promise<Visit> {
     const existing = this.store.get(args.where.id);
     if (!existing) {
       throw new Error('Visit not found');
@@ -50,7 +50,7 @@ class MockVisitDelegate {
       updatedAt: new Date(existing.updatedAt.getTime() + 1000),
     };
     this.store.set(args.where.id, updated);
-    return updated;
+    return Promise.resolve(updated);
   }
 }
 
@@ -89,8 +89,8 @@ describe('Feature: prisma-database-schema, Property 6: JSONB Partial Update Merg
   it('merges partial documentation updates into existing JSON without losing untouched keys', async () => {
     await fc.assert(
       fc.asyncProperty(jsonValueArb, jsonValueArb, async (baseDoc, patchDoc) => {
-        const prisma = new MockPrismaClient();
-        const repository = new TestVisitRepository(prisma);
+    const prisma = new MockPrismaClient();
+    const repository = new TestVisitRepository(prisma);
 
         const visitId = randomUUID();
         const baseVisit: Visit = {
