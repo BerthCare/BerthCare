@@ -51,7 +51,10 @@ export class ApiClient {
   private async request<T>(method: HttpMethod, path: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     const baseUrl = options?.baseUrl ?? this.config.baseUrl;
     const url = buildUrl(baseUrl, path);
-    const headers = await applyAuthHeader({ 'Content-Type': 'application/json', Accept: 'application/json', ...(options?.headers ?? {}) }, this.tokenProvider ?? undefined);
+    const baseHeaders = { 'Content-Type': 'application/json', Accept: 'application/json', ...(options?.headers ?? {}) };
+    const headers = options?.skipAuth
+      ? baseHeaders
+      : await applyAuthHeader(baseHeaders, this.tokenProvider ?? undefined, { url, method, headers: baseHeaders });
 
     // Placeholder fetch; real implementation will add timeout, retry, interceptors.
     const response = await fetch(url, {
