@@ -82,6 +82,7 @@ async function loadToday(caregiverId: string, dateISO: string) {
 
 async function logAudit(entityType: string, entityId: string, actorId: string, payload: unknown) {
   await databaseService.auditLogs.create({
+    // Note: crypto.randomUUID is not available in React Native by default. See guidance below.
     id: crypto.randomUUID(),
     entityType,
     entityId,
@@ -100,6 +101,21 @@ async function logAudit(entityType: string, entityId: string, actorId: string, p
 - The encryption key is fetched or created on first launch via `getOrCreateEncryptionKey` and stored securely; database files remain unreadable without it.
 - Initialization errors (e.g., wrong key) are logged and block further data access until resolved.
 - Tests include properties for encryption unreadability, schema idempotence, and repository CRUD guarantees.
+
+### UUID generation in React Native/Expo
+`crypto.randomUUID()` is not available in Hermes/JSC by default. Use one of these options:
+1) **Expo SDK with `expo-crypto`:** If your SDK version supports `expo-crypto`'s `randomUUID()`, call that instead.
+2) **Polyfill + uuid package (works across RN/Expo):**
+   ```bash
+   npm install react-native-get-random-values uuid
+   ```
+   ```ts
+   import 'react-native-get-random-values';
+   import { v4 as uuidv4 } from 'uuid';
+
+   const id = uuidv4();
+   ```
+Ensure the polyfill import (`react-native-get-random-values`) runs before any UUID generation.
 
 ## Development Workflow
 - **Fast Refresh:** Enabled by default. If it stops reloading, press `r` in Metro or `Cmd+R` / `RR` in simulators.
