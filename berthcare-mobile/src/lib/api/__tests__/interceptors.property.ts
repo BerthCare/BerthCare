@@ -4,6 +4,10 @@ import type { TokenProvider } from '../types';
 
 describe('Feature: mobile-api-client, Property 2: Authorization header injection', () => {
   const tokenArb = fc.hexaString({ minLength: 16, maxLength: 64 });
+  const headerKeyArb = fc
+    .stringOf(fc.hexa(), { minLength: 3, maxLength: 12 })
+    .map((value) => `x-${value.toLowerCase()}`);
+  const headersArb = fc.dictionary(headerKeyArb, fc.string({ maxLength: 24 }), { maxKeys: 5 });
 
   it('adds Authorization bearer token when token exists and no header is present', async () => {
     await fc.assert(
@@ -43,6 +47,32 @@ describe('Feature: mobile-api-client, Property 2: Authorization header injection
         });
 
         expect(result.Authorization).toBe(callerAuth);
+      }),
+      { numRuns: 30 },
+    );
+  });
+
+  it('preserves all caller headers when injecting Authorization', async () => {
+    await fc.assert(
+      fc.asyncProperty(tokenArb, headersArb, async (token, callerHeaders) => {
+        const provider: TokenProvider = {
+          getAccessToken: async () => token,
+          refreshToken: async () => token,
+          clearTokens: async () => undefined,
+        };
+
+        const result = await applyAuthHeader({ ...callerHeaders }, provider, {
+          url: 'https://api.example.com/foo',
+          method: 'GET',
+          headers: { ...callerHeaders },
+        });
+
+        // Caller headers are unchanged
+        for (const [key, value] of Object.entries(callerHeaders)) {
+          expect(result[key]).toBe(value);
+        }
+
+        expect(result.Authorization).toBe(`Bearer ${token}`);
       }),
       { numRuns: 30 },
     );
