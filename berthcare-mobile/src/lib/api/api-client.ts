@@ -1,6 +1,6 @@
 import { ApiError } from './api-error';
 import { applyAuthHeader } from './interceptors';
-import { createDefaultConfig } from './config';
+import { buildUrl, createDefaultConfig } from './config';
 import type { ApiClientConfig, ApiResponse, RequestOptions, TokenProvider, HttpMethod } from './types';
 
 export class ApiClient {
@@ -50,7 +50,7 @@ export class ApiClient {
 
   private async request<T>(method: HttpMethod, path: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     const baseUrl = options?.baseUrl ?? this.config.baseUrl;
-    const url = `${baseUrl}${path}`;
+    const url = buildUrl(baseUrl, path);
     const headers = await applyAuthHeader({ 'Content-Type': 'application/json', Accept: 'application/json', ...(options?.headers ?? {}) }, this.tokenProvider ?? undefined);
 
     // Placeholder fetch; real implementation will add timeout, retry, interceptors.

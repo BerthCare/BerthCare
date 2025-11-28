@@ -94,5 +94,28 @@ export function createDefaultConfig(options?: {
   };
 }
 
+function trimTrailingSlashes(value: string): string {
+  return value.replace(/\/+$/, '');
+}
+
+function trimLeadingSlashes(value: string): string {
+  return value.replace(/^\/+/, '');
+}
+
+export function buildUrl(baseUrl: string, path: string): string {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const normalizedBase = trimTrailingSlashes(baseUrl);
+  const normalizedPath = trimLeadingSlashes(path);
+
+  if (!normalizedPath) {
+    return normalizedBase;
+  }
+
+  return `${normalizedBase}/${normalizedPath}`;
+}
+
 export { DEFAULT_ENVIRONMENT_URLS, DEFAULT_RETRY_CONFIG, DEFAULT_TIMEOUT_MS };
 export type { ApiClientConfig };
