@@ -107,3 +107,37 @@ describe('Feature: mobile-api-client, Property 6: Idempotent request retry', () 
     );
   });
 });
+
+describe('Feature: mobile-api-client, Property 7: Non-idempotent request no-retry', () => {
+  it('does not retry non-idempotent methods on retryable errors', async () => {
+    const nonIdempotentMethods: HttpMethod[] = ['POST', 'PATCH'];
+
+    await fc.assert(
+      fc.asyncProperty(fc.constantFrom(...nonIdempotentMethods), async (method) => {
+        let attempts = 0;
+        const apiError = new ApiError('NetworkError', 'transient');
+
+        await expect(
+          executeWithRetry(
+            async () => {
+              attempts += 1;
+              throw apiError;
+            },
+            {
+              method,
+              retryConfig: {
+                maxRetries: 3,
+                initialDelayMs: 0,
+                maxDelayMs: 0,
+                backoffMultiplier: 1,
+              },
+            },
+          ),
+        ).rejects.toBe(apiError);
+
+        expect(attempts).toBe(1);
+      }),
+      { numRuns: 10 },
+    );
+  });
+});
