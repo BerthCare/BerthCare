@@ -59,6 +59,15 @@ src/
 ```
 Naming stays simple (folder implies context), and path aliases are provided via `tsconfig.json` (`@/`, `@screens/`, `@ui/`, `@data/`, `@navigation/`, `@types/`, `@assets/`).
 
+## API Client (in progress)
+- Location: `src/lib/api/` (scaffolded) with planned `ApiClient`, `config`, `interceptors`, `retry`, and typed `ApiError`.
+- Scope: centralized fetch wrapper for schedule/visit flows (see `project-documentation/technical-blueprint.md#5-key-flows--sequencing`) with TLS 1.3, JWT auth, and audit-friendly error handling per `#6-non-functional-requirements-as-experience`.
+- Environment configuration:
+  - Base URLs live in `src/lib/api/config.ts` with dev/staging/prod entries. Defaults: `development → http://localhost:3000/api`, `staging → https://staging-api.berthcare.ca/api`, `production → https://api.berthcare.ca/api`.
+  - Selection order: explicit `RequestOptions.baseUrl` override → `EXPO_PUBLIC_API_BASE_URL` env → map keyed by `EXPO_PUBLIC_API_ENV` → Expo `Updates.channel` (`development|preview|production`) → fallback to `__DEV__ ? development : production`.
+  - Expo build/update mapping: `expo start` uses `development`; `eas build --profile preview` and `eas update --branch preview` use `staging`; `eas build --profile production` and `eas update --branch production` use `production`.
+- Behavior (planned): auth header injection via secure token provider, 30s default timeout with AbortController, exponential backoff (idempotent methods only), 401 refresh queue, cancellation support, and property-based tests under `src/lib/api/__tests__/`.
+
 ## Database Architecture (Local-First with Encryption)
 - **Engine:** `react-native-quick-sqlite` with SQLCipher enabled; AES-256 at rest.
 - **Key management:** 256-bit key generated via `crypto.getRandomValues` and stored only in secure storage (`expo-secure-store`, Keychain/Keystore). Key is never logged or bundled.

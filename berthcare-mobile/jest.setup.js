@@ -1,6 +1,10 @@
 // Jest setup file for React Native Testing Library
 import '@testing-library/jest-native/extend-expect';
 
+jest.mock('expo-updates', () => ({
+  channel: 'development',
+}));
+
 // Mock expo modules
 jest.mock('expo-status-bar', () => ({
   StatusBar: 'StatusBar',
