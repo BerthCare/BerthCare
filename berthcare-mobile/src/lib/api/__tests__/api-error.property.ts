@@ -89,5 +89,6 @@ describe('Feature: mobile-api-client, Property 9: Error type categorization', ()
 
     expect(ApiError.isApiError(apiError)).toBe(true);
     expect(ApiError.isApiError(regularError)).toBe(false);
+    expect(ApiError.isApiError({})).toBe(false);
   });
 });
