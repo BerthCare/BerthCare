@@ -174,6 +174,37 @@ Each of these is a good idea. We're saying no anyway. The MVP does three things 
 
 Everything else is Phase 2.
 
+## Backend Deployment Pipeline (Dev)
+
+Reference: [Technical Blueprint §9 — Build Strategy](../project-documentation/technical-blueprint.md#9-build-strategy--milestones). Current dev pipeline favors a simple GitHub Actions → AWS ECS flow.
+
+```mermaid
+flowchart LR
+  Dev[Push to main\nbackend code/workflow] --> CI[backend-ci.yml\nlint + tests]
+  CI --> Deploy[backend-deploy-dev.yml]
+  Deploy -->|OIDC assume role\ngithub-actions-deploy-dev| ECR[ECR: berthcare-backend\n{SHA, latest}]
+  Deploy -->|Render & register task def| ECS[ECS service\nberthcare-dev-backend]
+  ECS --> ALB[ALB https:443\nhttp->https redirect]
+  ALB --> Clients[Mobile clients via API]
+```
+
+**Triggers**
+- Push to `main` touching `berthcare-backend/**` or `.github/workflows/backend-deploy-dev.yml`
+- Manual `workflow_dispatch` for re-deploy or rollback
+
+**Inputs (secrets/env)**
+- GitHub Actions secrets: `AWS_ACCOUNT_ID`, `SLACK_WEBHOOK_URL`
+- App runtime: `DATABASE_URL` (required), `PORT` (optional; defaults 3000)
+- Auth: AWS assumed via GitHub OIDC (no static keys)
+
+**Deviations from Technical Blueprint**
+- Blueprint §9 called for a “basic deploy script” to staging; we use a two-job GitHub Actions workflow (CI → deploy) targeting the dev ECS service, with buildx caching and Slack notification.
+- Health-check injection during task-definition render (`curl /health`) is stricter than the baseline design and blocks rollout until the container passes readiness.
+- HTTPS enforcement (ALB redirect + TLS 1.3 policy) is already applied in dev; blueprint noted TLS hardening primarily for production.
+
+**Rollback**
+- Re-run the deploy workflow against a previous commit SHA, or select a prior task definition revision for `berthcare-dev-backend` in ECS and force a new deployment.
+
 ## Design Principles in Practice
 
 ### Principle 1: Invisible by Default

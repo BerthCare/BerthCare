@@ -23,6 +23,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "cross-spawn": "7.0.6",
+    "glob": "10.5.0",
+    "hono": "4.10.2",
+    "valibot": "1.2.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/cors": "^2.8.19",

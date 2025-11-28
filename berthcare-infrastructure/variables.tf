@@ -173,3 +173,9 @@ variable "github_repo" {
   description = "GitHub repository name for the deployment workflow."
   default     = "BerthCare"
 }
+
+variable "github_oidc_subjects" {
+  type        = list(string)
+  description = "Allowed GitHub OIDC subjects for assuming the deploy role. Defaults to the GitHub environment named after the current Terraform environment (e.g., dev)."
+  default     = []
+}

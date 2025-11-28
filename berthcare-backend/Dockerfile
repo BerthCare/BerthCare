@@ -1,11 +1,14 @@
 # Build stage: install dependencies, compile TypeScript, generate Prisma client
 FROM node:20-alpine AS builder
 
+ARG NPM_VERSION=11.6.4
 WORKDIR /app
 
 # DATABASE_URL must be provided at build time for Prisma generation
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
+
+RUN npm install -g npm@${NPM_VERSION}
 
 # Ensure Prisma schema is available before npm ci (prisma generate runs during install)
 COPY package*.json prisma.config.ts ./
@@ -15,15 +18,19 @@ RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
 
-RUN npm run build
-RUN npx prisma generate
+RUN npm run build \
+  && npx prisma generate \
+  && npm prune --omit=dev
 
 # Production stage: ship compiled code with dependencies and Prisma schema
 FROM node:20-alpine AS production
 
+ARG NPM_VERSION=11.6.4
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+
+RUN npm install -g npm@${NPM_VERSION}
 
 RUN apk add --no-cache curl
 

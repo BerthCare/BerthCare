@@ -2,6 +2,10 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
+locals {
+  github_oidc_subjects = length(var.github_oidc_subjects) > 0 ? var.github_oidc_subjects : ["repo:${var.github_org}/${var.github_repo}:environment:${var.environment}"]
+}
+
 resource "aws_iam_openid_connect_provider" "github_actions" {
   url = "https://token.actions.githubusercontent.com"
 
@@ -26,7 +30,7 @@ data "aws_iam_policy_document" "github_actions_assume" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_org}/${var.github_repo}:ref:refs/heads/main"]
+      values   = local.github_oidc_subjects
     }
   }
 }
@@ -41,6 +45,7 @@ data "aws_iam_policy_document" "github_actions_deploy_base" {
     sid       = "ECRGetAuth"
     actions   = ["ecr:GetAuthorizationToken"]
     resources = ["*"]
+    # Required for docker push login; token is scoped by AWS to the account so limiting resources is not supported.
   }
 
   statement {
@@ -55,6 +60,7 @@ data "aws_iam_policy_document" "github_actions_deploy_base" {
       "ecr:DescribeRepositories",
     ]
     resources = [aws_ecr_repository.backend.arn]
+    # Allow pushing the backend image to the single backend repo used by the dev environment.
   }
 
   statement {
@@ -70,6 +76,7 @@ data "aws_iam_policy_document" "github_actions_deploy_base" {
       "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:service/${var.cluster_name}/${var.ecs_service_name}",
       "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/${var.cluster_name}",
     ]
+    # Permit updating only the dev cluster/service and the task definition family in this account/region.
   }
 
   statement {
@@ -81,6 +88,12 @@ data "aws_iam_policy_document" "github_actions_deploy_base" {
       module.ecs.task_execution_role_arn,
       module.ecs.task_role_arn,
     ]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["ecs-tasks.amazonaws.com"]
+    }
+    # Restrict role passing to the ECS task roles required by this dev deployment.
   }
 }
 
