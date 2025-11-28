@@ -1,2 +1,18 @@
-// Placeholder for database module exports
-export {};
+export { getOrCreateEncryptionKey } from './encryption';
+export {
+  close,
+  getDatabase,
+  initialize,
+  initializeSchema,
+  isInitialized,
+  type DatabaseHandle,
+} from './manager';
+export {
+  schema,
+  CREATE_TABLE_STATEMENTS,
+  CREATE_INDEX_STATEMENTS,
+  type SchemaDefinition,
+} from './schema';
+export { getCurrentSchemaVersion, runMigrations, type Migration } from './migrations';
+export * from './types';
+export * from './repositories';

@@ -1,2 +1,1 @@
-// Placeholder for repository exports
-export {};
+export { BaseRepository, type BaseRepositoryOptions, type JsonField } from './base';
