@@ -13,9 +13,7 @@ class MockCaregiverDelegate {
 
   create(args: { data: CaregiverCreateInput }): Promise<Caregiver> {
     const id = (args.data as CaregiverCreateInput & { id?: string }).id ?? randomUUID();
-    const organizationId =
-      (args.data as CaregiverCreateInput & { organization?: { connect?: { id: string } } }).organization
-        ?.connect?.id ?? randomUUID();
+    const organizationId = args.data.organizationId ?? randomUUID();
     const now = new Date();
     const record: Caregiver = {
       id,
@@ -98,18 +96,15 @@ class TestCaregiverRepository {
   }
 }
 
-const caregiverCreateArb: fc.Arbitrary<CaregiverCreateInput> = fc.uuid().chain((orgId) =>
-  fc.record({
-    id: fc.uuid(),
-    email: fc.emailAddress(),
-    name: fc.string({ minLength: 1, maxLength: 48 }),
-    phone: fc.string({ minLength: 5, maxLength: 24 }),
-    organizationId: fc.constant(orgId),
-    organization: fc.constant({ connect: { id: orgId } }),
-    role: fc.constantFrom('caregiver', 'coordinator') as fc.Arbitrary<CaregiverCreateInput['role']>,
-    isActive: fc.boolean(),
-  })
-);
+const caregiverCreateArb: fc.Arbitrary<CaregiverCreateInput> = fc.record({
+  id: fc.uuid(),
+  email: fc.emailAddress(),
+  name: fc.string({ minLength: 1, maxLength: 48 }),
+  phone: fc.string({ minLength: 5, maxLength: 24 }),
+  organizationId: fc.uuid(),
+  role: fc.constantFrom('caregiver', 'coordinator') as fc.Arbitrary<CaregiverCreateInput['role']>,
+  isActive: fc.boolean(),
+});
 
 const caregiverUpdateArb: fc.Arbitrary<CaregiverUpdateInput> = fc.record({
   name: fc.string({ minLength: 1, maxLength: 48 }),
