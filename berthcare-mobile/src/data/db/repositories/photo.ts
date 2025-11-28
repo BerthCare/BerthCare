@@ -1,20 +1,7 @@
 import { getDatabase, type DatabaseHandle } from '../manager';
 import { BaseRepository } from './base';
 import type { CreatePhotoInput, Photo, UpdatePhotoInput } from '../types';
-
-type Row = Record<string, unknown>;
-type QueryResultRows = { rows?: { _array?: Row[] } | Row[] };
-
-const rowsFromResult = (result: QueryResultRows): Row[] => {
-  const rows = result?.rows;
-  if (Array.isArray(rows)) {
-    return rows as Row[];
-  }
-  if (rows && '_array' in rows && Array.isArray(rows._array)) {
-    return rows._array as Row[];
-  }
-  return [];
-};
+import { rowsFromResult } from './utils';
 
 export class PhotoRepository extends BaseRepository<Photo, CreatePhotoInput, UpdatePhotoInput> {
   constructor(dbProvider: () => DatabaseHandle = getDatabase) {
