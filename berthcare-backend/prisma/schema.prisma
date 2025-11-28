@@ -65,6 +65,7 @@ model Caregiver {
   initiatedAlerts   Alert[]      @relation("CaregiverInitiatedAlerts")
   coordinatedAlerts Alert[]      @relation("CaregiverCoordinatedAlerts")
   consents         Consent[]     @relation("CaregiverConsents")
+  photos          Photo[]
 
   @@index([email])
 }
@@ -84,6 +85,7 @@ model Client {
   visits           Visit[]
   alerts           Alert[]
   consents         Consent[]
+  photos           Photo[]
 }
 
 model Schedule {

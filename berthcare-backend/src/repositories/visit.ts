@@ -33,8 +33,19 @@ export class VisitRepository
     return this.prisma.visit.update({ where: { id }, data });
   }
 
-  async updateDocumentation(id: string, documentation: Prisma.JsonValue): Promise<Visit> {
-    return this.prisma.visit.update({ where: { id }, data: { documentation } });
+  async updateDocumentation(id: string, patch: Prisma.JsonObject): Promise<Visit> {
+    const existing = await this.prisma.visit.findUnique({ where: { id } });
+    if (!existing) {
+      throw new Error('Visit not found');
+    }
+
+    const current = (existing.documentation as Prisma.JsonObject) ?? {};
+    const merged = mergeJsonObjects(current, patch);
+
+    return this.prisma.visit.update({
+      where: { id },
+      data: { documentation: merged },
+    });
   }
 
   async softDelete(id: string): Promise<void> {
@@ -43,6 +54,27 @@ export class VisitRepository
       data: { syncStatus: 'conflict' },
     });
   }
+}
+
+function mergeJsonObjects(current: Prisma.JsonObject, patch: Prisma.JsonObject): Prisma.JsonObject {
+  const result: Prisma.JsonObject = { ...current };
+
+  Object.entries(patch).forEach(([key, value]) => {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      typeof result[key] === 'object' &&
+      result[key] !== null &&
+      !Array.isArray(result[key])
+    ) {
+      result[key] = mergeJsonObjects(result[key] as Prisma.JsonObject, value as Prisma.JsonObject);
+    } else {
+      result[key] = value;
+    }
+  });
+
+  return result;
 }
 
 const prisma = new PrismaClient();
