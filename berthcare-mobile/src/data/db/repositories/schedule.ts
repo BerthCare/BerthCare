@@ -25,6 +25,19 @@ export class ScheduleRepository extends BaseRepository<
     super('schedules', {}, dbProvider);
   }
 
+  async create(data: CreateScheduleInput): Promise<Schedule> {
+    const now = new Date().toISOString();
+    const record: CreateScheduleInput = {
+      status: 'scheduled',
+      completedAt: null,
+      createdAt: now,
+      updatedAt: now,
+      ...data,
+    };
+
+    return super.create(record);
+  }
+
   async findByDateAndCaregiver(date: string, caregiverId: string): Promise<Schedule[]> {
     return this.findAll({ scheduledDate: date, caregiverId });
   }
