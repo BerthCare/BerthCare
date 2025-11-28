@@ -49,3 +49,50 @@ enum ConsentType {
   documentation
   location
 }
+
+model Caregiver {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  name           String
+  phone          String
+  organizationId String
+  role           CaregiverRole
+  isActive       Boolean
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  schedules      Schedule[]
+
+  @@index([email])
+}
+
+model Client {
+  id               String   @id @default(uuid())
+  name             String
+  photoUrl         String?
+  address          String
+  phone            String?
+  emergencyContact String?
+  organizationId   String
+  isActive         Boolean
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  schedules        Schedule[]
+}
+
+model Schedule {
+  id              String          @id @default(uuid())
+  caregiverId     String
+  clientId        String
+  scheduledDate   DateTime        @db.Date
+  scheduledTime   DateTime        @db.Time(6)
+  durationMinutes Int
+  status          ScheduleStatus
+  completedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  caregiver       Caregiver       @relation(fields: [caregiverId], references: [id])
+  client          Client          @relation(fields: [clientId], references: [id])
+
+  @@index([caregiverId, scheduledDate])
+}
