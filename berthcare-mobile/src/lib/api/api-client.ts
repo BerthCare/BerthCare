@@ -43,7 +43,7 @@ export class ApiClient {
   post<T>(
     path: string,
     data?: unknown,
-    options?: RequestOptions,
+    options?: RequestOptions
   ): ApiRequestHandle<ApiResponse<T>> {
     return this.request<T>('POST', path, data, options);
   }
@@ -55,7 +55,7 @@ export class ApiClient {
   patch<T>(
     path: string,
     data?: unknown,
-    options?: RequestOptions,
+    options?: RequestOptions
   ): ApiRequestHandle<ApiResponse<T>> {
     return this.request<T>('PATCH', path, data, options);
   }
@@ -68,7 +68,7 @@ export class ApiClient {
     method: HttpMethod,
     path: string,
     data?: unknown,
-    options?: RequestOptions,
+    options?: RequestOptions
   ): ApiRequestHandle<ApiResponse<T>> {
     const controller = new AbortController();
     const promise = options?.skipRetry
@@ -76,7 +76,7 @@ export class ApiClient {
       : executeWithRetry(
           (attempt) =>
             this.performRequest<T>(method, path, data, { ...options, attempt }, controller, true),
-          { method, retryConfig: this.config.retry! },
+          { method, retryConfig: this.config.retry! }
         );
 
     return {
@@ -92,7 +92,7 @@ export class ApiClient {
     data?: unknown,
     options?: RequestOptions & { attempt?: number },
     controller?: AbortController,
-    allow401Refresh = true,
+    allow401Refresh = true
   ): Promise<ApiResponse<T>> {
     const abortController = controller ?? new AbortController();
     const baseUrl = options?.baseUrl ?? this.config.baseUrl;

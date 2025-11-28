@@ -58,7 +58,7 @@ export class ApiError extends Error {
       status?: number;
       originalError?: Error;
       isRetryable?: boolean;
-    },
+    }
   ) {
     super(message);
     this.name = 'ApiError';
@@ -72,7 +72,7 @@ export class ApiError extends Error {
 
   static from(
     message: string,
-    input: ErrorClassificationInput & { originalError?: Error; isRetryable?: boolean },
+    input: ErrorClassificationInput & { originalError?: Error; isRetryable?: boolean }
   ): ApiError {
     const type = resolveApiErrorType(input);
     const options: { status?: number; originalError?: Error; isRetryable?: boolean } = {};
