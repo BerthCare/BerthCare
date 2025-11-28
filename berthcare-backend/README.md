@@ -24,11 +24,24 @@ TypeScript/Express API scaffold for the BerthCare mobile client, with Prisma for
    - `DATABASE_URL` (required): PostgreSQL connection string.
    - `PORT` (optional): HTTP port; defaults to 3000.
    - `NODE_ENV` (optional): runtime environment (e.g., development, production).
-4. Generate Prisma client (after `DATABASE_URL` is set):
+4. Start the database and ensure it is reachable via `DATABASE_URL`.
+
+### Prisma workflow
+
+1. Generate Prisma client (after `DATABASE_URL` is set):
    ```bash
    npx prisma generate
    ```
-5. Start the database and ensure it is reachable via `DATABASE_URL`.
+2. Create and apply migrations locally:
+   ```bash
+   npx prisma migrate dev --name <migration_name>
+   ```
+3. Deploy migrations to another environment:
+   ```bash
+   npx prisma migrate deploy
+   ```
+
+The Prisma schema lives in `prisma/schema.prisma`, and generated client output is under `src/generated/prisma`. See `.kiro/specs/prisma-database-schema/design.md` for the architecture diagram and schema design context.
 
 ## Scripts
 
