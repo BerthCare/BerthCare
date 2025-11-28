@@ -26,7 +26,7 @@
   "overrides": {
     "cross-spawn": "7.0.6",
     "glob": "10.5.0",
-    "hono": "4.10.2",
+    "hono": "4.10.3",
     "valibot": "1.2.0"
   },
   "devDependencies": {
