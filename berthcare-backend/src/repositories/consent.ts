@@ -15,11 +15,11 @@ export class ConsentRepository
   }
 
   async findById(id: string): Promise<Consent | null> {
-    return this.prisma.consent.findUnique({ where: { id } });
+    return this.prisma.consent.findFirst({ where: { id, deletedAt: null } });
   }
 
   async findMany(filter: FindFilter = {}): Promise<Consent[]> {
-    return this.prisma.consent.findMany({ where: filter });
+    return this.prisma.consent.findMany({ where: { deletedAt: null, ...filter } });
   }
 
   async update(id: string, data: UpdateData): Promise<Consent> {
@@ -29,7 +29,7 @@ export class ConsentRepository
   async softDelete(id: string): Promise<void> {
     await this.prisma.consent.update({
       where: { id },
-      data: { granted: false, revokedAt: new Date() },
+      data: { granted: false, revokedAt: new Date(), deletedAt: new Date() },
     });
   }
 }

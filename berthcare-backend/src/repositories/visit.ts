@@ -15,16 +15,16 @@ export class VisitRepository
   }
 
   async findById(id: string): Promise<Visit | null> {
-    return this.prisma.visit.findUnique({ where: { id } });
+    return this.prisma.visit.findFirst({ where: { id, deletedAt: null } });
   }
 
   async findMany(filter: FindFilter = {}): Promise<Visit[]> {
-    return this.prisma.visit.findMany({ where: filter });
+    return this.prisma.visit.findMany({ where: { deletedAt: null, ...filter } });
   }
 
   async findLastByClient(clientId: string): Promise<Visit | null> {
     return this.prisma.visit.findFirst({
-      where: { clientId },
+      where: { clientId, deletedAt: null },
       orderBy: { visitDate: 'desc' },
     });
   }
@@ -34,7 +34,7 @@ export class VisitRepository
   }
 
   async updateDocumentation(id: string, patch: Prisma.JsonObject): Promise<Visit> {
-    const existing = await this.prisma.visit.findUnique({ where: { id } });
+    const existing = await this.prisma.visit.findFirst({ where: { id, deletedAt: null } });
     if (!existing) {
       throw new Error('Visit not found');
     }
@@ -51,7 +51,7 @@ export class VisitRepository
   async softDelete(id: string): Promise<void> {
     await this.prisma.visit.update({
       where: { id },
-      data: { syncStatus: 'conflict' },
+      data: { deletedAt: new Date() },
     });
   }
 }

@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, Schedule, ScheduleStatus } from '../generated/prisma/client.js';
+import { PrismaClient, Prisma, Schedule } from '../generated/prisma/client.js';
 import { BaseRepository } from './base.repository.js';
 
 type CreateData = Prisma.ScheduleCreateInput;
@@ -15,16 +15,16 @@ export class ScheduleRepository
   }
 
   async findById(id: string): Promise<Schedule | null> {
-    return this.prisma.schedule.findUnique({ where: { id } });
+    return this.prisma.schedule.findFirst({ where: { id, deletedAt: null } });
   }
 
   async findMany(filter: FindFilter = {}): Promise<Schedule[]> {
-    return this.prisma.schedule.findMany({ where: filter });
+    return this.prisma.schedule.findMany({ where: { deletedAt: null, ...filter } });
   }
 
   async findByDateAndCaregiver(caregiverId: string, scheduledDate: Date): Promise<Schedule[]> {
     return this.prisma.schedule.findMany({
-      where: { caregiverId, scheduledDate },
+      where: { caregiverId, scheduledDate, deletedAt: null },
       orderBy: { scheduledTime: 'asc' },
     });
   }
@@ -36,7 +36,7 @@ export class ScheduleRepository
   async softDelete(id: string): Promise<void> {
     await this.prisma.schedule.update({
       where: { id },
-      data: { status: ScheduleStatus.cancelled },
+      data: { deletedAt: new Date() },
     });
   }
 }

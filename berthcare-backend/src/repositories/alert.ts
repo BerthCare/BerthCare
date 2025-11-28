@@ -15,11 +15,11 @@ export class AlertRepository
   }
 
   async findById(id: string): Promise<Alert | null> {
-    return this.prisma.alert.findUnique({ where: { id } });
+    return this.prisma.alert.findFirst({ where: { id, deletedAt: null } });
   }
 
   async findMany(filter: FindFilter = {}): Promise<Alert[]> {
-    return this.prisma.alert.findMany({ where: filter });
+    return this.prisma.alert.findMany({ where: { deletedAt: null, ...filter } });
   }
 
   async update(id: string, data: UpdateData): Promise<Alert> {
@@ -27,7 +27,10 @@ export class AlertRepository
   }
 
   async softDelete(id: string): Promise<void> {
-    await this.prisma.alert.delete({ where: { id } });
+    await this.prisma.alert.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }
 

@@ -159,11 +159,7 @@ CREATE TABLE "Consent" (
     CONSTRAINT "Consent_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
 CREATE UNIQUE INDEX "Caregiver_email_key" ON "Caregiver"("email");
-
--- CreateIndex
-CREATE INDEX "Caregiver_email_idx" ON "Caregiver"("email");
 
 -- CreateIndex
 CREATE INDEX "Schedule_caregiverId_scheduledDate_idx" ON "Schedule"("caregiverId", "scheduledDate");

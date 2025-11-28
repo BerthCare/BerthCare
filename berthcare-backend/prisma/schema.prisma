@@ -11,6 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum CaregiverRole {
@@ -56,6 +57,7 @@ model Caregiver {
   name           String
   phone          String
   organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
   role           CaregiverRole
   isActive       Boolean
   createdAt      DateTime      @default(now())
@@ -78,6 +80,7 @@ model Client {
   phone            String?
   emergencyContact String?
   organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
   isActive         Boolean
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -97,6 +100,7 @@ model Schedule {
   durationMinutes Int
   status          ScheduleStatus
   completedAt     DateTime?
+  deletedAt       DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -123,6 +127,7 @@ model Visit {
   syncStatus        SyncStatus
   syncedAt          DateTime?
   syncVersion       Int
+  deletedAt         DateTime?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
@@ -150,7 +155,9 @@ model Photo {
   height              Int
   syncStatus          PhotoSyncStatus
   uploadedAt          DateTime?
+  deletedAt           DateTime?
   createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   visit               Visit            @relation(fields: [visitId], references: [id])
   caregiver           Caregiver        @relation(fields: [caregiverId], references: [id])
@@ -166,6 +173,7 @@ model Alert {
   callDuration   Int?
   note           String?
   location       Json?
+  deletedAt      DateTime?
   createdAt      DateTime   @default(now())
 
   caregiver      Caregiver  @relation("CaregiverInitiatedAlerts", fields: [caregiverId], references: [id])
@@ -200,9 +208,19 @@ model Consent {
   revokedAt    DateTime?
   signatureUrl String?
   witnessName  String?
+  deletedAt    DateTime?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
   client       Client      @relation(fields: [clientId], references: [id])
   caregiver    Caregiver?  @relation("CaregiverConsents", fields: [caregiverId], references: [id])
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  caregivers  Caregiver[]
+  clients     Client[]
 }
