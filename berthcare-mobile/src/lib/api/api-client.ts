@@ -1,5 +1,5 @@
 import { ApiError } from './api-error';
-import { applyAuthHeader } from './interceptors';
+import { applyAuthHeader, handle401Response } from './interceptors';
 import { buildUrl, createDefaultConfig } from './config';
 import type { ApiClientConfig, ApiResponse, RequestOptions, TokenProvider, HttpMethod } from './types';
 
@@ -48,7 +48,7 @@ export class ApiClient {
     return this.request<T>('DELETE', path, undefined, options);
   }
 
-  private async request<T>(method: HttpMethod, path: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+  private async request<T>(method: HttpMethod, path: string, data?: unknown, options?: RequestOptions, allow401Refresh = true): Promise<ApiResponse<T>> {
     const baseUrl = options?.baseUrl ?? this.config.baseUrl;
     const url = buildUrl(baseUrl, path);
     const baseHeaders = { 'Content-Type': 'application/json', Accept: 'application/json', ...(options?.headers ?? {}) };
@@ -68,6 +68,10 @@ export class ApiClient {
     const json = text ? (JSON.parse(text) as T) : (undefined as T);
 
     if (!response.ok) {
+      if (response.status === 401 && allow401Refresh) {
+        return handle401Response(this.tokenProvider, () => this.request(method, path, data, options, false));
+      }
+
       throw new ApiError(response.status === 401 ? 'AuthenticationError' : response.status >= 500 ? 'ServerError' : 'ClientError', 'Request failed', {
         status: response.status,
         originalError: undefined,
