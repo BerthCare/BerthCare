@@ -6,8 +6,11 @@ import { CREATE_INDEX_STATEMENTS, CREATE_TABLE_STATEMENTS } from './schema';
 const DB_NAME = 'berthcare.db';
 
 type TransactionFn = Parameters<typeof QuickSQLite.transaction>[1];
-type Execute = (query: string, params?: any[]) => ReturnType<typeof QuickSQLite.execute>;
-type ExecuteAsync = (query: string, params?: any[]) => ReturnType<typeof QuickSQLite.executeAsync>;
+type Execute = (query: string, params?: unknown[]) => ReturnType<typeof QuickSQLite.execute>;
+type ExecuteAsync = (
+  query: string,
+  params?: unknown[]
+) => ReturnType<typeof QuickSQLite.executeAsync>;
 type TransactionExecutor = (fn: TransactionFn) => Promise<void>;
 
 export type DatabaseHandle = {
@@ -19,6 +22,7 @@ export type DatabaseHandle = {
 
 let initialized = false;
 let initializationPromise: Promise<void> | null = null;
+let initializationFailed = false;
 
 const applyEncryptionKey = async (key: string): Promise<void> => {
   await QuickSQLite.executeAsync(DB_NAME, 'PRAGMA key = ?;', [key]);
@@ -45,6 +49,7 @@ export const initialize = async (): Promise<void> => {
   }
 
   initializationPromise = (async () => {
+    initializationFailed = false;
     QuickSQLite.open(DB_NAME);
     const encryptionKey = await getOrCreateEncryptionKey();
     await applyEncryptionKey(encryptionKey);
@@ -56,6 +61,8 @@ export const initialize = async (): Promise<void> => {
   try {
     await initializationPromise;
   } catch (error) {
+    initializationFailed = true;
+    console.error('Database initialization failed', error);
     try {
       QuickSQLite.close(DB_NAME);
     } catch {
@@ -78,13 +85,16 @@ export const close = (): void => {
 
 export const getDatabase = (): DatabaseHandle => {
   if (!initialized) {
+    if (initializationFailed) {
+      throw new Error('Database initialization failed; data operations are blocked.');
+    }
     throw new Error('Database is not initialized. Call initialize() first.');
   }
 
   return {
     name: DB_NAME,
-    execute: (query: string, params?: any[]) => QuickSQLite.execute(DB_NAME, query, params),
-    executeAsync: (query: string, params?: any[]) =>
+    execute: (query: string, params?: unknown[]) => QuickSQLite.execute(DB_NAME, query, params),
+    executeAsync: (query: string, params?: unknown[]) =>
       QuickSQLite.executeAsync(DB_NAME, query, params),
     transaction: (fn: TransactionFn) => QuickSQLite.transaction(DB_NAME, fn),
   };

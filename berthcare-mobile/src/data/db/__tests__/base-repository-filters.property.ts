@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 // **Feature: sqlite-encryption-setup, Property 4: Query filters return correct subset**
 // **Validates: Requirements 5.5**
 
@@ -20,7 +22,9 @@ jest.mock('../manager', () => ({
   }),
 }));
 
-const { BaseRepository }: { BaseRepository: typeof BaseRepositoryClass } = require('../repositories');
+const {
+  BaseRepository,
+}: { BaseRepository: typeof BaseRepositoryClass } = require('../repositories');
 
 type TestEntity = {
   id: string;
@@ -37,43 +41,43 @@ type Row = Record<string, unknown>;
 const createInMemoryDb = () => {
   const table = new Map<string, Row>();
 
-  const executeAsync = async (query: string, params: any[] = []) => {
+  const executeAsync = async (query: string, params: unknown[] = []) => {
     if (query.startsWith('INSERT INTO')) {
       const columnMatch = query.match(/\(([^)]+)\)/);
-      const columns = columnMatch ? columnMatch[1].split(',').map((c) => c.trim()) : [];
+      const columns = columnMatch?.[1]?.split(',').map((c) => c.trim()) ?? [];
       const row: Row = {};
       columns.forEach((col, idx) => {
         row[col] = params[idx];
       });
-      table.set(row.id as string, row);
-      return { rowsAffected: 1 };
+      table.set(String(row.id ?? ''), row);
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
     if (query.startsWith('SELECT * FROM') && query.includes('WHERE')) {
-      const whereClause = query.split('WHERE')[1];
+      const whereClause = query.split('WHERE')[1] ?? '';
       const columns = whereClause
         .split('AND')
-        .map((part) => part.trim().split('=')[0].trim())
-        .filter(Boolean);
+        .map((part) => (part.split('=')[0] ?? '').trim())
+        .filter((col) => col.length > 0);
 
       const matches = Array.from(table.values()).filter((row) =>
         columns.every((col, idx) => row[col] === params[idx])
       );
 
-      return { rows: { _array: matches } };
+      return { rows: { _array: matches }, rowsAffected: matches.length };
     }
 
     if (query.startsWith('SELECT * FROM')) {
-      return { rows: { _array: Array.from(table.values()) } };
+      return { rows: { _array: Array.from(table.values()) }, rowsAffected: table.size };
     }
 
     if (query.startsWith('DELETE')) {
-      const id = params[0] as string;
+      const id = String(params[0] ?? '');
       table.delete(id);
-      return { rowsAffected: 1 };
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
-    return {};
+    return { rowsAffected: 0, rows: { _array: [] as Row[] } };
   };
 
   return {
@@ -101,7 +105,11 @@ describe('Feature: sqlite-encryption-setup, Property 4: Query filters return cor
         fc.boolean(),
         async (entities, targetGroup, targetActive) => {
           const db = createInMemoryDb();
-          const repo = new BaseRepository<TestEntity, TestCreateInput, TestUpdateInput>('entities', {}, () => db);
+          const repo = new BaseRepository<TestEntity, TestCreateInput, TestUpdateInput>(
+            'entities',
+            {},
+            () => db as unknown as DatabaseHandle
+          );
 
           for (const entity of entities) {
             await repo.create(entity);
@@ -119,3 +127,4 @@ describe('Feature: sqlite-encryption-setup, Property 4: Query filters return cor
     );
   });
 });
+import type { DatabaseHandle } from '../manager';

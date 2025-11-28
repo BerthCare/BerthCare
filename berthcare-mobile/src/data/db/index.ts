@@ -1,3 +1,5 @@
+import { DatabaseService } from './service';
+
 export { getOrCreateEncryptionKey } from './encryption';
 export {
   close,
@@ -14,5 +16,9 @@ export {
   type SchemaDefinition,
 } from './schema';
 export { getCurrentSchemaVersion, runMigrations, type Migration } from './migrations';
+export * from './errors';
 export * from './types';
 export * from './repositories';
+export { DatabaseService } from './service';
+
+export const databaseService = new DatabaseService();

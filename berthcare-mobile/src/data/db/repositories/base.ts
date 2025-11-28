@@ -2,19 +2,21 @@ import { getDatabase, type DatabaseHandle } from '../manager';
 
 export type JsonField = string;
 
-type RecordObject = Record<string, unknown>;
-
-type BaseRepositoryOptions = {
+export type BaseRepositoryOptions = {
   primaryKey?: string;
   jsonFields?: JsonField[];
 };
 
-const rowsFromResult = (result: any): RecordObject[] => {
-  if (result?.rows?._array) {
-    return result.rows._array as RecordObject[];
+type RecordObject = Record<string, unknown>;
+type QueryResultRows = { rows?: { _array?: RecordObject[] } | RecordObject[] };
+
+const rowsFromResult = (result: QueryResultRows): RecordObject[] => {
+  const rows = result?.rows;
+  if (Array.isArray(rows)) {
+    return rows as RecordObject[];
   }
-  if (Array.isArray(result?.rows)) {
-    return result.rows as RecordObject[];
+  if (rows && '_array' in rows && Array.isArray(rows._array)) {
+    return rows._array as RecordObject[];
   }
   return [];
 };
@@ -30,20 +32,24 @@ const stringifyJsonValue = (value: unknown): string | null => {
   return JSON.stringify(value);
 };
 
-export class BaseRepository<T extends RecordObject, CreateInput extends RecordObject, UpdateInput extends RecordObject> {
-  private readonly tableName: string;
-  private readonly primaryKey: string;
-  private readonly jsonFields: Set<string>;
-  private readonly dbProvider: () => DatabaseHandle;
+export class BaseRepository<T extends object, CreateInput extends object, UpdateInput extends object> {
+  protected readonly tableName: string;
+  protected readonly primaryKey: string;
+  protected readonly jsonFields: Set<string>;
+  protected readonly dbProvider: () => DatabaseHandle;
 
-  constructor(tableName: string, options: BaseRepositoryOptions = {}, dbProvider: () => DatabaseHandle = getDatabase) {
+  constructor(
+    tableName: string,
+    options: BaseRepositoryOptions = {},
+    dbProvider: () => DatabaseHandle = getDatabase
+  ) {
     this.tableName = tableName;
     this.primaryKey = options.primaryKey ?? 'id';
     this.jsonFields = new Set(options.jsonFields ?? []);
     this.dbProvider = dbProvider;
   }
 
-  private serializeRecord(data: RecordObject): RecordObject {
+  protected serializeRecord(data: RecordObject): RecordObject {
     const serialized: RecordObject = {};
 
     Object.entries(data).forEach(([key, value]) => {
@@ -61,7 +67,7 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
     return serialized;
   }
 
-  private deserializeRecord(row: RecordObject): T {
+  protected deserializeRecord(row: RecordObject): T {
     const deserialized: RecordObject = { ...row };
 
     this.jsonFields.forEach((key) => {
@@ -78,7 +84,7 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
     return deserialized as T;
   }
 
-  private getDb(): DatabaseHandle {
+  protected getDb(): DatabaseHandle {
     return this.dbProvider();
   }
 
@@ -89,7 +95,7 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
   }
 
   async create(data: CreateInput): Promise<T> {
-    const record = this.serializeRecord(data);
+    const record = this.serializeRecord(data as RecordObject);
     this.assertHasPrimaryKey(record);
 
     const columns = Object.keys(record);
@@ -99,7 +105,7 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
     const db = this.getDb();
     await db.executeAsync(
       `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders});`,
-      values as any[]
+      values as unknown[]
     );
 
     const id = record[this.primaryKey] as string;
@@ -112,12 +118,13 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
 
   async findById(id: string): Promise<T | null> {
     const db = this.getDb();
-    const result = await db.executeAsync(`SELECT * FROM ${this.tableName} WHERE ${this.primaryKey} = ? LIMIT 1;`, [
-      id,
-    ]);
+    const result = await db.executeAsync(
+      `SELECT * FROM ${this.tableName} WHERE ${this.primaryKey} = ? LIMIT 1;`,
+      [id]
+    );
     const rows = rowsFromResult(result);
     if (rows.length === 0) return null;
-    return this.deserializeRecord(rows[0]);
+    return this.deserializeRecord(rows[0]!);
   }
 
   async findAll(where?: Partial<T>): Promise<T[]> {
@@ -141,13 +148,16 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
     const conditions = entries.map(([key]) => `${key} = ?`).join(' AND ');
     const values = entries.map(([, value]) => value);
 
-    const result = await db.executeAsync(`SELECT * FROM ${this.tableName} WHERE ${conditions};`, values as any[]);
+    const result = await db.executeAsync(
+      `SELECT * FROM ${this.tableName} WHERE ${conditions};`,
+      values as unknown[]
+    );
     const rows = rowsFromResult(result);
     return rows.map((row) => this.deserializeRecord(row));
   }
 
   async update(id: string, data: UpdateInput): Promise<T> {
-    const record = this.serializeRecord(data);
+    const record = this.serializeRecord(data as RecordObject);
     const entries = Object.entries(record).filter(([, value]) => value !== undefined);
 
     if (entries.length === 0) {
@@ -162,10 +172,10 @@ export class BaseRepository<T extends RecordObject, CreateInput extends RecordOb
     const values = entries.map(([, value]) => value);
 
     const db = this.getDb();
-    await db.executeAsync(`UPDATE ${this.tableName} SET ${setClause} WHERE ${this.primaryKey} = ?;`, [
-      ...values,
-      id,
-    ] as any[]);
+    await db.executeAsync(
+      `UPDATE ${this.tableName} SET ${setClause} WHERE ${this.primaryKey} = ?;`,
+      [...values, id] as unknown[]
+    );
 
     const updated = await this.findById(id);
     if (!updated) {

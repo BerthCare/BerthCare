@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 // **Feature: sqlite-encryption-setup, Property 3: Delete removes entity**
 // **Validates: Requirements 5.4**
 
@@ -20,7 +22,9 @@ jest.mock('../manager', () => ({
   }),
 }));
 
-const { BaseRepository }: { BaseRepository: typeof BaseRepositoryClass } = require('../repositories');
+const {
+  BaseRepository,
+}: { BaseRepository: typeof BaseRepositoryClass } = require('../repositories');
 
 type TestEntity = {
   id: string;
@@ -35,35 +39,35 @@ type Row = Record<string, unknown>;
 const createInMemoryDb = () => {
   const table = new Map<string, Row>();
 
-  const executeAsync = async (query: string, params: any[] = []) => {
+  const executeAsync = async (query: string, params: unknown[] = []) => {
     if (query.startsWith('INSERT INTO')) {
       const columnMatch = query.match(/\(([^)]+)\)/);
-      const columns = columnMatch ? columnMatch[1].split(',').map((c) => c.trim()) : [];
+      const columns = columnMatch?.[1]?.split(',').map((c) => c.trim()) ?? [];
       const row: Row = {};
       columns.forEach((col, idx) => {
         row[col] = params[idx];
       });
-      table.set(row.id as string, row);
-      return { rowsAffected: 1 };
+      table.set(String(row.id ?? ''), row);
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
     if (query.startsWith('SELECT * FROM') && query.includes('WHERE')) {
-      const id = params[0];
+      const id = String(params[0] ?? '');
       const row = table.get(id);
-      return { rows: { _array: row ? [row] : [] } };
+      return { rows: { _array: row ? [row] : [] }, rowsAffected: row ? 1 : 0 };
     }
 
     if (query.startsWith('SELECT * FROM')) {
-      return { rows: { _array: Array.from(table.values()) } };
+      return { rows: { _array: Array.from(table.values()) }, rowsAffected: table.size };
     }
 
     if (query.startsWith('DELETE')) {
-      const id = params[0] as string;
+      const id = String(params[0] ?? '');
       table.delete(id);
-      return { rowsAffected: 1 };
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
-    return {};
+    return { rowsAffected: 0, rows: { _array: [] as Row[] } };
   };
 
   return {
@@ -79,7 +83,11 @@ describe('Feature: sqlite-encryption-setup, Property 3: Delete removes entity', 
     await fc.assert(
       fc.asyncProperty(fc.uuid(), fc.string({ minLength: 1, maxLength: 50 }), async (id, name) => {
         const db = createInMemoryDb();
-        const repo = new BaseRepository<TestEntity, TestCreateInput, TestUpdateInput>('entities', {}, () => db);
+        const repo = new BaseRepository<TestEntity, TestCreateInput, TestUpdateInput>(
+          'entities',
+          {},
+          () => db as unknown as DatabaseHandle
+        );
 
         await repo.create({ id, name });
         const existing = await repo.findById(id);
@@ -96,3 +104,4 @@ describe('Feature: sqlite-encryption-setup, Property 3: Delete removes entity', 
     );
   });
 });
+import type { DatabaseHandle } from '../manager';

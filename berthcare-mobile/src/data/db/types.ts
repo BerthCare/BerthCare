@@ -63,9 +63,7 @@ export type CreateClientInput = {
   updatedAt?: ISODateTimeString;
 };
 
-export type UpdateClientInput = Partial<
-  Omit<Client, 'id' | 'createdAt' | 'updatedAt'>
-> & {
+export type UpdateClientInput = Partial<Omit<Client, 'id' | 'createdAt' | 'updatedAt'>> & {
   updatedAt?: ISODateTimeString;
 };
 
@@ -118,9 +116,7 @@ export type CreateVisitInput = {
   updatedAt?: ISODateTimeString;
 };
 
-export type UpdateVisitInput = Partial<
-  Omit<Visit, 'id' | 'createdAt' | 'updatedAt'>
-> & {
+export type UpdateVisitInput = Partial<Omit<Visit, 'id' | 'createdAt' | 'updatedAt'>> & {
   documentation?: Record<string, unknown>;
   photoIds?: string[];
   changedFields?: string[];
@@ -164,9 +160,7 @@ export type CreatePhotoInput = {
   createdAt?: ISODateTimeString;
 };
 
-export type UpdatePhotoInput = Partial<
-  Omit<Photo, 'id' | 'createdAt'>
-> & {
+export type UpdatePhotoInput = Partial<Omit<Photo, 'id' | 'createdAt'>> & {
   uploadedAt?: ISODateTimeString | null;
 };
 
@@ -202,9 +196,7 @@ export type CreateSyncQueueInput = {
   createdAt?: ISODateTimeString;
 };
 
-export type UpdateSyncQueueInput = Partial<
-  Omit<SyncQueueItem, 'id' | 'createdAt'>
-> & {
+export type UpdateSyncQueueInput = Partial<Omit<SyncQueueItem, 'id' | 'createdAt'>> & {
   lastAttemptAt?: ISODateTimeString | null;
   errorMessage?: string | null;
 };

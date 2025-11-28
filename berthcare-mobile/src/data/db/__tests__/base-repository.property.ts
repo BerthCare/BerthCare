@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 // **Feature: sqlite-encryption-setup, Property 1: Insert-then-query round trip**
 // **Validates: Requirements 5.1, 5.2**
 
 import type { BaseRepository as BaseRepositoryClass } from '../repositories';
 import fc from 'fast-check';
+import type { DatabaseHandle } from '../manager';
 
 jest.mock('react-native-quick-sqlite', () => ({
   QuickSQLite: {
@@ -20,7 +23,9 @@ jest.mock('../manager', () => ({
   }),
 }));
 
-const { BaseRepository }: { BaseRepository: typeof BaseRepositoryClass } = require('../repositories');
+const {
+  BaseRepository,
+}: { BaseRepository: typeof BaseRepositoryClass } = require('../repositories');
 
 type TestEntity = {
   id: string;
@@ -37,53 +42,52 @@ type Row = Record<string, unknown>;
 const createInMemoryDb = () => {
   const table = new Map<string, Row>();
 
-  const executeAsync = async (query: string, params: any[] = []) => {
+  const executeAsync = async (query: string, params: unknown[] = []) => {
     if (query.startsWith('INSERT INTO')) {
       const columnMatch = query.match(/\(([^)]+)\)/);
-      const columns = columnMatch ? columnMatch[1].split(',').map((c) => c.trim()) : [];
+      const columns = columnMatch?.[1]?.split(',').map((c) => c.trim()) ?? [];
       const row: Row = {};
       columns.forEach((col, idx) => {
         row[col] = params[idx];
       });
-      const id = row.id as string;
+      const id = String(row.id ?? '');
       table.set(id, row);
-      return { rowsAffected: 1 };
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
     if (query.startsWith('SELECT * FROM') && query.includes('WHERE')) {
-      const id = params[0];
+      const id = String(params[0] ?? '');
       const row = table.get(id);
-      return { rows: { _array: row ? [row] : [] } };
+      return { rows: { _array: row ? [row] : [] }, rowsAffected: row ? 1 : 0 };
     }
 
     if (query.startsWith('SELECT * FROM')) {
-      return { rows: { _array: Array.from(table.values()) } };
+      return { rows: { _array: Array.from(table.values()) }, rowsAffected: table.size };
     }
 
     if (query.startsWith('UPDATE')) {
-      const id = params[params.length - 1] as string;
+      const id = String(params[params.length - 1] ?? '');
       const row = table.get(id);
       if (row) {
-        const assignments = query
-          .split('SET')[1]
-          .split('WHERE')[0]
+        const setSection = query.split('SET')[1] ?? '';
+        const assignments = (setSection.split('WHERE')[0] ?? '')
           .split(',')
-          .map((part) => part.trim().split(' = ')[0]);
+          .map((part) => (part.split(' = ')[0] ?? '').trim());
         assignments.forEach((col, idx) => {
-          row[col] = params[idx];
+          row[col] = params[idx] as unknown;
         });
         table.set(id, row);
       }
-      return { rowsAffected: 1 };
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
     if (query.startsWith('DELETE')) {
-      const id = params[0] as string;
+      const id = String(params[0] ?? '');
       table.delete(id);
-      return { rowsAffected: 1 };
+      return { rowsAffected: 1, rows: { _array: [] as Row[] } };
     }
 
-    return {};
+    return { rowsAffected: 0, rows: { _array: [] as Row[] } };
   };
 
   return {
@@ -118,7 +122,7 @@ describe('Feature: sqlite-encryption-setup, Property 1: Insert-then-query round 
           const repo = new BaseRepository<TestEntity, TestCreateInput, TestUpdateInput>(
             'entities',
             { jsonFields: ['payload'] },
-            () => db
+            () => db as unknown as DatabaseHandle
           );
 
           const input: TestCreateInput = { id, name, payload, count };
