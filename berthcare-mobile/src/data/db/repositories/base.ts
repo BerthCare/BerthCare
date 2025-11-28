@@ -32,7 +32,11 @@ const stringifyJsonValue = (value: unknown): string | null => {
   return JSON.stringify(value);
 };
 
-export class BaseRepository<T extends object, CreateInput extends object, UpdateInput extends object> {
+export class BaseRepository<
+  T extends object,
+  CreateInput extends object,
+  UpdateInput extends object,
+> {
   protected readonly tableName: string;
   protected readonly primaryKey: string;
   protected readonly jsonFields: Set<string>;
