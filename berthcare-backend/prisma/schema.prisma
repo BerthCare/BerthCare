@@ -60,8 +60,11 @@ model Caregiver {
   isActive       Boolean
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  schedules      Schedule[]
-  visits         Visit[]
+  schedules        Schedule[]
+  visits           Visit[]
+  initiatedAlerts   Alert[]      @relation("CaregiverInitiatedAlerts")
+  coordinatedAlerts Alert[]      @relation("CaregiverCoordinatedAlerts")
+  consents         Consent[]     @relation("CaregiverConsents")
 
   @@index([email])
 }
@@ -79,6 +82,8 @@ model Client {
   updatedAt        DateTime @updatedAt
   schedules        Schedule[]
   visits           Visit[]
+  alerts           Alert[]
+  consents         Consent[]
 }
 
 model Schedule {
@@ -148,4 +153,54 @@ model Photo {
   visit               Visit            @relation(fields: [visitId], references: [id])
   caregiver           Caregiver        @relation(fields: [caregiverId], references: [id])
   client              Client           @relation(fields: [clientId], references: [id])
+}
+
+model Alert {
+  id             String     @id @default(uuid())
+  caregiverId    String
+  clientId       String
+  coordinatorId  String
+  initiatedAt    DateTime
+  callDuration   Int?
+  note           String?
+  location       Json?
+  createdAt      DateTime   @default(now())
+
+  caregiver      Caregiver  @relation("CaregiverInitiatedAlerts", fields: [caregiverId], references: [id])
+  coordinator    Caregiver  @relation("CaregiverCoordinatedAlerts", fields: [coordinatorId], references: [id])
+  client         Client     @relation(fields: [clientId], references: [id])
+}
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  entityType String
+  entityId   String
+  action     String
+  actorId    String
+  actorType  ActorType
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  userAgent  String?
+  deviceId   String
+  createdAt  DateTime  @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model Consent {
+  id           String      @id @default(uuid())
+  clientId     String
+  caregiverId  String?
+  consentType  ConsentType
+  granted      Boolean
+  grantedAt    DateTime?
+  revokedAt    DateTime?
+  signatureUrl String?
+  witnessName  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  client       Client      @relation(fields: [clientId], references: [id])
+  caregiver    Caregiver?  @relation("CaregiverConsents", fields: [caregiverId], references: [id])
 }
