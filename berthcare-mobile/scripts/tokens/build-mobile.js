@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 /**
  * Mobile design token build script using Style Dictionary.
@@ -13,7 +14,13 @@ const StyleDictionary = require('style-dictionary');
 const { formatHelpers } = StyleDictionary;
 
 const projectRoot = path.resolve(__dirname, '..', '..');
-const designTokensPath = path.resolve(projectRoot, '..', 'design-documentation', 'assets', 'design-tokens.json');
+const designTokensPath = path.resolve(
+  projectRoot,
+  '..',
+  'design-documentation',
+  'assets',
+  'design-tokens.json'
+);
 const buildPath = 'src/theme/generated/';
 
 if (!fs.existsSync(designTokensPath)) {
@@ -70,5 +77,9 @@ const sd = StyleDictionary.extend({
 
 sd.buildPlatform('mobile');
 
-// eslint-disable-next-line no-console
-console.log('Mobile tokens built at', path.join(buildPath, 'tokens.raw.json'), 'and', path.join(buildPath, 'tokens.ts'));
+console.log(
+  'Mobile tokens built at',
+  path.join(buildPath, 'tokens.raw.json'),
+  'and',
+  path.join(buildPath, 'tokens.ts')
+);

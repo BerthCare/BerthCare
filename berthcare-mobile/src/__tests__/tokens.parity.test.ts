@@ -4,7 +4,13 @@ import path from 'node:path';
 type FlatTokenMap = Record<string, unknown>;
 
 const projectRoot = path.resolve(__dirname, '..', '..');
-const sourcePath = path.resolve(projectRoot, '..', 'design-documentation', 'assets', 'design-tokens.json');
+const sourcePath = path.resolve(
+  projectRoot,
+  '..',
+  'design-documentation',
+  'assets',
+  'design-tokens.json'
+);
 const generatedPath = path.resolve(projectRoot, 'src', 'theme', 'generated', 'tokens.raw.json');
 
 const isValueLeaf = (node: unknown): node is { value: unknown } =>

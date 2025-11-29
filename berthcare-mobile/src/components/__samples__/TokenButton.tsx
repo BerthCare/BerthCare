@@ -37,19 +37,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: parseFloat(spacing.md),
     borderRadius: parseFloat(spacing.sm),
   } as ViewStyle,
-  pressed: {
-    opacity: 0.92,
-  } as ViewStyle,
   disabled: {
     opacity: 0.48,
   } as ViewStyle,
+  disabledLabel: {
+    color: colors.text.inverse.light,
+  } as TextStyle,
   label: {
     color: colors.text.inverse.light,
     fontSize: parseFloat(buttonTypography.size),
     fontWeight: buttonTypography.weight as TextStyle['fontWeight'],
     lineHeight: parseFloat(buttonTypography.lineHeight),
   } as TextStyle,
-  disabledLabel: {
-    color: colors.text.inverse.light,
-  } as TextStyle,
+  pressed: {
+    opacity: 0.92,
+  } as ViewStyle,
 });

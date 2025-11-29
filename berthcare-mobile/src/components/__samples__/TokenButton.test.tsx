@@ -11,7 +11,8 @@ describe('TokenButton', () => {
 
     const button = getByRole('button');
     const styleProp = button.props.style;
-    const computedStyle = typeof styleProp === 'function' ? styleProp({ pressed: false }) : styleProp;
+    const computedStyle =
+      typeof styleProp === 'function' ? styleProp({ pressed: false }) : styleProp;
 
     const buttonStyles = StyleSheet.flatten(computedStyle);
     expect(buttonStyles.backgroundColor).toBe(colors.brand.primary);
