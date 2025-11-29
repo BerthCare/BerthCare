@@ -167,6 +167,10 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
 - Dependencies: `sentry-expo` (Expo-compatible SDK + config plugin) and `@sentry/cli` (source map uploads in CI/EAS).
 - Privacy posture: `sendDefaultPii=false`; user context allowlist (`id`, `anonymousId`, `sessionId`); tags/extra allowlists guard telemetry. `beforeSend`/`beforeBreadcrumb` scrub tokens, emails, phones, addresses, headers; redacted events tagged `pii_redacted=true`; noisy breadcrumbs (e.g., console) dropped.
 - Dev crash trigger: in dev builds a “Trigger test crash” button on the home screen calls `triggerTestCrash()` to emit a JS error and native crash (when available) for end-to-end validation with symbolication.
+- Runbook (Sentry):
+  - Outage: if Sentry is down, the app stays running (console fallback). Pause noise by setting `EXPO_PUBLIC_SENTRY_DSN` empty and rebuilding; re-enable once Sentry recovers.
+  - Rotate auth token: create a new Sentry auth token (org→Auth Tokens) scoped for uploads, update GitHub secrets `SENTRY_AUTH_TOKEN` and EAS project secret of the same name, then rerun CI to verify.
+  - Validate source maps: run `npm run sentry:upload-sourcemaps -- --release <release>` with the same release as the app build. In Sentry, check Project Settings → Source Maps for the release; confirm artifacts exist for ios/android and stacks are symbolicated.
 
 ## Troubleshooting
 - **Metro port conflict (8081/19000):** `lsof -ti:8081 -ti:19000 | xargs kill -9` then `npm start -- --clear`.
