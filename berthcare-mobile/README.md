@@ -156,16 +156,17 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
 4. Build performance target: <5 minutes for production builds. Last measurement (2025-11-26): Android production via EAS succeeded in ~5–10 minutes end-to-end (queue included); iOS production requires a paid Apple Developer account.
 
 ## Observability (Sentry)
-- Configuration file: `sentry.properties` (placeholder values only). Do **not** commit secrets.
-- Environment variables expected by Sentry CLI / `sentry-expo`:
-  - `SENTRY_ORG`
-  - `SENTRY_PROJECT`
-  - `SENTRY_AUTH_TOKEN` (add as `sentry_auth_token` in GitHub Actions secrets)
-- CI/EAS: set the env vars above in GitHub Actions secrets and EAS project secrets so uploads run without hard-coded tokens.
-- Source maps: `npm run sentry:upload-sourcemaps -- --release <release>` (fails if release is missing). Use the same release value as the app build to keep symbolication aligned.
-- Dependencies: `sentry-expo` provides the Expo-compatible Sentry SDK and config plugin for native/JS crash capture; `@sentry/cli` is used in CI/EAS to upload source maps tied to the same release.
-- PII posture: `sendDefaultPii=false`; only opaque user identifiers are allowed in `setUserContext` (`id`, `anonymousId`, `sessionId`). Log context allowlists guard tags/extra payloads; expand deliberately when adding new telemetry.
-- Dev crash trigger: in dev builds a “Trigger test crash” button is shown on the home screen. It calls `triggerTestCrash()` which sends a JS exception via Sentry and, when available, triggers a native crash for end-to-end symbolication. Use this to validate release/env wiring before shipping.
+- Configuration files:
+  - `sentry.properties` (placeholders only; secrets via env).
+  - `app.config.ts` provides `extra.sentry` (dsn, environment, release) and `sentry-expo` plugin + upload hook.
+- Environment variables:
+  - `EXPO_PUBLIC_SENTRY_DSN` (preferred) or `SENTRY_DSN` for runtime init
+  - `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_URL` (optional) for CLI/uploads
+  - Release/environment: derived from app version + build number (+ git sha) via `buildSentryRelease`; `EXPO_PUBLIC_ENV` or `EAS_BUILD_PROFILE` sets environment
+- Source maps: `npm run sentry:upload-sourcemaps -- --release <release>` (fails if release is missing). Use the same release as runtime. CI job `sentry-upload` runs this on PRs with secrets.
+- Dependencies: `sentry-expo` (Expo-compatible SDK + config plugin) and `@sentry/cli` (source map uploads in CI/EAS).
+- Privacy posture: `sendDefaultPii=false`; user context allowlist (`id`, `anonymousId`, `sessionId`); tags/extra allowlists guard telemetry. `beforeSend`/`beforeBreadcrumb` scrub tokens, emails, phones, addresses, headers; redacted events tagged `pii_redacted=true`; noisy breadcrumbs (e.g., console) dropped.
+- Dev crash trigger: in dev builds a “Trigger test crash” button on the home screen calls `triggerTestCrash()` to emit a JS error and native crash (when available) for end-to-end validation with symbolication.
 
 ## Troubleshooting
 - **Metro port conflict (8081/19000):** `lsof -ti:8081 -ti:19000 | xargs kill -9` then `npm start -- --clear`.

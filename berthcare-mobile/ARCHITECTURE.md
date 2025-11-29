@@ -83,6 +83,14 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Implementation aligns with the referenced architecture: Style Dictionary pulls from `design-documentation/assets/design-tokens.json` and emits React Native-friendly outputs to `src/theme/generated/` (`tokens.raw.json`, `tokens.ts`, `tokens.d.ts`), aggregated via `src/theme/tokens.ts`.
 - CI deviation: none. We added a drift guard (`tokens:build:mobile` + `git diff --exit-code src/theme/generated`) as an explicit check in `.github/workflows/ci.yml` to enforce reproducible outputs.
 
+## Observability Architecture (Sentry)
+- Config source: `app.config.ts` sets `extra.sentry` (dsn, environment, release) using `buildSentryRelease` (`APP_IDENTIFIER@appVersion+buildNumber[-sha]`) and wires the `sentry-expo` plugin + postPublish upload hook. Secrets flow via env (`EXPO_PUBLIC_SENTRY_DSN`/`SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`).
+- Runtime bootstrap: `setupObservability` in `src/observability/index.ts` initializes Sentry before `registerRootComponent`; warns and skips when DSN is absent (fail-open).
+- Logging facade: `src/observability/logging.ts` (`captureException`, `captureMessage`, `addBreadcrumb`, `recordUserAction`, `setUserContext`) with Sentry + console fallback and allowlists for tags/extra/user to avoid PII.
+- Breadcrumbs: API interceptors add sanitized request/response breadcrumbs (method/route/status); navigation helper (`src/observability/navigation.ts`) emits route changes with allowed params; noisy categories are dropped and capped at 50.
+- Privacy controls: `sendDefaultPii=false`; `beforeSend`/`beforeBreadcrumb` scrub tokens, emails, phones, addresses, headers, and free-text payloads; redacted events tagged `pii_redacted=true`. User context limited to opaque IDs.
+- Source map alignment: `sentry-expo` upload hook and `npm run sentry:upload-sourcemaps -- --release <release>` use the same release as runtime; CI job `sentry-upload` verifies the command with secrets on PRs.
+
 ## Deployment & Rollback Readiness – Mobile Tokens
 - Post-merge verification: `npm ci`, `npm run tokens:build:mobile`, `npm test -- --runInBand src/__tests__/tokens.parity.test.ts src/theme/tokens.typecheck.ts src/components/__samples__/TokenButton.test.tsx`, then launch a debug build to confirm the sample TokenButton renders with tokens applied.
 - Rollback plan: revert the token-related commit(s), rerun `npm run tokens:build:mobile` to regenerate `src/theme/generated/*`, and rerun the scoped tests above to ensure parity/type coverage before redeploying.
