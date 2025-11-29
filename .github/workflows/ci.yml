@@ -70,7 +70,7 @@ jobs:
     name: Sentry Sourcemap Upload (verify)
     runs-on: ubuntu-latest
     needs: [lint, typecheck, format, test]
-    if: github.event_name == 'pull_request' && secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' && secrets.SENTRY_AUTH_TOKEN != ''
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
