@@ -7,7 +7,7 @@ jest.mock('sentry-expo', () => ({
   init: jest.fn(),
 }));
 
-import type { Breadcrumb, Event } from '@sentry/types';
+import type { Breadcrumb, Contexts, Event } from '@sentry/types';
 
 import { __testables } from '../sentry';
 
@@ -23,7 +23,7 @@ describe('observability redaction', () => {
         data: 'Contact at 555-555-1212',
       },
       extra: { token: 'abcd', feature: 'visit', notes: '123 Main St' },
-      contexts: { device: 'ios', address: '1 Infinite Loop' } as Record<string, unknown>,
+      contexts: { device: { model: 'ios' }, address: { line1: '1 Infinite Loop' } } as Contexts,
       tags: { existing: 'keep' },
     };
 
@@ -33,7 +33,10 @@ describe('observability redaction', () => {
     expect(scrubbed.request?.headers?.Authorization).toBe('[redacted]');
     expect(scrubbed.request?.data).toBe('[redacted]');
     expect(scrubbed.extra).toMatchObject({ token: '[redacted]', feature: 'visit' });
-    expect(scrubbed.contexts).toMatchObject({ device: 'ios', address: '[redacted]' });
+    expect(scrubbed.contexts).toMatchObject({
+      device: { model: 'ios' },
+      address: '[redacted]',
+    });
     expect(scrubbed.tags?.pii_redacted).toBe('true');
     expect(scrubbed.tags?.existing).toBe('keep');
   });
@@ -60,7 +63,11 @@ describe('observability redaction', () => {
     };
 
     const scrubbed = scrubBreadcrumb(breadcrumb);
-    expect(scrubbed?.data).toMatchObject({ route: '/clients/123', email: '[redacted]', pii_redacted: true });
+    expect(scrubbed?.data).toMatchObject({
+      route: '/clients/123',
+      email: '[redacted]',
+      pii_redacted: true,
+    });
   });
 
   it('drops noisy breadcrumb categories', () => {

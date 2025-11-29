@@ -16,11 +16,20 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const parsedVersionCode = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? '1', 10);
   const androidVersionCode = Number.isNaN(parsedVersionCode) ? 1 : parsedVersionCode;
   const gitSha = process.env.EAS_BUILD_GIT_COMMIT_HASH;
-  const environment = process.env.EXPO_PUBLIC_ENV ?? resolveEnvironment(process.env.EAS_BUILD_PROFILE);
-  const sentryRelease = process.env.SENTRY_RELEASE ?? buildSentryRelease(appVersion, iosBuildNumber, gitSha);
+  const environment =
+    process.env.EXPO_PUBLIC_ENV ?? resolveEnvironment(process.env.EAS_BUILD_PROFILE);
+  const sentryRelease =
+    process.env.SENTRY_RELEASE ?? buildSentryRelease(appVersion, iosBuildNumber, gitSha);
   const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN ?? '';
 
-  return {
+  const configResult: ExpoConfig & {
+    hooks?: {
+      postPublish?: {
+        file: string;
+        config: Record<string, unknown>;
+      }[];
+    };
+  } = {
     ...config,
     name: 'berthcare-mobile',
     slug: 'berthcare-mobile',
@@ -70,11 +79,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     owner: 'merylnlamera',
-    optimization: {
-      web: {
-        bundler: 'metro',
-      },
-    },
     plugins: [
       'expo-secure-store',
       [
@@ -86,19 +90,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
     ],
-    hooks: {
-      postPublish: [
-        {
-          file: 'sentry-expo/upload-sourcemaps',
-          config: {
-            organization: process.env.SENTRY_ORG ?? '__SENTRY_ORG__',
-            project: process.env.SENTRY_PROJECT ?? '__SENTRY_PROJECT__',
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-            url: process.env.SENTRY_URL ?? 'https://sentry.io/',
-            release: sentryRelease,
-          },
-        },
-      ],
-    },
   };
+
+  configResult.hooks = {
+    postPublish: [
+      {
+        file: 'sentry-expo/upload-sourcemaps',
+        config: {
+          organization: process.env.SENTRY_ORG ?? '__SENTRY_ORG__',
+          project: process.env.SENTRY_PROJECT ?? '__SENTRY_PROJECT__',
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+          url: process.env.SENTRY_URL ?? 'https://sentry.io/',
+          release: sentryRelease,
+        },
+      },
+    ],
+  };
+
+  return configResult;
 };

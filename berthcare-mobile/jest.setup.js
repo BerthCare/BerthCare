@@ -19,3 +19,14 @@ jest.mock('react-native/Libraries/Animated/NativeAnimatedModule', () => ({
     finishOperationBatch: jest.fn(),
   },
 }));
+
+jest.mock('sentry-expo', () => {
+  const Native = {
+    captureException: jest.fn(),
+    captureMessage: jest.fn(),
+    addBreadcrumb: jest.fn(),
+    setTags: jest.fn(),
+    nativeCrash: jest.fn(),
+  };
+  return { init: jest.fn(), Native };
+});

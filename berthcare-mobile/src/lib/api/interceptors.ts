@@ -33,7 +33,8 @@ const sanitizeRoute = (url: string): string => {
     const parsed = new URL(url);
     return parsed.pathname || '/';
   } catch {
-    return url.split('?')[0];
+    const [path] = url.split('?');
+    return path || '/';
   }
 };
 

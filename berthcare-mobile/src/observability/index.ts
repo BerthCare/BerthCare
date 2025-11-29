@@ -16,12 +16,20 @@ export const setupObservability = () => {
     return;
   }
 
+  const options: { dsn: string; environment?: string; release?: string } = {
+    dsn: sentryConfig.dsn,
+  };
+
+  if (sentryConfig.environment) {
+    options.environment = sentryConfig.environment;
+  }
+
+  if (sentryConfig.release) {
+    options.release = sentryConfig.release;
+  }
+
   try {
-    initSentry({
-      dsn: sentryConfig.dsn,
-      environment: sentryConfig.environment,
-      release: sentryConfig.release,
-    });
+    initSentry(options);
   } catch (error) {
     console.warn('[observability] Failed to initialize Sentry', error);
   }

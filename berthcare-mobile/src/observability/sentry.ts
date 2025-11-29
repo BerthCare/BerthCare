@@ -33,19 +33,21 @@ const redactIfSensitiveString = (value: unknown): { value: unknown; redacted: bo
   return { value, redacted: false };
 };
 
-const scrubHeaders = (headers: Record<string, unknown>): Record<string, unknown> => {
-  const sanitized: Record<string, unknown> = {};
+const scrubHeaders = (headers: Record<string, unknown>): Record<string, string> => {
+  const sanitized: Record<string, string> = {};
   Object.entries(headers).forEach(([key, value]) => {
     if (SENSITIVE_HEADERS.includes(key.toLowerCase())) {
       sanitized[key] = REDACTED;
       return;
     }
-    sanitized[key] = value;
+    sanitized[key] = String(value);
   });
   return sanitized;
 };
 
-const scrubObject = (input?: Record<string, unknown>): { redacted: boolean; data: Record<string, unknown> } => {
+const scrubObject = (
+  input?: Record<string, unknown>
+): { redacted: boolean; data: Record<string, unknown> } => {
   if (!input) {
     return { redacted: false, data: {} };
   }
@@ -97,13 +99,17 @@ const scrubEvent = (event: Event): Event => {
   }
 
   if (event.contexts) {
-    const { redacted: contextsRedacted, data } = scrubObject(event.contexts as Record<string, unknown>);
-    scrubbedEvent.contexts = data;
+    const { redacted: contextsRedacted, data } = scrubObject(
+      event.contexts as Record<string, unknown>
+    );
+    scrubbedEvent.contexts = data as typeof event.contexts;
     redacted = redacted || contextsRedacted;
   }
 
   if (event.request?.data) {
-    const { value: requestData, redacted: requestDataRedacted } = redactIfSensitiveString(event.request.data);
+    const { value: requestData, redacted: requestDataRedacted } = redactIfSensitiveString(
+      event.request.data
+    );
     scrubbedEvent.request = {
       ...scrubbedEvent.request,
       data: requestDataRedacted ? REDACTED : requestData,
@@ -151,23 +157,31 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
     return;
   }
 
-  Sentry.init({
+  const options: NonNullable<Parameters<typeof Sentry.init>[0]> = {
     dsn,
-    release,
-    environment,
-    debug,
+    debug: Boolean(debug),
     enableNative: true,
     enableNativeCrashHandling: true,
     enableAutoSessionTracking: true,
     maxBreadcrumbs: MAX_BREADCRUMBS,
     sendDefaultPii: false,
-    beforeSend(event: Event, hint?: EventHint) {
+    beforeSend(event: Event, _hint?: EventHint) {
       return scrubEvent(event);
     },
-    beforeBreadcrumb(breadcrumb: Breadcrumb, hint?: EventHint) {
+    beforeBreadcrumb(breadcrumb: Breadcrumb, _hint?: EventHint) {
       return scrubBreadcrumb(breadcrumb);
     },
-  });
+  };
+
+  if (environment) {
+    options.environment = environment;
+  }
+
+  if (release) {
+    options.release = release;
+  }
+
+  Sentry.init(options);
 
   // Default capture level remains info/error based on SDK; ensure console breadcrumbs are captured.
   Sentry.Native.setTags?.({ environment, release });
