@@ -11,6 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "tokens:build:mobile": "node scripts/tokens/build-mobile.js",
+    "sentry:upload-sourcemaps": "npx sentry-expo upload-sourcemaps",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
