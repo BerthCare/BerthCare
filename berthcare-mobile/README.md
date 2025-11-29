@@ -60,6 +60,14 @@ src/
 ```
 Naming stays simple (folder implies context), and path aliases are provided via `tsconfig.json` (`@/`, `@screens/`, `@ui/`, `@data/`, `@navigation/`, `@types/`, `@assets/`).
 
+## Design Tokens (Mobile)
+- Source: `../design-documentation/assets/design-tokens.json`
+- Build: `npm run tokens:build:mobile`
+- Outputs: `src/theme/generated/tokens.raw.json`, `tokens.ts`, `tokens.d.ts` (committed)
+- Entry point: `src/theme/tokens.ts` (`colors`, `spacing`, `typography`, `animations`)
+- CI guard: token build runs in CI with `git diff --exit-code src/theme/generated` to catch drift
+- Rerun when: upstream design tokens change or parity/type tests fail locally/CI
+
 ## API Client (in progress)
 - Location: `src/lib/api/` (scaffolded) with planned `ApiClient`, `config`, `interceptors`, `retry`, and typed `ApiError`.
 - Scope: centralized fetch wrapper for schedule/visit flows (see `project-documentation/technical-blueprint.md#5-key-flows--sequencing`) with TLS 1.3, JWT auth, and audit-friendly error handling per `#6-non-functional-requirements-as-experience`.
