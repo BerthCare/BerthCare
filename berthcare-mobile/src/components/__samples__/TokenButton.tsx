@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, TextStyle, ViewStyle } from 'react-native'
 
 import { colors, spacing, typography } from '@/theme/tokens';
 
+const buttonTypography = typography.button.default;
+
 type TokenButtonProps = {
   label: string;
   disabled?: boolean;
@@ -31,9 +33,9 @@ export function TokenButton({ label, disabled = false, onPress }: TokenButtonPro
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.brand.primary,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: spacing.sm,
+    paddingVertical: parseFloat(spacing.md),
+    paddingHorizontal: parseFloat(spacing.lg),
+    borderRadius: parseFloat(spacing.sm),
   } as ViewStyle,
   pressed: {
     opacity: 0.92,
@@ -42,12 +44,12 @@ const styles = StyleSheet.create({
     opacity: 0.48,
   } as ViewStyle,
   label: {
-    color: colors.text.onPrimary,
-    fontSize: typography.button.default.size,
-    fontWeight: typography.button.default.weight as TextStyle['fontWeight'],
-    lineHeight: typography.button.default.lineHeight,
+    color: colors.text.inverse.light,
+    fontSize: parseFloat(buttonTypography.size),
+    fontWeight: buttonTypography.weight as TextStyle['fontWeight'],
+    lineHeight: parseFloat(buttonTypography.lineHeight),
   } as TextStyle,
   disabledLabel: {
-    color: colors.text.onPrimary,
+    color: colors.text.inverse.light,
   } as TextStyle,
 });

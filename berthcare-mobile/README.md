@@ -40,6 +40,7 @@ React Native + Expo (SDK 54, RN 0.81, TypeScript 5.9) app that helps caregivers 
 | `npm run lint` / `npm run lint:fix` | ESLint checks / auto-fix |
 | `npm run format` / `npm run format:check` | Prettier format / verify |
 | `npm run type-check` | TypeScript strict type checking |
+| `npm run tokens:build:mobile` | Regenerate mobile design tokens (writes `src/theme/generated/*` from `design-documentation/assets/design-tokens.json`) |
 | `npm test` / `npm run test:watch` | Jest + RNTL test suite |
 | `npm run build:dev:ios|android` | EAS development build (custom dev client) |
 | `npm run build:preview:ios|android` | EAS preview/internal builds |
