@@ -1,17 +1,13 @@
 import { ConfigContext, ExpoConfig } from '@expo/config';
 
+import { APP_IDENTIFIER, buildSentryRelease } from './src/observability/release';
+
 const projectId = '5a324903-de4d-41bb-8d29-ab44b5c2f621';
-const appIdentifier = 'com.berthcare.mobile';
 
 const resolveEnvironment = (profile?: string): 'development' | 'staging' | 'production' => {
   if (profile === 'production') return 'production';
   if (profile === 'preview') return 'staging';
   return 'development';
-};
-
-const buildSentryRelease = (appVersion: string, buildNumber: string, gitSha?: string) => {
-  const base = `${appIdentifier}@${appVersion}+${buildNumber}`;
-  return gitSha ? `${base}-${gitSha.slice(0, 7)}` : base;
 };
 
 export default ({ config }: ConfigContext): ExpoConfig => {
@@ -47,7 +43,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     runtimeVersion: appVersion,
     ios: {
       supportsTablet: true,
-      bundleIdentifier: appIdentifier,
+      bundleIdentifier: APP_IDENTIFIER,
       buildNumber: iosBuildNumber,
     },
     android: {
@@ -57,7 +53,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      package: appIdentifier,
+      package: APP_IDENTIFIER,
       versionCode: androidVersionCode,
     },
     web: {
