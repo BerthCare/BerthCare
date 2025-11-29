@@ -1,0 +1,31 @@
+{
+  "color": {
+    "brand": {
+      "primary": { "value": "#000000" },
+      "secondary": { "value": "#1A1A1A" }
+    },
+    "text": {
+      "onPrimary": { "value": "#FFFFFF" }
+    }
+  },
+  "space": {
+    "sm": { "value": 8 },
+    "md": { "value": 16 },
+    "lg": { "value": 24 }
+  },
+  "type": {
+    "button": {
+      "default": {
+        "size": { "value": 16 },
+        "weight": { "value": "600" },
+        "lineHeight": { "value": 22 }
+      }
+    }
+  },
+  "motion": {
+    "default": {
+      "duration": { "value": 150 },
+      "easing": { "value": "ease-in-out" }
+    }
+  }
+}
