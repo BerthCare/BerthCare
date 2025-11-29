@@ -86,5 +86,19 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
     ],
+    hooks: {
+      postPublish: [
+        {
+          file: 'sentry-expo/upload-sourcemaps',
+          config: {
+            organization: process.env.SENTRY_ORG ?? '__SENTRY_ORG__',
+            project: process.env.SENTRY_PROJECT ?? '__SENTRY_PROJECT__',
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            url: process.env.SENTRY_URL ?? 'https://sentry.io/',
+            release: sentryRelease,
+          },
+        },
+      ],
+    },
   };
 };
