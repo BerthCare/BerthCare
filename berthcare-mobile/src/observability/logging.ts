@@ -114,11 +114,20 @@ export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
 };
 
 export const recordUserAction = (label: string, data?: Record<string, unknown>) => {
+  const filteredData: Record<string, unknown> = {};
+  if (data) {
+    ALLOWED_EXTRA_KEYS.forEach((key) => {
+      if (key in data) {
+        filteredData[key] = data[key];
+      }
+    });
+  }
+
   const breadcrumb: Breadcrumb = {
     category: 'user',
     message: label,
     level: 'info',
-    ...(data ? { data } : {}),
+    ...(Object.keys(filteredData).length ? { data: filteredData } : {}),
   };
   addBreadcrumb(breadcrumb);
 };

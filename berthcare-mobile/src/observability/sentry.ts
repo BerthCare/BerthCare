@@ -51,16 +51,20 @@ const redactIfSensitiveString = (value: unknown): { value: unknown; redacted: bo
   return { value, redacted: false };
 };
 
-const scrubHeaders = (headers: Record<string, unknown>): Record<string, string> => {
+const scrubHeaders = (
+  headers: Record<string, unknown>
+): { headers: Record<string, string>; redacted: boolean } => {
   const sanitized: Record<string, string> = {};
+  let redacted = false;
   Object.entries(headers).forEach(([key, value]) => {
     if (SENSITIVE_HEADERS.includes(key.toLowerCase())) {
       sanitized[key] = REDACTED;
+      redacted = true;
       return;
     }
     sanitized[key] = String(value);
   });
-  return sanitized;
+  return { headers: sanitized, redacted };
 };
 
 const scrubObject = (
@@ -80,8 +84,11 @@ const scrubObject = (
       return;
     }
     if (key.toLowerCase() === 'headers' && typeof value === 'object' && value !== null) {
-      data[key] = scrubHeaders(value as Record<string, unknown>);
-      redacted = true;
+      const { headers, redacted: headersRedacted } = scrubHeaders(
+        value as Record<string, unknown>
+      );
+      data[key] = headers;
+      redacted = redacted || headersRedacted;
       return;
     }
     const { value: maybeRedactedValue, redacted: valueRedacted } = redactIfSensitiveString(value);
@@ -103,11 +110,14 @@ const scrubEvent = (event: Event): Event => {
   }
 
   if (event.request?.headers) {
+    const { headers, redacted: headersRedacted } = scrubHeaders(
+      event.request.headers as Record<string, unknown>
+    );
     scrubbedEvent.request = {
       ...event.request,
-      headers: scrubHeaders(event.request.headers as Record<string, unknown>),
+      headers,
     };
-    redacted = true;
+    redacted = redacted || headersRedacted;
   }
 
   if (event.extra) {

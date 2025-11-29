@@ -18,15 +18,9 @@ export const setupObservability = () => {
 
   const options: { dsn: string; environment?: string; release?: string } = {
     dsn: sentryConfig.dsn,
+    ...(sentryConfig.environment ? { environment: sentryConfig.environment } : {}),
+    ...(sentryConfig.release ? { release: sentryConfig.release } : {}),
   };
-
-  if (sentryConfig.environment) {
-    options.environment = sentryConfig.environment;
-  }
-
-  if (sentryConfig.release) {
-    options.release = sentryConfig.release;
-  }
 
   try {
     initSentry(options);

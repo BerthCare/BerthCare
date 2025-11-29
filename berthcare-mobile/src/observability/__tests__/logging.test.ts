@@ -78,7 +78,7 @@ describe('logging facade', () => {
       expect.objectContaining({
         category: 'user',
         message: 'pressed button',
-        data: { source: 'home', secret: 'hidden' },
+        data: { source: 'home' },
       })
     );
   });
