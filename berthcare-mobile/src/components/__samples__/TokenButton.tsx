@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.brand.primary,
     paddingVertical: parseFloat(spacing.md),
-    paddingHorizontal: parseFloat(spacing.lg),
+    paddingHorizontal: parseFloat(spacing.md),
     borderRadius: parseFloat(spacing.sm),
   } as ViewStyle,
   pressed: {
