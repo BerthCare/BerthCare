@@ -17,6 +17,22 @@ const NOISY_CATEGORIES = ['console'];
 const SENSITIVE_HEADERS = ['authorization', 'cookie', 'set-cookie', 'x-api-key', 'x-auth-token'];
 const SENSITIVE_FIELDS = ['email', 'phone', 'name', 'address', 'token', 'password'];
 
+const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+const phoneRegex = /\+?[\d\s\-().]{7,}/;
+const addressRegex = /\b\d{1,5}\s+\w+/i;
+
+const redactIfSensitiveString = (value: unknown): { value: unknown; redacted: boolean } => {
+  if (typeof value !== 'string') {
+    return { value, redacted: false };
+  }
+
+  if (emailRegex.test(value) || phoneRegex.test(value) || addressRegex.test(value)) {
+    return { value: REDACTED, redacted: true };
+  }
+
+  return { value, redacted: false };
+};
+
 const scrubHeaders = (headers: Record<string, unknown>): Record<string, unknown> => {
   const sanitized: Record<string, unknown> = {};
   Object.entries(headers).forEach(([key, value]) => {
@@ -48,7 +64,9 @@ const scrubObject = (input?: Record<string, unknown>): { redacted: boolean; data
       redacted = true;
       return;
     }
-    data[key] = value;
+    const { value: maybeRedactedValue, redacted: valueRedacted } = redactIfSensitiveString(value);
+    data[key] = maybeRedactedValue;
+    redacted = redacted || valueRedacted;
   });
 
   return { redacted, data };
@@ -76,6 +94,21 @@ const scrubEvent = (event: Event): Event => {
     const { redacted: extraRedacted, data } = scrubObject(event.extra);
     scrubbedEvent.extra = data;
     redacted = redacted || extraRedacted;
+  }
+
+  if (event.contexts) {
+    const { redacted: contextsRedacted, data } = scrubObject(event.contexts as Record<string, unknown>);
+    scrubbedEvent.contexts = data;
+    redacted = redacted || contextsRedacted;
+  }
+
+  if (event.request?.data) {
+    const { value: requestData, redacted: requestDataRedacted } = redactIfSensitiveString(event.request.data);
+    scrubbedEvent.request = {
+      ...scrubbedEvent.request,
+      data: requestDataRedacted ? REDACTED : requestData,
+    };
+    redacted = redacted || requestDataRedacted;
   }
 
   if (redacted) {
