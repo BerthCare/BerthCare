@@ -83,6 +83,10 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Implementation aligns with the referenced architecture: Style Dictionary pulls from `design-documentation/assets/design-tokens.json` and emits React Native-friendly outputs to `src/theme/generated/` (`tokens.raw.json`, `tokens.ts`, `tokens.d.ts`), aggregated via `src/theme/tokens.ts`.
 - CI deviation: none. We added a drift guard (`tokens:build:mobile` + `git diff --exit-code src/theme/generated`) as an explicit check in `.github/workflows/ci.yml` to enforce reproducible outputs.
 
+## Deployment & Rollback Readiness – Mobile Tokens
+- Post-merge verification: `npm ci`, `npm run tokens:build:mobile`, `npm test -- --runInBand src/__tests__/tokens.parity.test.ts src/theme/tokens.typecheck.ts src/components/__samples__/TokenButton.test.tsx`, then launch a debug build to confirm the sample TokenButton renders with tokens applied.
+- Rollback plan: revert the token-related commit(s), rerun `npm run tokens:build:mobile` to regenerate `src/theme/generated/*`, and rerun the scoped tests above to ensure parity/type coverage before redeploying.
+
 **Local Build Findings**:
 - **Java Version Requirement**: Android builds require Java 11+, system currently has Java 8
 - **Environment Setup**: Local builds need proper Java and Android SDK configuration
