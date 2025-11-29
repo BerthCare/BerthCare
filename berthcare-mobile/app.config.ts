@@ -79,32 +79,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     owner: 'merylnlamera',
-    plugins: [
-      'expo-secure-store',
-      [
-        'sentry-expo',
-        {
-          organization: process.env.SENTRY_ORG ?? '__SENTRY_ORG__',
-          project: process.env.SENTRY_PROJECT ?? '__SENTRY_PROJECT__',
-          url: process.env.SENTRY_URL ?? 'https://sentry.io/',
-        },
-      ],
-    ],
-  };
-
-  configResult.hooks = {
-    postPublish: [
-      {
-        file: 'sentry-expo/upload-sourcemaps',
-        config: {
-          organization: process.env.SENTRY_ORG ?? '__SENTRY_ORG__',
-          project: process.env.SENTRY_PROJECT ?? '__SENTRY_PROJECT__',
-          authToken: process.env.SENTRY_AUTH_TOKEN,
-          url: process.env.SENTRY_URL ?? 'https://sentry.io/',
-          release: sentryRelease,
-        },
-      },
-    ],
+    plugins: ['expo-secure-store'],
   };
 
   return configResult;

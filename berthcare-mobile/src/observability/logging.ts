@@ -1,5 +1,5 @@
-import * as Sentry from 'sentry-expo';
-import type { Breadcrumb, CaptureContext, SeverityLevel } from '@sentry/types';
+import * as Sentry from '@sentry/react-native';
+import type { Breadcrumb, SeverityLevel } from '@sentry/types';
 
 type LogTags = Record<string, string>;
 type LogExtras = Record<string, unknown>;
@@ -47,12 +47,18 @@ const filterByKeys = <T>(
   return entries.length ? Object.fromEntries(entries) : undefined;
 };
 
-const withContext = (context?: LogContext): CaptureContext => {
+type CaptureCtx = {
+  tags?: LogTags;
+  extra?: LogExtras;
+  fingerprint?: string[];
+};
+
+const withContext = (context?: LogContext): CaptureCtx => {
   const tags = filterByKeys(context?.tags, ALLOWED_TAG_KEYS);
   const extra = filterByKeys(context?.extra, ALLOWED_EXTRA_KEYS);
   const fingerprint = context?.fingerprint;
 
-  const scoped: CaptureContext = {};
+  const scoped: CaptureCtx = {};
 
   if (tags) scoped.tags = tags;
   if (extra) scoped.extra = extra;
@@ -61,7 +67,7 @@ const withContext = (context?: LogContext): CaptureContext => {
   return scoped;
 };
 
-const isSentryAvailable = () => Boolean(Sentry.Native);
+const isSentryAvailable = () => typeof Sentry.captureException === 'function';
 
 const sanitizeUser = (user?: UserContext): UserContext | undefined => {
   if (!user) return undefined;
@@ -72,7 +78,7 @@ const sanitizeUser = (user?: UserContext): UserContext | undefined => {
 export const captureException = (error: unknown, context?: LogContext) => {
   if (isSentryAvailable()) {
     const scoped = withContext(context);
-    Sentry.Native.captureException(error, scoped);
+    Sentry.captureException(error, scoped as unknown as Parameters<typeof Sentry.captureException>[1]);
     return;
   }
   console.error('[observability] captureException', error, withContext(context));
@@ -85,7 +91,10 @@ export const captureMessage = (
 ) => {
   if (isSentryAvailable()) {
     const scoped = withContext(context);
-    Sentry.Native.captureMessage(message, { level, ...scoped });
+    Sentry.captureMessage(
+      message,
+      { level, ...scoped } as unknown as Parameters<typeof Sentry.captureMessage>[1]
+    );
     return;
   }
   const logMethod = level === 'error' || level === 'fatal' ? 'error' : 'log';
@@ -98,7 +107,7 @@ export const captureMessage = (
 
 export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
   if (isSentryAvailable()) {
-    Sentry.Native.addBreadcrumb(breadcrumb);
+    Sentry.addBreadcrumb(breadcrumb);
     return;
   }
   console.log('[observability] breadcrumb', breadcrumb);
@@ -117,7 +126,7 @@ export const recordUserAction = (label: string, data?: Record<string, unknown>) 
 export const setUserContext = (user?: UserContext) => {
   const sanitized = sanitizeUser(user);
   if (isSentryAvailable()) {
-    Sentry.Native.setUser(sanitized ?? null);
+    Sentry.setUser(sanitized ?? null);
     return;
   }
   console.log('[observability] setUserContext', sanitized);

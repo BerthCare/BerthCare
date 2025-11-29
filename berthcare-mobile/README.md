@@ -158,13 +158,13 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
 ## Observability (Sentry)
 - Configuration files:
   - `sentry.properties` (placeholders only; secrets via env).
-  - `app.config.ts` provides `extra.sentry` (dsn, environment, release) and `sentry-expo` plugin + upload hook.
+  - `app.config.ts` provides `extra.sentry` (dsn, environment, release) for runtime; no Expo plugin is used to avoid embedding tokens.
 - Environment variables:
   - `EXPO_PUBLIC_SENTRY_DSN` (preferred) or `SENTRY_DSN` for runtime init
   - `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_URL` (optional) for CLI/uploads
-  - Release/environment: derived from app version + build number (+ git sha) via `buildSentryRelease`; `EXPO_PUBLIC_ENV` or `EAS_BUILD_PROFILE` sets environment
-- Source maps: `npm run sentry:upload-sourcemaps -- --release <release>` (fails if release is missing). Use the same release as runtime. CI job `sentry-upload` runs this on PRs with secrets.
-- Dependencies: `sentry-expo` (Expo-compatible SDK + config plugin) and `@sentry/cli` (source map uploads in CI/EAS).
+- Release/environment: derived from app version + build number (+ git sha) via `buildSentryRelease`; `EXPO_PUBLIC_ENV` or `EAS_BUILD_PROFILE` sets environment
+- Source maps: `npm run sentry:upload-sourcemaps -- --release <release>` uses `@sentry/cli` (no tokens in config). If bundles aren’t present, the script validates auth by creating/finalizing the release. CI job `sentry-upload` runs this on PRs with secrets.
+- Dependencies: `@sentry/react-native` (runtime SDK) and `@sentry/cli` (source map uploads in CI/EAS).
 - Privacy posture: `sendDefaultPii=false`; user context allowlist (`id`, `anonymousId`, `sessionId`); tags/extra allowlists guard telemetry. `beforeSend`/`beforeBreadcrumb` scrub tokens, emails, phones, addresses, headers; redacted events tagged `pii_redacted=true`; noisy breadcrumbs (e.g., console) dropped.
 - Dev crash trigger: in dev builds a “Trigger test crash” button on the home screen calls `triggerTestCrash()` to emit a JS error and native crash (when available) for end-to-end validation with symbolication.
 - Runbook (Sentry):

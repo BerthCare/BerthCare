@@ -1,4 +1,4 @@
-import * as Sentry from 'sentry-expo';
+import * as Sentry from '@sentry/react-native';
 import type { Breadcrumb, Event, EventHint, SeverityLevel } from '@sentry/types';
 
 type InitOptions = {
@@ -18,15 +18,33 @@ const SENSITIVE_HEADERS = ['authorization', 'cookie', 'set-cookie', 'x-api-key',
 const SENSITIVE_FIELDS = ['email', 'phone', 'name', 'address', 'token', 'password'];
 
 const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
-const phoneRegex = /\+?[\d\s\-().]{7,}/;
-const addressRegex = /\b\d{1,5}\s+\w+/i;
+// Phone detection: require at least 7 digits (ignore separators) and word boundaries to avoid matching versions/timestamps.
+const phonePattern = /\b\+?(?:\d[\s().-]?){6,}\d\b/;
+const streetTypePattern =
+  /\b(?:st|street|rd|road|ave|avenue|blvd|boulevard|dr|drive|ln|lane|ct|court|trl|trail|way|pkwy|parkway|pl|place)\b/i;
+
+const isPhoneLike = (value: string): boolean => {
+  const digits = (value.match(/\d/g) ?? []).length;
+  if (digits < 7) return false;
+  if (/\d{4}-\d{2}-\d{2}/.test(value) || /[T\s]\d{1,2}:\d{2}/.test(value)) {
+    return false; // avoid timestamps/dates
+  }
+  return phonePattern.test(value);
+};
+
+const isAddressLike = (value: string): boolean => {
+  // Conservative: require number + alphabetic street name + street type to avoid "123 items" or versions.
+  const addressPattern =
+    /\b\d{1,6}\s+[A-Za-z]+(?:\s+[A-Za-z]+)*\s+(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Ln|Lane|Ct|Court|Trl|Trail|Way|Pkwy|Parkway|Pl|Place)\b/i;
+  return addressPattern.test(value) && streetTypePattern.test(value);
+};
 
 const redactIfSensitiveString = (value: unknown): { value: unknown; redacted: boolean } => {
   if (typeof value !== 'string') {
     return { value, redacted: false };
   }
 
-  if (emailRegex.test(value) || phoneRegex.test(value) || addressRegex.test(value)) {
+  if (emailRegex.test(value) || isPhoneLike(value) || isAddressLike(value)) {
     return { value: REDACTED, redacted: true };
   }
 
@@ -157,7 +175,7 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
     return;
   }
 
-  const options: NonNullable<Parameters<typeof Sentry.init>[0]> = {
+  const options: any = {
     dsn,
     debug: Boolean(debug),
     enableNative: true,
@@ -184,13 +202,20 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
   Sentry.init(options);
 
   // Default capture level remains info/error based on SDK; ensure console breadcrumbs are captured.
-  Sentry.Native.setTags?.({ environment, release });
+  const configureScope = (Sentry as unknown as { configureScope?: (callback: (scope: any) => void) => void })
+    .configureScope;
+  if (configureScope) {
+    configureScope((scope) => {
+      if (environment) scope.setTag('environment', environment);
+      if (release) scope.setTag('release', release);
+    });
+  }
 
   isInitialized = true;
 };
 
 export const captureException = (error: unknown, level: SeverityLevel = 'error') => {
-  Sentry.Native.captureException(error, { level });
+  Sentry.captureException(error, { level });
 };
 
 // Exported for tests.

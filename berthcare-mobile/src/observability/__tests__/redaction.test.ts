@@ -1,4 +1,4 @@
-jest.mock('sentry-expo', () => ({
+jest.mock('@sentry/react-native', () => ({
   Native: {
     captureException: jest.fn(),
     setTags: jest.fn(),
@@ -20,9 +20,9 @@ describe('observability redaction', () => {
       request: {
         url: 'https://api.example.com/clients',
         headers: { Authorization: 'Bearer secret', Accept: 'application/json' },
-        data: 'Contact at 555-555-1212',
+        data: 'Contact at +1 (555) 555-1212',
       },
-      extra: { token: 'abcd', feature: 'visit', notes: '123 Main St' },
+      extra: { token: 'abcd', feature: 'visit', notes: '123 Main St Avenue' },
       contexts: { device: { model: 'ios' }, address: { line1: '1 Infinite Loop' } } as Contexts,
       tags: { existing: 'keep' },
     };
@@ -39,6 +39,24 @@ describe('observability redaction', () => {
     });
     expect(scrubbed.tags?.pii_redacted).toBe('true');
     expect(scrubbed.tags?.existing).toBe('keep');
+  });
+
+  it('does not redact version numbers or timestamps (false positives avoided)', () => {
+    const event: Event = {
+      extra: {
+        version: '1.2.3',
+        timestamp: '2025-11-29 12:30:45',
+        summary: 'Processed 123 items',
+      },
+    };
+
+    const scrubbed = scrubEvent(event);
+    expect(scrubbed.extra).toMatchObject({
+      version: '1.2.3',
+      timestamp: '2025-11-29 12:30:45',
+      summary: 'Processed 123 items',
+    });
+    expect(scrubbed.tags?.pii_redacted).toBeUndefined();
   });
 
   it('leaves safe fields untouched when no PII is present', () => {

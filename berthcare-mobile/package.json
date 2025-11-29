@@ -11,7 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "tokens:build:mobile": "node scripts/tokens/build-mobile.js",
-    "sentry:upload-sourcemaps": "npx sentry-expo upload-sourcemaps",
+    "sentry:upload-sourcemaps": "node ./scripts/sentry/upload-sourcemaps.js",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
@@ -37,10 +37,11 @@
     "react-native": "0.81.5",
     "react-native-quick-sqlite": "^8.2.7",
     "react-native-safe-area-context": "^5.6.2",
-    "sentry-expo": "^7.2.0"
+    "@sentry/react-native": "^7.7.0"
   },
   "devDependencies": {
     "@sentry/cli": "^2.58.2",
+    "@sentry/types": "^10.27.0",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
