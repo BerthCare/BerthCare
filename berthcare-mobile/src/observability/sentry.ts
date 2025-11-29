@@ -210,18 +210,14 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
   Sentry.init(options);
 
   // Default capture level remains info/error based on SDK; ensure console breadcrumbs are captured.
-  const configureScope = (
+  const scope = (
     Sentry as unknown as {
-      configureScope?: (
-        callback: (scope: { setTag: (k: string, v: string) => void }) => void
-      ) => void;
+      getCurrentScope?: () => { setTag: (k: string, v: string) => void } | null;
     }
-  ).configureScope;
-  if (configureScope) {
-    configureScope((scope) => {
-      if (environment) scope.setTag('environment', environment);
-      if (release) scope.setTag('release', release);
-    });
+  ).getCurrentScope?.();
+  if (scope) {
+    if (environment) scope.setTag('environment', environment);
+    if (release) scope.setTag('release', release);
   }
 
   isInitialized = true;

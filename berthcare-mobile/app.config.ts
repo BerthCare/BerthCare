@@ -18,8 +18,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const gitSha = process.env.EAS_BUILD_GIT_COMMIT_HASH;
   const environment =
     process.env.EXPO_PUBLIC_ENV ?? resolveEnvironment(process.env.EAS_BUILD_PROFILE);
+  const buildNumberForRelease =
+    process.env.EAS_BUILD_PLATFORM === 'android' ? androidVersionCode.toString() : iosBuildNumber;
   const sentryRelease =
-    process.env.SENTRY_RELEASE ?? buildSentryRelease(appVersion, iosBuildNumber, gitSha);
+    process.env.SENTRY_RELEASE ?? buildSentryRelease(appVersion, buildNumberForRelease, gitSha);
   const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN ?? '';
 
   const configResult: ExpoConfig & {
