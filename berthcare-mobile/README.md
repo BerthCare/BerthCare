@@ -165,6 +165,7 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
 - Source maps: `npm run sentry:upload-sourcemaps -- --release <release>` (fails if release is missing). Use the same release value as the app build to keep symbolication aligned.
 - Dependencies: `sentry-expo` provides the Expo-compatible Sentry SDK and config plugin for native/JS crash capture; `@sentry/cli` is used in CI/EAS to upload source maps tied to the same release.
 - PII posture: `sendDefaultPii=false`; only opaque user identifiers are allowed in `setUserContext` (`id`, `anonymousId`, `sessionId`). Log context allowlists guard tags/extra payloads; expand deliberately when adding new telemetry.
+- Dev crash trigger: in dev builds a “Trigger test crash” button is shown on the home screen. It calls `triggerTestCrash()` which sends a JS exception via Sentry and, when available, triggers a native crash for end-to-end symbolication. Use this to validate release/env wiring before shipping.
 
 ## Troubleshooting
 - **Metro port conflict (8081/19000):** `lsof -ti:8081 -ti:19000 | xargs kill -9` then `npm start -- --clear`.
