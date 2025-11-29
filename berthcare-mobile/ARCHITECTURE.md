@@ -78,6 +78,11 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 | Production | Android | ❌ Failed | N/A | Requires Java 11+, system has Java 8 |
 | Production | iOS | ⚠️ Not Tested | N/A | Requires Xcode and certificates |
 
+## Architecture Notes – Mobile Design Tokens
+- References reviewed: `.kiro/specs/mobile-design-tokens/design.md`, `.kiro/specs/mobile-design-tokens/requirements.md`, `.kiro/specs/mobile-design-tokens/tasks.md`, and `design-documentation/assets/style-dictionary/config.json`.
+- Implementation aligns with the referenced architecture: Style Dictionary pulls from `design-documentation/assets/design-tokens.json` and emits React Native-friendly outputs to `src/theme/generated/` (`tokens.raw.json`, `tokens.ts`, `tokens.d.ts`), aggregated via `src/theme/tokens.ts`.
+- CI deviation: none. We added a drift guard (`tokens:build:mobile` + `git diff --exit-code src/theme/generated`) as an explicit check in `.github/workflows/ci.yml` to enforce reproducible outputs.
+
 **Local Build Findings**:
 - **Java Version Requirement**: Android builds require Java 11+, system currently has Java 8
 - **Environment Setup**: Local builds need proper Java and Android SDK configuration
