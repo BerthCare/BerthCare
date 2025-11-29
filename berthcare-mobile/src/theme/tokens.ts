@@ -1,5 +1,7 @@
 import generatedTokens from './generated/tokens';
 
+export const rawTokens = generatedTokens;
+
 export const colors = generatedTokens.color;
 export const spacing = generatedTokens.space;
 export const typography = generatedTokens.type;
