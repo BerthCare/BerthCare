@@ -11,6 +11,9 @@ type InitOptions = {
 const REDACTED = '[redacted]';
 const REDACTED_TAG = 'pii_redacted';
 
+const MAX_BREADCRUMBS = 50;
+const NOISY_CATEGORIES = ['console'];
+
 const SENSITIVE_HEADERS = ['authorization', 'cookie', 'set-cookie', 'x-api-key', 'x-auth-token'];
 const SENSITIVE_FIELDS = ['email', 'phone', 'name', 'address', 'token', 'password'];
 
@@ -82,7 +85,11 @@ const scrubEvent = (event: Event): Event => {
   return scrubbedEvent;
 };
 
-const scrubBreadcrumb = (breadcrumb: Breadcrumb): Breadcrumb => {
+const scrubBreadcrumb = (breadcrumb: Breadcrumb): Breadcrumb | null => {
+  if (NOISY_CATEGORIES.includes(breadcrumb.category ?? '')) {
+    return null;
+  }
+
   let redacted = false;
   const scrubbed: Breadcrumb = { ...breadcrumb };
 
@@ -119,6 +126,7 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
     enableNative: true,
     enableNativeCrashHandling: true,
     enableAutoSessionTracking: true,
+    maxBreadcrumbs: MAX_BREADCRUMBS,
     sendDefaultPii: false,
     beforeSend(event: Event, hint?: EventHint) {
       return scrubEvent(event);
