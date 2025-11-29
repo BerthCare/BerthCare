@@ -91,6 +91,7 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Privacy controls: `sendDefaultPii=false`; `beforeSend`/`beforeBreadcrumb` scrub tokens, emails, phones, addresses, headers, and free-text payloads; redacted events tagged `pii_redacted=true`. User context limited to opaque IDs.
 - Source map alignment: `sentry-expo` upload hook and `npm run sentry:upload-sourcemaps -- --release <release>` use the same release as runtime; CI job `sentry-upload` verifies the command with secrets on PRs.
 - Runbook: If Sentry is unavailable, app continues with console fallback; set `EXPO_PUBLIC_SENTRY_DSN` empty to temporarily silence uploads. Rotate auth by creating a new Sentry token and updating `SENTRY_AUTH_TOKEN` in GitHub/EAS secrets. Validate sourcemaps by running `npm run sentry:upload-sourcemaps -- --release <release>` and checking release artifacts in Sentry.
+- PII compliance: `sendDefaultPii=false`; user IDs only in context; redaction rules cover tokens/emails/phones/addresses/headers/free-text; breadcrumbs filtered and capped; tests (`redaction.test.ts`, `logging.test.ts`, `release.test.ts`) guard scrubbing and alignment.
 
 ## Deployment & Rollback Readiness – Mobile Tokens
 - Post-merge verification: `npm ci`, `npm run tokens:build:mobile`, `npm test -- --runInBand src/__tests__/tokens.parity.test.ts src/theme/tokens.typecheck.ts src/components/__samples__/TokenButton.test.tsx`, then launch a debug build to confirm the sample TokenButton renders with tokens applied.
