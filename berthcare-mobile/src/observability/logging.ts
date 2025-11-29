@@ -10,9 +10,16 @@ type LogContext = {
   fingerprint?: string[];
 };
 
+type UserContext = {
+  id?: string;
+  anonymousId?: string;
+  sessionId?: string;
+};
+
 // Allowlist keys to avoid accidental PII; expand deliberately when new telemetry is required.
 const ALLOWED_TAG_KEYS = ['feature', 'screen', 'flow', 'env', 'release', 'build', 'platform', 'user_id'];
 const ALLOWED_EXTRA_KEYS = ['request_id', 'status', 'endpoint', 'action', 'source', 'device_id', 'version'];
+const ALLOWED_USER_KEYS = ['id', 'anonymousId', 'sessionId'];
 
 const filterByKeys = <T>(
   input: Record<string, T> | undefined,
@@ -30,6 +37,12 @@ const withContext = (context?: LogContext) => {
 };
 
 const isSentryAvailable = () => Boolean(Sentry.Native);
+
+const sanitizeUser = (user?: UserContext): UserContext | undefined => {
+  if (!user) return undefined;
+  const entries = Object.entries(user).filter(([key]) => ALLOWED_USER_KEYS.includes(key));
+  return entries.length ? (Object.fromEntries(entries) as UserContext) : undefined;
+};
 
 export const captureException = (error: unknown, context?: LogContext) => {
   if (isSentryAvailable()) {
@@ -67,4 +80,13 @@ export const recordUserAction = (label: string, data?: Record<string, unknown>) 
     data,
     level: 'info',
   });
+};
+
+export const setUserContext = (user?: UserContext) => {
+  const sanitized = sanitizeUser(user);
+  if (isSentryAvailable()) {
+    Sentry.Native.setUser(sanitized ?? null);
+    return;
+  }
+  console.log('[observability] setUserContext', sanitized);
 };
