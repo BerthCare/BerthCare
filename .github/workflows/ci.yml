@@ -62,4 +62,6 @@ jobs:
           cache: npm
           cache-dependency-path: berthcare-mobile/package-lock.json
       - run: npm ci
+      - run: npm run tokens:build:mobile
+      - run: git diff --exit-code -- src/theme/generated
       - run: npm test -- --runInBand

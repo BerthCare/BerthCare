@@ -10,6 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "tokens:build:mobile": "node scripts/tokens/build-mobile.js",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
@@ -56,6 +57,7 @@
     "msw": "^2.12.3",
     "prettier": "^3.6.2",
     "react-test-renderer": "^19.1.0",
+    "style-dictionary": "^3.9.2",
     "ts-jest": "^29.4.5",
     "typescript": "~5.9.2"
   },

@@ -40,6 +40,7 @@ React Native + Expo (SDK 54, RN 0.81, TypeScript 5.9) app that helps caregivers 
 | `npm run lint` / `npm run lint:fix` | ESLint checks / auto-fix |
 | `npm run format` / `npm run format:check` | Prettier format / verify |
 | `npm run type-check` | TypeScript strict type checking |
+| `npm run tokens:build:mobile` | Regenerate mobile design tokens (writes `src/theme/generated/*` from `design-documentation/assets/design-tokens.json`) |
 | `npm test` / `npm run test:watch` | Jest + RNTL test suite |
 | `npm run build:dev:ios|android` | EAS development build (custom dev client) |
 | `npm run build:preview:ios|android` | EAS preview/internal builds |
@@ -58,6 +59,14 @@ src/
 └── assets/               # Images, fonts
 ```
 Naming stays simple (folder implies context), and path aliases are provided via `tsconfig.json` (`@/`, `@screens/`, `@ui/`, `@data/`, `@navigation/`, `@types/`, `@assets/`).
+
+## Design Tokens (Mobile)
+- Source: `../design-documentation/assets/design-tokens.json`
+- Build: `npm run tokens:build:mobile`
+- Outputs: `src/theme/generated/tokens.raw.json`, `tokens.ts`, `tokens.d.ts` (committed)
+- Entry point: `src/theme/tokens.ts` (`colors`, `spacing`, `typography`, `animations`)
+- CI guard: token build runs in CI with `git diff --exit-code src/theme/generated` to catch drift
+- Rerun when: upstream design tokens change or parity/type tests fail locally/CI
 
 ## API Client (in progress)
 - Location: `src/lib/api/` (scaffolded) with planned `ApiClient`, `config`, `interceptors`, `retry`, and typed `ApiError`.

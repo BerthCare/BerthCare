@@ -15,6 +15,7 @@ module.exports = [
       'coverage/**',
       '*.config.js',
       'babel.config.js',
+      'src/theme/generated/**',
     ],
   },
   {
