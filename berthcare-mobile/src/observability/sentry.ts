@@ -178,3 +178,9 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
 export const captureException = (error: unknown, level: SeverityLevel = 'error') => {
   Sentry.Native.captureException(error, { level });
 };
+
+// Exported for tests.
+export const __testables = {
+  scrubEvent,
+  scrubBreadcrumb,
+};
