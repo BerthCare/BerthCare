@@ -25,3 +25,5 @@ export const tokens: ThemeTokens = {
   typography,
   animations,
 };
+
+export default tokens;
