@@ -78,7 +78,10 @@ const sanitizeUser = (user?: UserContext): UserContext | undefined => {
 export const captureException = (error: unknown, context?: LogContext) => {
   if (isSentryAvailable()) {
     const scoped = withContext(context);
-    Sentry.captureException(error, scoped as unknown as Parameters<typeof Sentry.captureException>[1]);
+    Sentry.captureException(
+      error,
+      scoped as unknown as Parameters<typeof Sentry.captureException>[1]
+    );
     return;
   }
   console.error('[observability] captureException', error, withContext(context));
@@ -91,10 +94,10 @@ export const captureMessage = (
 ) => {
   if (isSentryAvailable()) {
     const scoped = withContext(context);
-    Sentry.captureMessage(
-      message,
-      { level, ...scoped } as unknown as Parameters<typeof Sentry.captureMessage>[1]
-    );
+    Sentry.captureMessage(message, {
+      level,
+      ...scoped,
+    } as unknown as Parameters<typeof Sentry.captureMessage>[1]);
     return;
   }
   const logMethod = level === 'error' || level === 'fatal' ? 'error' : 'log';

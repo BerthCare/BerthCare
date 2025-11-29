@@ -84,9 +84,7 @@ const scrubObject = (
       return;
     }
     if (key.toLowerCase() === 'headers' && typeof value === 'object' && value !== null) {
-      const { headers, redacted: headersRedacted } = scrubHeaders(
-        value as Record<string, unknown>
-      );
+      const { headers, redacted: headersRedacted } = scrubHeaders(value as Record<string, unknown>);
       data[key] = headers;
       redacted = redacted || headersRedacted;
       return;
@@ -185,7 +183,7 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
     return;
   }
 
-  const options: any = {
+  const options: Record<string, unknown> = {
     dsn,
     debug: Boolean(debug),
     enableNative: true,
@@ -212,8 +210,9 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
   Sentry.init(options);
 
   // Default capture level remains info/error based on SDK; ensure console breadcrumbs are captured.
-  const configureScope = (Sentry as unknown as { configureScope?: (callback: (scope: any) => void) => void })
-    .configureScope;
+  const configureScope = (
+    Sentry as unknown as { configureScope?: (callback: (scope: { setTag: (k: string, v: string) => void }) => void) => void }
+  ).configureScope;
   if (configureScope) {
     configureScope((scope) => {
       if (environment) scope.setTag('environment', environment);
