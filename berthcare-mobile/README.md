@@ -155,6 +155,14 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
 3. OTA updates: `eas update --branch preview|production --message "Summary"` (scripts wrap these)
 4. Build performance target: <5 minutes for production builds. Last measurement (2025-11-26): Android production via EAS succeeded in ~5–10 minutes end-to-end (queue included); iOS production requires a paid Apple Developer account.
 
+## Observability (Sentry)
+- Configuration file: `sentry.properties` (placeholder values only). Do **not** commit secrets.
+- Environment variables expected by Sentry CLI / `sentry-expo`:
+  - `SENTRY_ORG`
+  - `SENTRY_PROJECT`
+  - `SENTRY_AUTH_TOKEN` (add as `sentry_auth_token` in GitHub Actions secrets)
+- CI/EAS: set the env vars above in GitHub Actions secrets and EAS project secrets so uploads run without hard-coded tokens.
+
 ## Troubleshooting
 - **Metro port conflict (8081/19000):** `lsof -ti:8081 -ti:19000 | xargs kill -9` then `npm start -- --clear`.
 - **Pods missing / iOS errors:** `npx pod-install` then rerun `npm run ios`. Ensure Xcode Command Line Tools are installed.
