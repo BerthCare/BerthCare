@@ -3,36 +3,76 @@
 [![Backend CI](https://github.com/BerthCare/BerthCare/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/BerthCare/BerthCare/actions/workflows/backend-ci.yml)
 [![Deploy to Dev](https://github.com/BerthCare/BerthCare/actions/workflows/backend-deploy-dev.yml/badge.svg?branch=main)](https://github.com/BerthCare/BerthCare/actions/workflows/backend-deploy-dev.yml)
 
-TypeScript/Express API scaffold for the BerthCare mobile client, with Prisma for PostgreSQL access and a basic health endpoint.
+## Overview
+TypeScript/Express API supporting the BerthCare mobile client, with Prisma for PostgreSQL access and health/audit endpoints.
+
+## Architecture / Technical Blueprint
+See the end-to-end system diagram in the Technical Blueprint: [Architecture Overview](../project-documentation/technical-blueprint.md#the-simplest-thing-that-could-possibly-work).
 
 ## Prerequisites
 
 - Node.js 20+
 - PostgreSQL instance (local or remote)
+- Docker (optional — easiest way to run PostgreSQL for integration tests)
 
-## Setup
+## How to Run Locally
 
-1. Install dependencies:
+1. Install dependencies:  
    ```bash
    npm install
    ```
-2. Create environment file:
+2. Copy environment file and set variables:  
    ```bash
    cp .env.example .env
    ```
-3. Configure environment variables in `.env`:
+   - `DATABASE_URL` (required) PostgreSQL connection string  
+   - `PORT` (optional) defaults 3000  
+   - `NODE_ENV` (optional) e.g., development, production  
+   - `LOG_LEVEL` (optional) defaults `debug` in dev/test, `info` in prod  
+   - `LOG_DESTINATION` (optional) `stdout` (default), `cloudwatch`, or `datadog`  
+   - `SERVICE_NAME` (optional) service identifier; default `berthcare-backend`  
+   - `ALLOW_EPHEMERAL_HOSTNAMES` (optional) set `true` to include hostnames in CloudWatch stream names; default `false` to avoid high-cardinality streams  
+   - CloudWatch: `CLOUDWATCH_LOG_GROUP` (default `berthcare-backend`), `CLOUDWATCH_REGION`  
+   - Datadog: `DATADOG_API_KEY`, `DATADOG_SITE` (`datadoghq.com` default), optional `DATADOG_AGENT_URL`  
+   - `LOG_ENABLE_REQUEST_LOGS` (optional) toggle request logging
+3. Start PostgreSQL and ensure it is reachable via `DATABASE_URL`.
+4. Generate the Prisma client:  
+   ```bash
+   npx prisma generate
+   ```
+5. Apply local migrations:  
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+6. Start the dev server (ts-node-dev):  
+   ```bash
+   npm run dev
+   ```
+   The API listens on `PORT` (defaults 3000) and exposes `GET /health`.
 
-- `DATABASE_URL` (required): PostgreSQL connection string.
-- `PORT` (optional): HTTP port; defaults to 3000.
-- `NODE_ENV` (optional): runtime environment (e.g., development, production).
-- `LOG_LEVEL` (optional): log level; defaults to `debug` in dev/test, `info` in prod.
-- `LOG_DESTINATION` (optional): `stdout` (default), `cloudwatch`, or `datadog`.
-- `SERVICE_NAME` (optional): service identifier for log metadata; default `berthcare-backend`.
-- CloudWatch (mostly set via ECS task): `CLOUDWATCH_LOG_GROUP` (default `berthcare-backend`), `CLOUDWATCH_REGION`.
-- Datadog (optional): `DATADOG_API_KEY` (required for HTTP intake), `DATADOG_SITE` (`datadoghq.com` default), optional `DATADOG_AGENT_URL` (preferred path).
-- `LOG_ENABLE_REQUEST_LOGS` (optional): toggle request logging; default enabled.
+## How to Run Tests
 
-4. Start the database and ensure it is reachable via `DATABASE_URL`.
+- Full suite (unit + property tests):  
+  ```bash
+  npm test
+  ```
+  Uses ts-jest with fast-check properties; run `npx prisma generate` first so generated types are present.
+- Unit only (no integration DB dependency):  
+  ```bash
+  npm run test:unit
+  ```
+- Integration tests (need PostgreSQL reachable at `DATABASE_URL` and migrations applied):  
+  ```bash
+  # Option 1: start Postgres via Docker
+  docker run -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=berthcare_test postgres:16
+  npx prisma migrate deploy
+  npm run test:integration
+
+  # Option 2: use an existing Postgres instance
+  export DATABASE_URL="postgresql://user:password@host:5432/berthcare_test"
+  npx prisma migrate deploy
+  npm run test:integration
+  ```
 
 ### Prisma workflow
 
@@ -42,8 +82,10 @@ TypeScript/Express API scaffold for the BerthCare mobile client, with Prisma for
    ```
 2. Create and apply migrations locally:
    ```bash
-   npx prisma migrate dev --name <migration_name>
+   npx prisma migrate dev --name <descriptive-name>
+   # e.g., first migration: npx prisma migrate dev --name create-initial-schema
    ```
+   Use a descriptive name per change (e.g., `add-alerts-table`).
 3. Deploy migrations to another environment:
    ```bash
    npx prisma migrate deploy
@@ -91,25 +133,26 @@ The server binds to `PORT` (or 3000 by default) and exposes `GET /health` for a 
 - Usage: import `logger` or `createLogger({ context })` from `src/observability/logger`, or use `getRequestLogger()` from the request context in handlers.
 - See `docs/observability.md` for transport table, verification steps, and queries; avoid logging PII/secrets.
 
-## Deployment (Dev)
+## How to Deploy (dev / staging / prod)
 
-- **Workflow:** `.github/workflows/backend-deploy-dev.yml`.
-- **Triggers:** pushes to `main` that touch `berthcare-backend/**` or the workflow file, plus manual `workflow_dispatch`.
-- **Auth:** GitHub OIDC with `aws-actions/configure-aws-credentials@v4` (no static AWS keys). Role: `github-actions-deploy-dev` in `secrets.AWS_ACCOUNT_ID` account, region `ca-central-1`.
-- **Runtime routing:** ALB enforces HTTPS (TLS 1.3 policy) and redirects HTTP :80 → :443.
-- **Images:** Pushed to ECR as `${ACCOUNT_ID}.dkr.ecr.ca-central-1.amazonaws.com/berthcare-backend:{SHA,latest}`; ECS service `berthcare-dev-backend` is updated with the new task definition.
+- **Dev (automated):** GitHub Actions workflow `.github/workflows/backend-deploy-dev.yml` builds/pushes the image (ECR) and updates ECS service `berthcare-dev-backend` (cluster `berthcare-dev-cluster`) on pushes to `main` touching `berthcare-backend/**`, or via `workflow_dispatch`. Auth via GitHub OIDC role `github-actions-deploy-dev` in `secrets.AWS_ACCOUNT_ID` (region `ca-central-1`).
+- **Staging/Prod:** Not automated yet—mirror the dev workflow with environment-specific role, cluster, service, and ECR repo. Use the same pattern: build → push → render task definition with `/health` check → update ECS → wait stable.
 
-### Required environment variables & secrets
+### Required secrets / environment
+- App/runtime: `DATABASE_URL` (required), `PORT` (optional; defaults 3000).
+- GitHub Actions secrets (dev): `AWS_ACCOUNT_ID`, `SLACK_WEBHOOK_URL`. Roles use OIDC; no static AWS keys.
 
-- App/runtime: `DATABASE_URL` (required for Prisma), `PORT` (optional, defaults 3000).
-- GitHub Actions secrets:
-  - `AWS_ACCOUNT_ID` – target AWS account for the deploy role.
-  - `SLACK_WEBHOOK_URL` – used by the notification step.
-- AWS credentials are obtained via OIDC; no long-lived access keys are required.
+### Rollback
+- Fast: re-run the deploy workflow against a prior commit SHA (Actions → Deploy Backend to Dev → "Run workflow" → `ref=<old_sha>`).
+- ECS revision: select a previous task definition for service `berthcare-dev-backend` in ECS and force a new deployment.
+- After rollback: confirm `/health` via ALB and ECS service stability.
 
-### Rollback procedures
+### Runbook
+- See `project-documentation/backend-deploy-runbook.md` for manual trigger, status checks, and rollback commands.
 
-- **To a previous task revision:** In ECS console, open `berthcare-dev-backend` service → Deployments → select a previous task definition revision → "Force new deployment".
-- **To a previous image/commit:** Re-run the deploy workflow against an earlier commit SHA (Actions → Deploy Backend to Dev → "Run workflow" and provide the commit SHA) to push and roll back the service to that image.
-
-After rollback, verify the service is healthy (`/health`) via the ALB and that ECS shows a stable deployment.
+## Contributing / Engineering Rituals
+- Branch/PR flow: use short branches (e.g., `feature/<topic>`), keep PRs small, link issues, and require at least one review before merge.
+- Required gates before merging: `npm run lint`, `npm run type-check`, `npm test` (or `npm run test:integration` when touching DB flows), plus `npx prisma generate`/migrations committed when schema changes.
+- Docs/diagrams: update this README and any affected diagrams/links (e.g., Technical Blueprint references, `docs/observability.md`) when behavior, endpoints, or logging change.
+- Security/compliance: never commit secrets (`.env` is local only); ensure logs avoid PII/secrets (see Observability notes); prefer GitHub OIDC for AWS access.
+- Deployment verification: confirm backend CI + deploy workflow green, ECS service stable, and `/health` responding after deploy; rollback via prior SHA or task definition per runbook.

@@ -2,7 +2,11 @@
 
 [![Mobile CI](https://github.com/BerthCare/BerthCare/actions/workflows/berthcare-mobile/.github/workflows/ci.yml/badge.svg)](https://github.com/BerthCare/BerthCare/actions/workflows/berthcare-mobile/.github/workflows/ci.yml)
 
+## Overview
 React Native + Expo (SDK 54, RN 0.81, TypeScript 5.9) app that helps caregivers log home care visits in under 60 seconds across three flows: **Today**, **Visit**, and **Alert**. Built with an offline-first data layer, Expo custom dev builds, and OTA updates for rapid pilot releases.
+
+## Architecture / Technical Blueprint
+See the end-to-end system diagram in the Technical Blueprint: [Architecture Overview](../project-documentation/technical-blueprint.md#the-simplest-thing-that-could-possibly-work).
 
 ## Stack and Decisions
 - Expo with `expo-dev-client` for fast onboarding, OTA updates, and native module flexibility (camera, SQLite, GPS, secure storage).
@@ -17,20 +21,42 @@ React Native + Expo (SDK 54, RN 0.81, TypeScript 5.9) app that helps caregivers 
 - **Android:** Android Studio with SDK/platform-tools + one AVD; JDK 17+ (`/Applications/Android Studio.app/Contents/jbr/Contents/Home` works on macOS)
 - Expo account for EAS builds/updates (`eas login`)
 
-## Quick Start (≈30 minutes)
-1. Clone and enter the app:  
+## How to Run Locally
+1. Install dependencies:  
    ```bash
-   git clone https://github.com/BerthCare/BerthCare.git
-   cd BerthCare/berthcare-mobile
+   npm install
    ```
-2. Install dependencies: `npm install`
-3. (macOS) Install pods for native iOS code: `npx pod-install`
-4. Start Metro (optional if using run commands): `npm start`
-5. Run on iOS Simulator: `npm run ios`  
-   - First run performs an Expo prebuild and installs pods.
-6. Run on Android Emulator: `npm run android`  
-   - Start an emulator first (`emulator -avd <name>`) or use Android Studio’s Device Manager.
-7. You should see “BerthCare / Mobile App Initialized”. Edit `src/App.tsx` and confirm Fast Refresh updates live.
+2. (macOS) Install pods for native iOS code:  
+   ```bash
+   npx pod-install
+   ```
+3. Configure API base (optional; defaults to localhost dev):  
+   ```bash
+   export EXPO_PUBLIC_API_BASE_URL=http://localhost:3000/api
+   # or set EXPO_PUBLIC_API_ENV=staging|production to use predefined URLs
+   ```
+4. Start Metro (optional if using run commands):  
+   ```bash
+   npm start
+   ```
+5. Run on iOS Simulator (performs Expo prebuild on first run):  
+   ```bash
+   npm run ios
+   ```
+6. Run on Android Emulator (start an AVD first or use Android Studio’s Device Manager):  
+   ```bash
+   npm run android
+   ```
+7. You should see “BerthCare / Mobile App Initialized.” Edit `src/App.tsx` and confirm Fast Refresh updates live.
+
+## How to Run Tests
+- Unit/component tests (Jest + React Native Testing Library):  
+  ```bash
+  npm test
+  ```
+  - Watch mode: `npm run test:watch`  
+  - Coverage: `npm run test:coverage`
+- E2E: Not wired yet — tracked in `docs/backlog/e2e-detox.md` (Detox plan: iOS + Android, CI integration, Metro port handling). When ready, we can generate the Detox setup/config (scripts, config, CI snippets); start a simulator/emulator and ensure Metro isn’t already bound when running.
 
 ## Common Scripts
 | Command | Purpose |
@@ -189,6 +215,13 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
   ```
 - **No devices found:** `emulator -list-avds` then `emulator -avd <name>` (or start via Android Studio).
 - **Stuck cache:** `rm -rf .expo` (optional), `npm start -- --clear`, reinstall dependencies if needed.
+
+## Contributing / Engineering Rituals
+- Branch/PR flow: use short-lived branches (e.g., `feature/<topic>`), keep PRs small, link issues, and require at least one review before merge.
+- Required gates before merge: `npm run lint`, `npm run format:check`, `npm run type-check`, `npm test`; rerun `npm run tokens:build:mobile` when design tokens change and commit generated outputs; add Detox/E2E runs once wired.
+- Docs/diagrams: update this README, `ARCHITECTURE.md`, and relevant Technical Blueprint references when flows, navigation, or data contracts change.
+- Security/compliance: never commit secrets; configure API/Sentry via `EXPO_PUBLIC_*`/EAS secrets; keep Sentry PII safeguards enabled; ensure crash/telemetry tokens are not in source.
+- Releases: verify EAS build/update outputs, confirm channel mapping (development/preview/production), and roll back by re-running a prior build or pausing OTA if needed.
 
 ## More Documentation
 - Architecture rationale: `ARCHITECTURE.md` (Expo vs bare RN, stack decisions)

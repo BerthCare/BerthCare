@@ -30,4 +30,5 @@ export const config = {
   datadogApiKey: process.env.DATADOG_API_KEY,
   datadogSite: process.env.DATADOG_SITE || 'datadoghq.com',
   logEnableRequestLogs: parseBoolean(process.env.LOG_ENABLE_REQUEST_LOGS, true),
+  allowEphemeralHostnames: parseBoolean(process.env.ALLOW_EPHEMERAL_HOSTNAMES, false),
 };

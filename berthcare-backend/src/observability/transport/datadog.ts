@@ -62,6 +62,15 @@ export const createDatadogStream = (): Writable | undefined => {
   const batchSize = Number(process.env.DD_BATCH_SIZE || 50);
   const flushIntervalMs = Number(process.env.DD_FLUSH_INTERVAL_MS || 250);
   const maxInFlightRequests = Number(process.env.DD_MAX_IN_FLIGHT || 3);
+  // Allow overriding request timeout via env; default 30s if missing/invalid.
+  const ddRequestTimeoutMsEnv = Number.parseInt(process.env.DD_REQUEST_TIMEOUT_MS || '', 10);
+  const timeoutMs = Number.isFinite(ddRequestTimeoutMsEnv) && ddRequestTimeoutMsEnv > 0 ? ddRequestTimeoutMsEnv : 30000;
+  // Allow overriding drain timeout via env; default 10s if missing/invalid. Cap to 60s to avoid unbounded waits.
+  const ddDrainTimeoutMsEnv = Number.parseInt(process.env.DATADOG_DRAIN_TIMEOUT_MS || '', 10);
+  const defaultDrainTimeoutMs =
+    Number.isFinite(ddDrainTimeoutMsEnv) && ddDrainTimeoutMsEnv > 0
+      ? Math.min(ddDrainTimeoutMsEnv, 60000)
+      : 10000;
 
   let buffer: Record<string, unknown>[] = [];
   let timer: NodeJS.Timeout | null = null;
@@ -96,7 +105,7 @@ export const createDatadogStream = (): Writable | undefined => {
 
   const sendBatch = async (batch: Record<string, unknown>[]): Promise<void> => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -147,7 +156,7 @@ export const createDatadogStream = (): Writable | undefined => {
     }, flushIntervalMs);
   };
 
-  const waitForDrain = (maxWaitMs = 10000): Promise<void> =>
+  const waitForDrain = (maxWaitMs = defaultDrainTimeoutMs): Promise<void> =>
     new Promise((resolve) => {
       const deadline = Date.now() + maxWaitMs;
       const check = () => {
@@ -179,15 +188,11 @@ export const createDatadogStream = (): Writable | undefined => {
     },
     final(callback) {
       flushBuffer();
-      waitForDrain()
-        .then(() => callback())
-        .catch((err) => callback(err as Error));
+      waitForDrain().then(() => callback());
     },
     destroy(_error, callback) {
       flushBuffer();
-      waitForDrain()
-        .then(() => callback(_error))
-        .catch((err) => callback((err as Error) || _error));
+      waitForDrain().then(() => callback(_error));
     },
   });
 };

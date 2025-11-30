@@ -49,35 +49,42 @@ export const createCloudWatchStream = (
   let setupPromise: Promise<void> | undefined;
   let chain = Promise.resolve();
 
+  const handleResourceCreation = async (
+    promise: Promise<unknown>,
+    resourceType: string,
+    resourceName: string
+  ): Promise<void> => {
+    try {
+      await promise;
+    } catch (err) {
+      const error = err as { name?: string; code?: string; message?: string };
+      const code = error.code ?? error.name;
+      if (code === 'ResourceAlreadyExistsException') {
+        return;
+      }
+      warn(`Failed to create CloudWatch ${resourceType} ${resourceName}`, error);
+      const message = error.message ?? JSON.stringify(error);
+      throw new Error(message);
+    }
+  };
+
   const ensureLogGroupAndStream = async (
     logGroupName: string,
     logStreamName: string
   ): Promise<void> => {
     if (!setupPromise) {
       setupPromise = (async () => {
-        try {
-          await client.send(new CreateLogGroupCommand({ logGroupName }));
-        } catch (err) {
-          const error = err as { name?: string; code?: string; message?: string };
-          const code = error.code ?? error.name;
-          if (code !== 'ResourceAlreadyExistsException') {
-            warn(`Failed to create CloudWatch log group ${logGroupName}`, error);
-            const message = error.message ?? JSON.stringify(error);
-            throw new Error(message);
-          }
-        }
+        await handleResourceCreation(
+          client.send(new CreateLogGroupCommand({ logGroupName })),
+          'log group',
+          logGroupName
+        );
 
-        try {
-          await client.send(new CreateLogStreamCommand({ logGroupName, logStreamName }));
-        } catch (err) {
-          const error = err as { name?: string; code?: string; message?: string };
-          const code = error.code ?? error.name;
-          if (code !== 'ResourceAlreadyExistsException') {
-            warn(`Failed to create CloudWatch log stream ${logStreamName}`, error);
-            const message = error.message ?? JSON.stringify(error);
-            throw new Error(message);
-          }
-        }
+        await handleResourceCreation(
+          client.send(new CreateLogStreamCommand({ logGroupName, logStreamName })),
+          'log stream',
+          logStreamName
+        );
       })();
     }
 
@@ -108,10 +115,14 @@ export const createCloudWatchStream = (
   };
 
   const defaultLogGroup = config.cloudwatchLogGroup || 'berthcare-backend';
+  const hostname =
+    config.allowEphemeralHostnames === true && process.env.HOSTNAME ? process.env.HOSTNAME : undefined;
   const defaultLogStream =
     process.env.CLOUDWATCH_LOG_STREAM ||
     process.env.ECS_TASK_FAMILY ||
-    `${config.serviceName || 'berthcare-backend'}/${config.nodeEnv ?? 'development'}/${os.hostname()}`;
+    process.env.ECS_TASK_ID ||
+    hostname ||
+    `${config.serviceName || 'berthcare-backend'}/${config.nodeEnv ?? 'development'}`;
 
   const logGroupName = options.logGroupName || defaultLogGroup;
   const logStreamName = options.logStreamName || defaultLogStream;
@@ -130,6 +141,20 @@ export const createCloudWatchStream = (
           }
         })
         .finally(() => callback());
+    },
+    final(callback) {
+      chain
+        .catch((error) => {
+          warn('Failed to flush CloudWatch log chain before shutdown', error);
+        })
+        .finally(() => {
+          try {
+            client.destroy();
+          } catch (error) {
+            warn('Failed to destroy CloudWatch client', error);
+          }
+          callback();
+        });
     },
   });
 };
