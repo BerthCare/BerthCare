@@ -18,6 +18,7 @@ type SignedToken<TClaims extends JwtPayload> = {
   expiresAt: Date;
   claims: TClaims;
 };
+export type { AccessClaims, RefreshClaims, SignedToken };
 
 const getSecret = (): string => {
   if (!config.jwtSecret) {
