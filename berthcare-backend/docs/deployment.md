@@ -25,6 +25,26 @@
 - Redeploy: dev auto-deploys on merge to `main`; trigger staging/prod manually (same workflow with environment-specific role/service). If ECS revision rollback is faster, deploy the prior task definition revision noted in the runbook.
 - Verify after rollback: check app health endpoint, ECS/ALB target health, and logs/alerts (CloudWatch/Sentry/Datadog). Confirm database migrations are in the expected state (no forward-only changes applied that would block the older version) before closing the incident.
 
+## Auth rollout and secrets
+- Set `JWT_SECRET` per environment (Dev/Stage/Prod) in the deployment environment; rotate via pipeline/secret store and restart tasks. Do not reuse dev secrets in higher environments.
+- Token lifetimes: access 24h, refresh 30d by default; adjust via `JWT_ACCESS_TTL`/`JWT_REFRESH_TTL` if needed for incident response and document changes in the release notes.
+- Device binding: login requires `deviceId` UUID; refresh tokens are keyed by `(userId, deviceId)` and stored hashed. On incident/password reset/account disable, revoke device tokens (`revokeByDevice`) or all tokens for the user (`revokeAllForUser`) and invalidate sessions.
+- Logging/PII: request logs are redacted; avoid logging tokens, secrets, or password hashes in PRs or runbooks.
+- Migration note: migration `20251130193853_add_password_hash_to_caregiver` assumes the `Caregiver` table is empty or already backfilled with password hashes; it will raise if rows exist. If data exists, backfill hashes first (or split into nullable + backfill + NOT NULL) before running.
+
+## Troubleshooting auth (runbook)
+- Invalid token errors:
+  - Check issuer/audience (`JWT_ISSUER`/`JWT_AUDIENCE`) and secret alignment across services; mismatches yield signature errors.
+  - Confirm refresh token is not revoked/expired; query `RefreshToken` by `jti` for status and `deviceId` match. Reissue and revoke old on mismatch.
+- Clock skew:
+  - Access/refresh TTLs are time-based; ensure container/ECS host clocks are in sync (NTP). If consistent early expiry, verify `iat`/`exp` in decoded JWT and host clock; restart tasks after time sync.
+- Device re-registration:
+  - If a device is replaced or reset, revoke old `(userId, deviceId)` tokens (`revokeByDevice`) and issue new tokens on next login with the new device UUID.
+  - If clients reuse old device IDs, expect refresh to fail with `device-mismatch`; instruct client to clear tokens and re-login.
+- Secrets rotation:
+  - Rotate `JWT_SECRET` per environment; expect existing tokens to fail verification. Announce rotations and require client re-auth.
+  - After rotation, verify `/api/auth/login` and `/api/auth/refresh` end-to-end; monitor error rates in logs/alerts.
+
 ## References
 - Branch protection setup: project-documentation/branch-protection-setup.md
 - PR template: berthcare-backend/.github/PULL_REQUEST_TEMPLATE.md

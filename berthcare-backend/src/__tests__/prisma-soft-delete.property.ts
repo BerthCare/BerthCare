@@ -18,6 +18,7 @@ class MockCaregiverDelegate {
       email: args.data.email,
       name: args.data.name,
       phone: args.data.phone,
+      passwordHash: args.data.passwordHash ?? 'hashed-password',
       organizationId: args.data.organizationId,
       role: args.data.role,
       isActive: args.data.isActive ?? true,
@@ -72,6 +73,7 @@ const caregiverCreateArb: fc.Arbitrary<CaregiverCreateInput> = fc.record({
   email: fc.emailAddress(),
   name: fc.string({ minLength: 1, maxLength: 48 }),
   phone: fc.string({ minLength: 5, maxLength: 24 }),
+  passwordHash: fc.string({ minLength: 10, maxLength: 60 }),
   organizationId: fc.string({ minLength: 1, maxLength: 48 }),
   role: fc.constantFrom('caregiver', 'coordinator') as fc.Arbitrary<CaregiverCreateInput['role']>,
   isActive: fc.boolean(),
@@ -93,6 +95,7 @@ describe('Feature: prisma-database-schema, Property 5: Soft Delete Data Preserva
         expect(afterDelete?.email).toBe(created.email);
         expect(afterDelete?.name).toBe(created.name);
         expect(afterDelete?.phone).toBe(created.phone);
+        expect(afterDelete?.passwordHash).toBe(created.passwordHash);
         expect(afterDelete?.organizationId).toBe(created.organizationId);
         expect(afterDelete?.role).toBe(created.role);
         expect(afterDelete?.createdAt.getTime()).toBe(created.createdAt.getTime());
