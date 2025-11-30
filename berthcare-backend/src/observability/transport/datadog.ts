@@ -64,7 +64,10 @@ export const createDatadogStream = (): Writable | undefined => {
   const maxInFlightRequests = Number(process.env.DD_MAX_IN_FLIGHT || 3);
   // Allow overriding request timeout via env; default 30s if missing/invalid.
   const ddRequestTimeoutMsEnv = Number.parseInt(process.env.DD_REQUEST_TIMEOUT_MS || '', 10);
-  const timeoutMs = Number.isFinite(ddRequestTimeoutMsEnv) && ddRequestTimeoutMsEnv > 0 ? ddRequestTimeoutMsEnv : 30000;
+  const timeoutMs =
+    Number.isFinite(ddRequestTimeoutMsEnv) && ddRequestTimeoutMsEnv > 0
+      ? ddRequestTimeoutMsEnv
+      : 30000;
   // Allow overriding drain timeout via env; default 10s if missing/invalid. Cap to 60s to avoid unbounded waits.
   const ddDrainTimeoutMsEnv = Number.parseInt(process.env.DATADOG_DRAIN_TIMEOUT_MS || '', 10);
   const defaultDrainTimeoutMs =

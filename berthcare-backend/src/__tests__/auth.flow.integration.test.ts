@@ -73,9 +73,9 @@ const setup = async () => {
     },
   }));
 
-  const { authService } = await import('../services/auth-service');
-  const { refreshService } = await import('../services/refresh-service');
-  const { refreshTokenRepository } = await import('../repositories/refresh-token');
+  const { authService } = await import('../services/auth-service.js');
+  const { refreshService } = await import('../services/refresh-service.js');
+  const { refreshTokenRepository } = await import('../repositories/refresh-token.js');
 
   return { authService, refreshService, refreshTokenRepository };
 };

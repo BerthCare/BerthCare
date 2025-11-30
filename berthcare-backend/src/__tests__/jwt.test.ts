@@ -4,7 +4,9 @@ type JwtHelpers = typeof import('../lib/jwt');
 
 const originalEnv = { ...process.env };
 
-const loadJwtHelpers = async (overrides: Record<string, string | undefined>): Promise<JwtHelpers> => {
+const loadJwtHelpers = async (
+  overrides: Record<string, string | undefined>
+): Promise<JwtHelpers> => {
   jest.resetModules();
   process.env = {
     ...originalEnv,
@@ -15,7 +17,7 @@ const loadJwtHelpers = async (overrides: Record<string, string | undefined>): Pr
     JWT_REFRESH_TTL: '7200',
     ...overrides,
   };
-  const helpers = await import('../lib/jwt');
+  const helpers = await import('../lib/jwt.js');
   process.env = { ...originalEnv };
   return helpers;
 };
@@ -30,7 +32,9 @@ describe('JWT helpers', () => {
     const userId = randomUUID();
     const deviceId = randomUUID();
 
-    const { token, expiresAt, claims } = await signAccessToken(userId, deviceId, { role: 'caregiver' });
+    const { token, expiresAt, claims } = await signAccessToken(userId, deviceId, {
+      role: 'caregiver',
+    });
     expect(token).toBeDefined();
     expect(claims.sub).toBe(userId);
     expect(claims.deviceId).toBe(deviceId);

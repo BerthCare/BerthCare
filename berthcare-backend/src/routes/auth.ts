@@ -69,12 +69,14 @@ authRouter.post('/refresh', async (req, res, next) => {
     });
   } catch (err) {
     if (err instanceof RefreshError) {
-      const status =
-        err.code === 'DEVICE_MISMATCH' || err.code === 'REVOKED' ? 403 : 401;
+      const status = err.code === 'DEVICE_MISMATCH' || err.code === 'REVOKED' ? 403 : 401;
       return res.status(status).json({ error: { message: err.message } });
     }
     // jsonwebtoken errors bubble as generic Errors; treat as 401
-    if ((err as Error).name === 'JsonWebTokenError' || (err as Error).name === 'TokenExpiredError') {
+    if (
+      (err as Error).name === 'JsonWebTokenError' ||
+      (err as Error).name === 'TokenExpiredError'
+    ) {
       return res.status(401).json({ error: { message: 'Invalid token' } });
     }
     next(err);

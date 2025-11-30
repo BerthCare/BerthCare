@@ -1,4 +1,7 @@
-import { tokenValidationService, TokenValidationService } from '../services/token-validation-service';
+import {
+  tokenValidationService,
+  TokenValidationService,
+} from '../services/token-validation-service';
 import { verifyAccessToken, verifyRefreshToken } from '../lib/jwt';
 import { refreshTokenRepository } from '../repositories/refresh-token';
 
@@ -16,7 +19,9 @@ jest.mock('../repositories/refresh-token', () => ({
 describe('TokenValidationService', () => {
   const service = new TokenValidationService();
   const now = new Date('2025-01-02T00:00:00Z');
-  const mockedVerifyAccessToken = verifyAccessToken as jest.MockedFunction<typeof verifyAccessToken>;
+  const mockedVerifyAccessToken = verifyAccessToken as jest.MockedFunction<
+    typeof verifyAccessToken
+  >;
   const mockedVerifyRefreshToken = verifyRefreshToken as jest.MockedFunction<
     typeof verifyRefreshToken
   >;

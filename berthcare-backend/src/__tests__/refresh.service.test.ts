@@ -38,9 +38,9 @@ describe('RefreshService.refresh', () => {
       reason: 'device-mismatch',
     });
 
-    await expect(
-      refreshService.refresh({ token: 't', deviceId: 'device-1' })
-    ).rejects.toThrow(new RefreshError('DEVICE_MISMATCH'));
+    await expect(refreshService.refresh({ token: 't', deviceId: 'device-1' })).rejects.toThrow(
+      new RefreshError('DEVICE_MISMATCH')
+    );
   });
 
   it('returns new access token without rotation when valid', async () => {
@@ -83,7 +83,11 @@ describe('RefreshService.refresh', () => {
     const result = await refreshService.refresh({ token: 't', deviceId: 'device-1', rotate: true });
 
     expect(refreshTokenRepository.touchLastUsed).toHaveBeenCalledWith('old-jti');
-    expect(refreshTokenRepository.markRevoked).toHaveBeenCalledWith('old-jti', expect.any(Date), 'new-jti');
+    expect(refreshTokenRepository.markRevoked).toHaveBeenCalledWith(
+      'old-jti',
+      expect.any(Date),
+      'new-jti'
+    );
     expect(result).toEqual({
       accessToken: 'access-token',
       accessExpiresAt: new Date('2025-02-01T00:00:00Z'),

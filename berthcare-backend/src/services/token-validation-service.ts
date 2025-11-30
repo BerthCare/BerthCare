@@ -1,4 +1,9 @@
-import { verifyAccessToken, verifyRefreshToken, type AccessClaims, type RefreshClaims } from '../lib/jwt';
+import {
+  verifyAccessToken,
+  verifyRefreshToken,
+  type AccessClaims,
+  type RefreshClaims,
+} from '../lib/jwt';
 import { refreshTokenRepository } from '../repositories/refresh-token';
 
 export type AccessTokenValidationResult = {

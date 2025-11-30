@@ -21,12 +21,7 @@ export type RefreshResult = {
 
 export class RefreshError extends Error {
   constructor(
-    public readonly code:
-      | 'INVALID_TOKEN'
-      | 'REVOKED'
-      | 'EXPIRED'
-      | 'DEVICE_MISMATCH'
-      | 'NOT_FOUND'
+    public readonly code: 'INVALID_TOKEN' | 'REVOKED' | 'EXPIRED' | 'DEVICE_MISMATCH' | 'NOT_FOUND'
   ) {
     super(code);
   }
