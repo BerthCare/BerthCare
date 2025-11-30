@@ -104,6 +104,14 @@ describe('TokenValidationService', () => {
     expect(result).toEqual({ valid: false, reason: 'expired' });
   });
 
+  it('rejects refresh token on verification error (tampered signature)', async () => {
+    mockedVerifyRefreshToken.mockRejectedValue(new Error('invalid signature'));
+
+    await expect(service.validateRefreshToken('token', 'device-1')).rejects.toThrow(
+      'invalid signature'
+    );
+  });
+
   it('accepts valid refresh token when not revoked/expired and device matches', async () => {
     mockedVerifyRefreshToken.mockResolvedValue({
       sub: 'user-1',
