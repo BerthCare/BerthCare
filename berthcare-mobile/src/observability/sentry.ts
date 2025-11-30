@@ -92,7 +92,9 @@ const scrubHeaders = (
       redacted = true;
       return;
     }
-    sanitized[key] = String(value);
+    const { value: maybeRedacted, redacted: valueRedacted } = redactIfSensitiveString(value);
+    sanitized[key] = String(maybeRedacted);
+    redacted = redacted || valueRedacted;
   });
   return { headers: sanitized, redacted };
 };
@@ -171,7 +173,7 @@ const scrubEvent = (event: Event): Event => {
     const { value: requestData, redacted: requestDataRedacted } = scrubAny(event.request.data);
     scrubbedEvent.request = {
       ...scrubbedEvent.request,
-      data: requestDataRedacted ? REDACTED : requestData,
+      data: requestData,
     };
     redacted = redacted || requestDataRedacted;
   }
@@ -198,7 +200,7 @@ const scrubBreadcrumb = (breadcrumb: Breadcrumb): Breadcrumb | null => {
   }
 
   if (redacted) {
-    scrubbed.data = { ...scrubbed.data, [REDACTED_TAG]: true };
+    scrubbed.data = { ...scrubbed.data, [REDACTED_TAG]: 'true' };
   }
 
   return scrubbed;
@@ -256,7 +258,8 @@ export const initSentry = ({ dsn, environment, release, debug }: InitOptions) =>
   isInitialized = true;
 };
 
-export const captureException = (error: unknown, level: SeverityLevel = 'error') => {
+// Prefer using captureException in logging.ts for app-level reporting; this is the raw Sentry hook.
+export const captureExceptionRaw = (error: unknown, level: SeverityLevel = 'error') => {
   Sentry.captureException(error, { level });
 };
 

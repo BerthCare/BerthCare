@@ -19,7 +19,11 @@ describe('observability redaction', () => {
       user: { email: 'user@example.com', id: '123' },
       request: {
         url: 'https://api.example.com/clients',
-        headers: { Authorization: 'Bearer secret', Accept: 'application/json' },
+        headers: {
+          Authorization: 'Bearer secret',
+          Accept: 'application/json',
+          'X-User-Email': 'user@example.com',
+        },
         data: { email: 'user@example.com', token: 'abcd', payload: { address: '123 Main St' } },
       },
       breadcrumbs: [
@@ -35,7 +39,13 @@ describe('observability redaction', () => {
 
     expect(scrubbed.user).toEqual({ email: '[redacted]', id: '123' });
     expect(scrubbed.request?.headers?.Authorization).toBe('[redacted]');
-    expect(scrubbed.request?.data).toBe('[redacted]');
+    expect(scrubbed.request?.headers?.['X-User-Email']).toBe('[redacted]');
+    expect(scrubbed.request?.headers?.Accept).toBe('application/json');
+    expect(scrubbed.request?.data).toEqual({
+      email: '[redacted]',
+      token: '[redacted]',
+      payload: { address: '[redacted]' },
+    });
     expect(scrubbed.extra).toMatchObject({ token: '[redacted]', feature: 'visit' });
     expect(scrubbed.contexts).toMatchObject({
       device: { model: 'ios' },
@@ -88,7 +98,7 @@ describe('observability redaction', () => {
     expect(scrubbed?.data).toMatchObject({
       route: '/clients/123',
       email: '[redacted]',
-      pii_redacted: true,
+      pii_redacted: 'true',
     });
   });
 
