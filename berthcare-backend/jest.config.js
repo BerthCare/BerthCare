@@ -14,8 +14,8 @@ module.exports = {
   },
   moduleNameMapper: {
     '^../lib/config.js$': '<rootDir>/src/lib/config.ts',
+    '^../models/index.js$': '<rootDir>/src/models/index.ts',
     '^../observability/transport/datadog.js$': '<rootDir>/src/observability/transport/datadog.ts',
     '^../observability/transport/cloudwatch.js$': '<rootDir>/src/observability/transport/cloudwatch.ts',
   },
-  transformIgnorePatterns: ['node_modules/(?!jose)'],
 };
