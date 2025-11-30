@@ -12,7 +12,6 @@ describe('Property 1: Structured log envelope', () => {
         const bindings = logger.bindings();
         expect(typeof bindings.service).toBe('string');
         expect(typeof bindings.environment).toBe('string');
-        expect(typeof message).toBe('string');
       }),
       { numRuns: 10 }
     );

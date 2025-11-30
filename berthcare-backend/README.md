@@ -155,7 +155,7 @@ The server binds to `PORT` (or 3000 by default) and exposes `GET /health` for a 
 
 ### Required secrets / environment
 
-- App/runtime: `DATABASE_URL` (required), `PORT` (optional; defaults 3000).
+- App/runtime: `DATABASE_URL` (required), `JWT_SECRET` (required for auth), `PORT` (optional; defaults 3000).
 - GitHub Actions secrets (dev): `AWS_ACCOUNT_ID`, `SLACK_WEBHOOK_URL`. Roles use OIDC; no static AWS keys.
 
 ### Rollback
