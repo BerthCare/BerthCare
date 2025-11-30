@@ -49,7 +49,7 @@ describe('RefreshService.refresh', () => {
       valid: true,
       claims: { sub: 'user-1', deviceId: 'device-1', jti: 'old-jti' },
     });
-    (signAccessToken as jest.Mock).mockResolvedValue({
+    (signAccessToken as jest.Mock).mockReturnValue({
       token: 'access-token',
       expiresAt: new Date('2025-02-01T00:00:00Z'),
     });
@@ -71,7 +71,7 @@ describe('RefreshService.refresh', () => {
       valid: true,
       claims: { sub: 'user-1', deviceId: 'device-1', jti: 'old-jti' },
     });
-    (signAccessToken as jest.Mock).mockResolvedValue({
+    (signAccessToken as jest.Mock).mockReturnValue({
       token: 'access-token',
       expiresAt: new Date('2025-02-01T00:00:00Z'),
     });

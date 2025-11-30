@@ -70,7 +70,7 @@ describe('AuthService.login', () => {
       role: 'caregiver',
       passwordHash: hash,
     });
-    (signAccessToken as jest.Mock).mockResolvedValue({
+    (signAccessToken as jest.Mock).mockReturnValue({
       token: 'access-token',
       expiresAt: new Date('2025-02-01T00:00:00Z'),
     });
