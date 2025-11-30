@@ -31,6 +31,19 @@
 - Device binding: login requires `deviceId` UUID; refresh tokens are keyed by `(userId, deviceId)` and stored hashed. On incident/password reset/account disable, revoke device tokens (`revokeByDevice`) or all tokens for the user (`revokeAllForUser`) and invalidate sessions.
 - Logging/PII: request logs are redacted; avoid logging tokens, secrets, or password hashes in PRs or runbooks.
 
+## Troubleshooting auth (runbook)
+- Invalid token errors:
+  - Check issuer/audience (`JWT_ISSUER`/`JWT_AUDIENCE`) and secret alignment across services; mismatches yield signature errors.
+  - Confirm refresh token is not revoked/expired; query `RefreshToken` by `jti` for status and `deviceId` match. Reissue and revoke old on mismatch.
+- Clock skew:
+  - Access/refresh TTLs are time-based; ensure container/ECS host clocks are in sync (NTP). If consistent early expiry, verify `iat`/`exp` in decoded JWT and host clock; restart tasks after time sync.
+- Device re-registration:
+  - If a device is replaced or reset, revoke old `(userId, deviceId)` tokens (`revokeByDevice`) and issue new tokens on next login with the new device UUID.
+  - If clients reuse old device IDs, expect refresh to fail with `device-mismatch`; instruct client to clear tokens and re-login.
+- Secrets rotation:
+  - Rotate `JWT_SECRET` per environment; expect existing tokens to fail verification. Announce rotations and require client re-auth.
+  - After rotation, verify `/api/auth/login` and `/api/auth/refresh` end-to-end; monitor error rates in logs/alerts.
+
 ## References
 - Branch protection setup: project-documentation/branch-protection-setup.md
 - PR template: berthcare-backend/.github/PULL_REQUEST_TEMPLATE.md
