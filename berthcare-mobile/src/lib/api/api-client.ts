@@ -1,5 +1,5 @@
 import { ApiError, resolveApiErrorType } from './api-error';
-import { applyAuthHeader, handle401Response } from './interceptors';
+import { applyAuthHeader, handle401Response, recordResponseBreadcrumb } from './interceptors';
 import { DEFAULT_RETRY_CONFIG, buildUrl, createDefaultConfig } from './config';
 import { executeWithRetry } from './retry';
 import type {
@@ -10,6 +10,7 @@ import type {
   TokenProvider,
   HttpMethod,
 } from './types';
+import type { RequestContext } from './interceptors';
 
 export class ApiClient {
   private static instance: ApiClient | null = null;
@@ -117,12 +118,11 @@ export class ApiClient {
       Accept: 'application/json',
       ...(options?.headers ?? {}),
     };
+    const requestContext: RequestContext = { url, method, headers: baseHeaders };
     const headers = options?.skipAuth
       ? baseHeaders
       : await applyAuthHeader(baseHeaders, this.tokenProvider ?? undefined, {
-          url,
-          method,
-          headers: baseHeaders,
+          ...requestContext,
         });
 
     const timeoutMs = options?.timeoutMs ?? this.config.timeoutMs ?? 30000;
@@ -141,6 +141,7 @@ export class ApiClient {
         body: data != null ? JSON.stringify(data) : null,
         signal: abortController.signal,
       });
+      recordResponseBreadcrumb(requestContext, response.status);
 
       if (response.status === 401 && allow401Refresh) {
         return handle401Response(this.tokenProvider, () =>

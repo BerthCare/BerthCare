@@ -1,4 +1,5 @@
 import { ApiError } from './api-error';
+import { addBreadcrumb } from '@/observability/logging';
 import type { TokenProvider } from './types';
 
 export interface RequestContext {
@@ -27,6 +28,41 @@ export function __resetRefreshState(): void {
   refreshState.queue = [];
 }
 
+const sanitizeRoute = (url: string): string => {
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname || '/';
+  } catch {
+    const [path] = url.split('?');
+    return path || '/';
+  }
+};
+
+function recordRequestBreadcrumb(context: RequestContext): void {
+  addBreadcrumb({
+    category: 'api.request',
+    type: 'http',
+    data: {
+      method: context.method.toUpperCase(),
+      route: sanitizeRoute(context.url),
+    },
+    level: 'info',
+  });
+}
+
+export function recordResponseBreadcrumb(context: RequestContext, status: number): void {
+  addBreadcrumb({
+    category: 'api.response',
+    type: 'http',
+    data: {
+      method: context.method.toUpperCase(),
+      route: sanitizeRoute(context.url),
+      status,
+    },
+    level: 'info',
+  });
+}
+
 function logRequest(context?: RequestContext, hasToken?: boolean): void {
   if (!context) {
     return;
@@ -36,6 +72,7 @@ function logRequest(context?: RequestContext, hasToken?: boolean): void {
   const tokenState = hasToken ? 'token:yes' : 'token:no';
   // Debug-level request logging (no payloads or tokens).
 
+  recordRequestBreadcrumb(context);
   console.debug(
     `[api] ${context.method.toUpperCase()} ${context.url} headers=${headerKeys.join(',')} ${tokenState}`
   );

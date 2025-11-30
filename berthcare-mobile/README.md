@@ -155,6 +155,29 @@ Ensure the polyfill import (`react-native-get-random-values`) runs before any UU
 3. OTA updates: `eas update --branch preview|production --message "Summary"` (scripts wrap these)
 4. Build performance target: <5 minutes for production builds. Last measurement (2025-11-26): Android production via EAS succeeded in ~5–10 minutes end-to-end (queue included); iOS production requires a paid Apple Developer account.
 
+## Observability (Sentry)
+- Configuration files:
+  - `sentry.properties` (placeholders only; secrets via env).
+  - `app.config.ts` provides `extra.sentry` (dsn, environment, release) for runtime; no Expo plugin is used to avoid embedding tokens.
+- Environment variables:
+  - `EXPO_PUBLIC_SENTRY_DSN` (preferred) or `SENTRY_DSN` for runtime init
+  - `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_URL` (optional) for CLI/uploads
+- Release/environment: derived from app version + build number (+ git sha) via `buildSentryRelease`; `EXPO_PUBLIC_ENV` or `EAS_BUILD_PROFILE` sets environment
+- Source maps: `npm run sentry:upload-sourcemaps -- --release <release>` uses `@sentry/cli` (no tokens in config). If bundles aren’t present, the script validates auth by creating/finalizing the release. CI job `sentry-upload` runs this on PRs with secrets.
+- Dependencies: `@sentry/react-native` (runtime SDK) and `@sentry/cli` (source map uploads in CI/EAS).
+- Privacy posture: `sendDefaultPii=false`; user context allowlist (`id`, `anonymousId`, `sessionId`); tags/extra allowlists guard telemetry. `beforeSend`/`beforeBreadcrumb` scrub tokens, emails, phones, addresses, headers; redacted events tagged `pii_redacted=true`; noisy breadcrumbs (e.g., console) dropped.
+- Dev crash trigger: in dev builds a “Trigger test crash” button on the home screen calls `triggerTestCrash()` to emit a JS error and native crash (when available) for end-to-end validation with symbolication.
+- Runbook (Sentry):
+  - Outage: if Sentry is down, the app stays running (console fallback). Pause noise by setting `EXPO_PUBLIC_SENTRY_DSN` empty and rebuilding; re-enable once Sentry recovers.
+  - Rotate auth token: create a new Sentry auth token (org→Auth Tokens) scoped for uploads, update GitHub secrets `SENTRY_AUTH_TOKEN` and EAS project secret of the same name, then rerun CI to verify.
+  - Validate source maps: run `npm run sentry:upload-sourcemaps -- --release <release>` with the same release as the app build. In Sentry, check Project Settings → Source Maps for the release; confirm artifacts exist for ios/android and stacks are symbolicated.
+- PII compliance checklist (status: ✅):
+  - `sendDefaultPii=false` in `initSentry`.
+  - Redaction: `beforeSend`/`beforeBreadcrumb` scrub tokens/emails/phones/addresses/headers/free-text; tag `pii_redacted=true` when applied.
+  - All user context is opaque IDs only (`setUserContext` allowlist).
+  - Secrets/config: DSN/org/project/auth only via env; `sentry.properties` holds placeholders; no secrets committed.
+  - Tests: `redaction.test.ts` and `logging.test.ts` validate scrubbing, allowlists, and breadcrumb handling.
+
 ## Troubleshooting
 - **Metro port conflict (8081/19000):** `lsof -ti:8081 -ti:19000 | xargs kill -9` then `npm start -- --clear`.
 - **Pods missing / iOS errors:** `npx pod-install` then rerun `npm run ios`. Ensure Xcode Command Line Tools are installed.
