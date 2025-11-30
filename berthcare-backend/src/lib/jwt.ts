@@ -88,9 +88,28 @@ const verifyToken = <T extends JwtPayload>(token: string): T => {
 };
 
 export const verifyAccessToken = (token: string): Promise<AccessClaims> => {
-  return Promise.resolve(verifyToken<AccessClaims>(token));
+  const payload = verifyToken<JwtPayload>(token);
+  if (
+    typeof payload !== 'object' ||
+    payload === null ||
+    typeof payload.sub !== 'string' ||
+    typeof (payload as Record<string, unknown>).deviceId !== 'string'
+  ) {
+    throw new Error('Invalid access token claims');
+  }
+  return Promise.resolve(payload as AccessClaims);
 };
 
 export const verifyRefreshToken = (token: string): Promise<RefreshClaims> => {
-  return Promise.resolve(verifyToken<RefreshClaims>(token));
+  const payload = verifyToken<JwtPayload>(token);
+  if (
+    typeof payload !== 'object' ||
+    payload === null ||
+    typeof payload.sub !== 'string' ||
+    typeof (payload as Record<string, unknown>).deviceId !== 'string' ||
+    typeof (payload as Record<string, unknown>).jti !== 'string'
+  ) {
+    throw new Error('Invalid refresh token claims');
+  }
+  return Promise.resolve(payload as RefreshClaims);
 };
