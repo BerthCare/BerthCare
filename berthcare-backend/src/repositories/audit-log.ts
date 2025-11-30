@@ -7,9 +7,12 @@ type CreateData = Prisma.AuditLogCreateInput;
 type UpdateData = Prisma.AuditLogUpdateInput;
 type FindFilter = Prisma.AuditLogWhereInput;
 
-export class AuditLogRepository
-  implements BaseRepository<AuditLog, CreateData, UpdateData, FindFilter>
-{
+export class AuditLogRepository implements BaseRepository<
+  AuditLog,
+  CreateData,
+  UpdateData,
+  FindFilter
+> {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateData): Promise<AuditLog> {

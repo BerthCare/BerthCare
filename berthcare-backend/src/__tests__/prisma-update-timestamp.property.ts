@@ -98,17 +98,22 @@ const caregiverUpdateArb: fc.Arbitrary<CaregiverUpdateInput> = fc.record({
 describe('Feature: prisma-database-schema, Property 4: Update Timestamp Invariant', () => {
   it('advances updatedAt on every update', async () => {
     await fc.assert(
-      fc.asyncProperty(caregiverCreateArb, caregiverUpdateArb, caregiverUpdateArb, async (createData, firstUpdate, secondUpdate) => {
-        const prisma = new MockPrismaClient();
-        const repository = new TestCaregiverRepository(prisma);
+      fc.asyncProperty(
+        caregiverCreateArb,
+        caregiverUpdateArb,
+        caregiverUpdateArb,
+        async (createData, firstUpdate, secondUpdate) => {
+          const prisma = new MockPrismaClient();
+          const repository = new TestCaregiverRepository(prisma);
 
-        const created = await repository.create(createData);
-        const updated1 = await repository.update(created.id, firstUpdate);
-        const updated2 = await repository.update(created.id, secondUpdate);
+          const created = await repository.create(createData);
+          const updated1 = await repository.update(created.id, firstUpdate);
+          const updated2 = await repository.update(created.id, secondUpdate);
 
-        expect(updated1.updatedAt.getTime()).toBeGreaterThan(created.updatedAt.getTime());
-        expect(updated2.updatedAt.getTime()).toBeGreaterThan(updated1.updatedAt.getTime());
-      }),
+          expect(updated1.updatedAt.getTime()).toBeGreaterThan(created.updatedAt.getTime());
+          expect(updated2.updatedAt.getTime()).toBeGreaterThan(updated1.updatedAt.getTime());
+        }
+      ),
       { numRuns: 25 }
     );
   });

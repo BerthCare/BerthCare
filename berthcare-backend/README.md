@@ -21,9 +21,17 @@ TypeScript/Express API scaffold for the BerthCare mobile client, with Prisma for
    cp .env.example .env
    ```
 3. Configure environment variables in `.env`:
-   - `DATABASE_URL` (required): PostgreSQL connection string.
-   - `PORT` (optional): HTTP port; defaults to 3000.
-   - `NODE_ENV` (optional): runtime environment (e.g., development, production).
+
+- `DATABASE_URL` (required): PostgreSQL connection string.
+- `PORT` (optional): HTTP port; defaults to 3000.
+- `NODE_ENV` (optional): runtime environment (e.g., development, production).
+- `LOG_LEVEL` (optional): log level; defaults to `debug` in dev/test, `info` in prod.
+- `LOG_DESTINATION` (optional): `stdout` (default), `cloudwatch`, or `datadog`.
+- `SERVICE_NAME` (optional): service identifier for log metadata; default `berthcare-backend`.
+- CloudWatch (mostly set via ECS task): `CLOUDWATCH_LOG_GROUP` (default `berthcare-backend`), `CLOUDWATCH_REGION`.
+- Datadog (optional): `DATADOG_API_KEY` (required for HTTP intake), `DATADOG_SITE` (`datadoghq.com` default), optional `DATADOG_AGENT_URL` (preferred path).
+- `LOG_ENABLE_REQUEST_LOGS` (optional): toggle request logging; default enabled.
+
 4. Start the database and ensure it is reachable via `DATABASE_URL`.
 
 ### Prisma workflow
@@ -73,6 +81,15 @@ The server binds to `PORT` (or 3000 by default) and exposes `GET /health` for a 
 - Prisma schema is located at `prisma/schema.prisma`.
 - `DATABASE_URL` should point to your PostgreSQL database (e.g., `postgresql://user:password@localhost:5432/berthcare`).
 - Run `npx prisma generate` whenever the schema changes to update the generated client.
+
+## Observability and logging
+
+- Default transport: structured JSON logs to stdout; ECS `awslogs` driver ships stdout/stderr to CloudWatch (`berthcare-backend/<environment>`), so services do not need to manage CloudWatch directly. Pretty-print is enabled in development.
+- Optional CloudWatch transport: set `LOG_DESTINATION=cloudwatch` with `CLOUDWATCH_REGION`; the app will send logs via `@aws-sdk/client-cloudwatch-logs` (fallback to stdout if region/permissions are missing).
+- Optional Datadog: set `LOG_DESTINATION=datadog` with `DATADOG_API_KEY` and `DATADOG_SITE` (or `DATADOG_AGENT_URL`); the app sends via agent when available, otherwise HTTP; falls back to stdout on failure.
+- Redaction: headers (`authorization`, `cookie`, `set-cookie`) and credential/PII-like fields are redacted; long strings are truncated; request logging is allowlisted to method/route/status/duration/requestId/userAgent.
+- Usage: import `logger` or `createLogger({ context })` from `src/observability/logger`, or use `getRequestLogger()` from the request context in handlers.
+- See `docs/observability.md` for transport table, verification steps, and queries; avoid logging PII/secrets.
 
 ## Deployment (Dev)
 

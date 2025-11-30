@@ -7,9 +7,7 @@ type CreateData = Prisma.AlertCreateInput;
 type UpdateData = Prisma.AlertUpdateInput;
 type FindFilter = Prisma.AlertWhereInput;
 
-export class AlertRepository
-  implements BaseRepository<Alert, CreateData, UpdateData, FindFilter>
-{
+export class AlertRepository implements BaseRepository<Alert, CreateData, UpdateData, FindFilter> {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateData): Promise<Alert> {

@@ -96,7 +96,9 @@ describe('Feature: prisma-database-schema, Property 5: Soft Delete Data Preserva
         expect(afterDelete?.organizationId).toBe(created.organizationId);
         expect(afterDelete?.role).toBe(created.role);
         expect(afterDelete?.createdAt.getTime()).toBe(created.createdAt.getTime());
-        expect((afterDelete as Caregiver).updatedAt.getTime()).toBeGreaterThan(created.updatedAt.getTime());
+        expect((afterDelete as Caregiver).updatedAt.getTime()).toBeGreaterThan(
+          created.updatedAt.getTime()
+        );
       }),
       { numRuns: 25 }
     );

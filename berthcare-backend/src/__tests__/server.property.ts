@@ -1,6 +1,7 @@
 import type { Server } from 'http';
 import fc from 'fast-check';
 import { createApp, startServer } from '../index';
+import { logger } from '../observability/logger';
 
 describe('Feature: backend-repository-setup, Property 1: Port Configuration Consistency', () => {
   const originalPort = process.env.PORT;
@@ -22,7 +23,7 @@ describe('Feature: backend-repository-setup, Property 1: Port Configuration Cons
           return dummyServer;
         }) as unknown as typeof app.listen);
 
-        const logMock = jest.spyOn(console, 'log').mockImplementation(() => {});
+        const logMock = jest.spyOn(logger, 'info').mockImplementation(() => {});
 
         const previousPort = process.env.PORT;
         process.env.PORT = String(port);
@@ -33,6 +34,10 @@ describe('Feature: backend-repository-setup, Property 1: Port Configuration Cons
           expect(boundPort).toBe(port);
           expect(listenMock).toHaveBeenCalledWith(port, expect.any(Function));
           expect(server).toBe(dummyServer);
+          expect(logMock).toHaveBeenCalledWith(
+            expect.objectContaining({ event: 'server.start', port }),
+            'Server is running'
+          );
         } finally {
           process.env.PORT = previousPort;
           listenMock.mockRestore();
