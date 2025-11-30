@@ -17,4 +17,5 @@ module.exports = {
     '^../observability/transport/datadog.js$': '<rootDir>/src/observability/transport/datadog.ts',
     '^../observability/transport/cloudwatch.js$': '<rootDir>/src/observability/transport/cloudwatch.ts',
   },
+  transformIgnorePatterns: ['node_modules/(?!jose)'],
 };
