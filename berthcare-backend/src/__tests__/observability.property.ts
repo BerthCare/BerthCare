@@ -129,8 +129,8 @@ describe('Property 4: Transport selection and resilience', () => {
     jest.resetModules();
   });
 
-  it('gracefully falls back when Datadog API key is missing', () => {
-    void fc.assert(
+  it('gracefully falls back when Datadog API key is missing', async () => {
+    await fc.assert(
       fc.asyncProperty(fc.constantFrom<undefined | ''>(undefined, ''), async (apiKey) => {
         process.env.LOG_DESTINATION = 'datadog';
         if (apiKey === undefined) {
