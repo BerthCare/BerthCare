@@ -72,14 +72,22 @@ jobs:
     needs: [lint, typecheck, format, test]
     if: github.event_name == 'pull_request'
     steps:
+      - name: Skip if Sentry secrets missing
+        if: ${{ secrets.SENTRY_ORG == '' || secrets.SENTRY_PROJECT == '' || secrets.SENTRY_AUTH_TOKEN == '' }}
+        run: echo "Skipping Sentry upload: missing secrets" && exit 0
+
       - uses: actions/checkout@v4
+        if: ${{ secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' && secrets.SENTRY_AUTH_TOKEN != '' }}
       - uses: actions/setup-node@v4
+        if: ${{ secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' && secrets.SENTRY_AUTH_TOKEN != '' }}
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: berthcare-mobile/package-lock.json
       - run: npm ci
+        if: ${{ secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' && secrets.SENTRY_AUTH_TOKEN != '' }}
       - name: Verify Sentry sourcemap upload command
+        if: ${{ secrets.SENTRY_ORG != '' && secrets.SENTRY_PROJECT != '' && secrets.SENTRY_AUTH_TOKEN != '' }}
         env:
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
