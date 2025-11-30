@@ -43,6 +43,14 @@ export class RefreshTokenService {
       issuedAt,
     };
   }
+
+  async revokeForDevice(userId: string, deviceId: string): Promise<number> {
+    return this.repo.revokeByDevice(userId, deviceId);
+  }
+
+  async revokeAllForUser(userId: string): Promise<number> {
+    return this.repo.revokeAllForUser(userId);
+  }
 }
 
 export const refreshTokenService = new RefreshTokenService();

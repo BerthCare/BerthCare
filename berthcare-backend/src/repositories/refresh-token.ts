@@ -63,6 +63,22 @@ export class RefreshTokenRepository {
     });
     return result.count > 0;
   }
+
+  async revokeByDevice(userId: string, deviceId: string, revokedAt = new Date()): Promise<number> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { userId, deviceId },
+      data: { revokedAt, replacedByJti: null },
+    });
+    return result.count;
+  }
+
+  async revokeAllForUser(userId: string, revokedAt = new Date()): Promise<number> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { userId },
+      data: { revokedAt, replacedByJti: null },
+    });
+    return result.count;
+  }
 }
 
 export const refreshTokenRepository = new RefreshTokenRepository(prisma);

@@ -8,6 +8,8 @@ jest.mock('../lib/jwt', () => ({
 
 const mockRepo = {
   upsertForDevice: jest.fn(),
+  revokeByDevice: jest.fn(),
+  revokeAllForUser: jest.fn(),
 };
 
 describe('RefreshTokenService', () => {
@@ -48,5 +50,19 @@ describe('RefreshTokenService', () => {
     expect(result.refreshToken).toBe('opaque-refresh-token');
     expect(result.expiresAt.toISOString()).toBe('2025-02-01T00:00:00.000Z');
     expect(typeof result.jti).toBe('string');
+  });
+
+  it('revokes tokens for a device', async () => {
+    mockRepo.revokeByDevice.mockResolvedValue(2);
+    const count = await service.revokeForDevice('user-1', 'device-1');
+    expect(count).toBe(2);
+    expect(mockRepo.revokeByDevice).toHaveBeenCalledWith('user-1', 'device-1');
+  });
+
+  it('revokes all tokens for a user', async () => {
+    mockRepo.revokeAllForUser.mockResolvedValue(5);
+    const count = await service.revokeAllForUser('user-1');
+    expect(count).toBe(5);
+    expect(mockRepo.revokeAllForUser).toHaveBeenCalledWith('user-1');
   });
 });
