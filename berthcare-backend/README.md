@@ -75,6 +75,13 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
   npm run test:integration
   ```
 
+## Auth configuration and device binding
+- Tokens: access token TTL default 24h (`JWT_ACCESS_TTL`), refresh token TTL default 30d (`JWT_REFRESH_TTL`); issuer/audience default to `berthcare-backend`/`berthcare-mobile`.
+- Secrets: set `JWT_SECRET` per environment; never log or return secrets, password hashes, or raw refresh tokens.
+- Device ID: `/api/auth/login` requires a valid UUID `deviceId`; refresh tokens are scoped to `(userId, deviceId)` and are rotated/revoked per device.
+- Revocation: `refreshTokenRepository` supports per-device revocation (`revokeByDevice`) and full-user revocation (`revokeAllForUser`), used for password resets/account disable.
+- Endpoints: `POST /api/auth/login` issues access/refresh; `POST /api/auth/refresh` validates signature/iss/aud/exp, enforces device match, and updates lastUsed/rotation.
+
 ### Prisma workflow
 
 1. Generate Prisma client (after `DATABASE_URL` is set):

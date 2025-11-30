@@ -25,6 +25,12 @@
 - Redeploy: dev auto-deploys on merge to `main`; trigger staging/prod manually (same workflow with environment-specific role/service). If ECS revision rollback is faster, deploy the prior task definition revision noted in the runbook.
 - Verify after rollback: check app health endpoint, ECS/ALB target health, and logs/alerts (CloudWatch/Sentry/Datadog). Confirm database migrations are in the expected state (no forward-only changes applied that would block the older version) before closing the incident.
 
+## Auth rollout and secrets
+- Set `JWT_SECRET` per environment (Dev/Stage/Prod) in the deployment environment; rotate via pipeline/secret store and restart tasks. Do not reuse dev secrets in higher environments.
+- Token lifetimes: access 24h, refresh 30d by default; adjust via `JWT_ACCESS_TTL`/`JWT_REFRESH_TTL` if needed for incident response and document changes in the release notes.
+- Device binding: login requires `deviceId` UUID; refresh tokens are keyed by `(userId, deviceId)` and stored hashed. On incident/password reset/account disable, revoke device tokens (`revokeByDevice`) or all tokens for the user (`revokeAllForUser`) and invalidate sessions.
+- Logging/PII: request logs are redacted; avoid logging tokens, secrets, or password hashes in PRs or runbooks.
+
 ## References
 - Branch protection setup: project-documentation/branch-protection-setup.md
 - PR template: berthcare-backend/.github/PULL_REQUEST_TEMPLATE.md
