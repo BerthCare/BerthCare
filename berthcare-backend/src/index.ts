@@ -8,12 +8,14 @@ import { loggingMiddleware } from './middleware/logging';
 import { logger } from './observability/logger';
 import { observabilityRouter } from './routes/observability';
 
-export const createApp = (): Express => {
+export const createApp = (configureApp?: (app: Express) => void): Express => {
   const app = express();
 
   app.use(cors());
   app.use(express.json());
   app.use(loggingMiddleware);
+
+  configureApp?.(app);
 
   app.use('/health', healthRouter);
   app.use('/observability', observabilityRouter);

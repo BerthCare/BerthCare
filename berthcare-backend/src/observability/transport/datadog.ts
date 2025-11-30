@@ -95,16 +95,21 @@ export const createDatadogStream = (): Writable | undefined => {
   };
 
   const sendBatch = async (batch: Record<string, unknown>[]): Promise<void> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(batch),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (!response.ok) {
         warn(`Datadog responded with ${response.status}`);
       }
     } catch (error) {
+      clearTimeout(timeoutId);
       warn('Failed to send log to Datadog', error);
     }
   };
@@ -142,10 +147,16 @@ export const createDatadogStream = (): Writable | undefined => {
     }, flushIntervalMs);
   };
 
-  const waitForDrain = (): Promise<void> =>
+  const waitForDrain = (maxWaitMs = 10000): Promise<void> =>
     new Promise((resolve) => {
+      const deadline = Date.now() + maxWaitMs;
       const check = () => {
         if (buffer.length === 0 && queue.length === 0 && inFlight === 0) {
+          resolve();
+          return;
+        }
+        if (Date.now() >= deadline) {
+          warn('Drain timeout exceeded, proceeding with shutdown');
           resolve();
           return;
         }
@@ -168,11 +179,15 @@ export const createDatadogStream = (): Writable | undefined => {
     },
     final(callback) {
       flushBuffer();
-      void waitForDrain().then(() => callback());
+      waitForDrain()
+        .then(() => callback())
+        .catch((err) => callback(err as Error));
     },
     destroy(_error, callback) {
       flushBuffer();
-      void waitForDrain().finally(() => callback(_error));
+      waitForDrain()
+        .then(() => callback(_error))
+        .catch((err) => callback((err as Error) || _error));
     },
   });
 };

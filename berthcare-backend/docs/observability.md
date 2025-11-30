@@ -1,11 +1,13 @@
 # Observability
 
 ## Logging transport defaults
+
 | Destination | When to use | Env vars | Notes / fallback |
 | --- | --- | --- | --- |
 | stdout (default) | All envs; ECS `awslogs` ships to CloudWatch | none | JSON logs; dev gets `pino-pretty` |
 | cloudwatch | Non-ECS jobs or when app-managed delivery desired | `LOG_DESTINATION=cloudwatch`, `CLOUDWATCH_REGION`, optional `CLOUDWATCH_LOG_GROUP` | Falls back to stdout if region/permissions missing |
 | datadog | Datadog logging enabled | `LOG_DESTINATION=datadog`, `DATADOG_API_KEY`, `DATADOG_SITE` or `DATADOG_AGENT_URL` | Prefers agent; HTTP intake fallback; reverts to stdout on errors |
+
 
 ## Configuration defaults
 - **dev/test:** stdout JSON (pretty in dev) at level `debug`.

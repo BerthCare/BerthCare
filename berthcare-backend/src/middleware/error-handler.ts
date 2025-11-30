@@ -18,6 +18,9 @@ export const errorHandler = (
   _next: NextFunction
 ): void => {
   void _next;
+  if (res.headersSent) {
+    return;
+  }
   const statusCode = getStatusCode(err);
   const { requestId } = getRequestContext() ?? {};
   const log = getRequestLogger();

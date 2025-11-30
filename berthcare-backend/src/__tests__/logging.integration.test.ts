@@ -1,18 +1,17 @@
 import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../index';
-import { errorHandler } from '../middleware/error-handler';
 import { logger } from '../observability/logger';
 
 describe('logging middleware integration', () => {
   let app: Express;
 
   beforeEach(() => {
-    app = createApp();
-    app.get('/boom', () => {
-      throw new Error('boom');
+    app = createApp((instance) => {
+      instance.get('/boom', () => {
+        throw new Error('boom');
+      });
     });
-    app.use(errorHandler);
   });
 
   it('logs request metadata and propagates requestId header', async () => {
