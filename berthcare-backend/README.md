@@ -32,6 +32,7 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
    - `LOG_DESTINATION` (optional) `stdout` (default), `cloudwatch`, or `datadog`  
    - `SERVICE_NAME` (optional) service identifier; default `berthcare-backend`  
    - `ALLOW_EPHEMERAL_HOSTNAMES` (optional) set `true` to include hostnames in CloudWatch stream names; default `false` to avoid high-cardinality streams  
+   - Auth: `JWT_SECRET` (required), `JWT_ISSUER` (default `berthcare-backend`), `JWT_AUDIENCE` (default `berthcare-mobile`), `JWT_ACCESS_TTL` seconds (default 86400), `JWT_REFRESH_TTL` seconds (default 2592000), `BCRYPT_SALT_ROUNDS` (default 10)  
    - CloudWatch: `CLOUDWATCH_LOG_GROUP` (default `berthcare-backend`), `CLOUDWATCH_REGION`  
    - Datadog: `DATADOG_API_KEY`, `DATADOG_SITE` (`datadoghq.com` default), optional `DATADOG_AGENT_URL`  
    - `LOG_ENABLE_REQUEST_LOGS` (optional) toggle request logging
