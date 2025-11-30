@@ -8,7 +8,12 @@ const isUuid = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 authRouter.post('/login', async (req, res, next) => {
-  const { email, password, deviceId } = req.body ?? {};
+  const body = (req.body ?? {}) as Partial<{
+    email: string;
+    password: string;
+    deviceId: string;
+  }>;
+  const { email, password, deviceId } = body;
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return res.status(400).json({ error: { message: 'Invalid email' } });
@@ -41,7 +46,12 @@ authRouter.post('/login', async (req, res, next) => {
 });
 
 authRouter.post('/refresh', async (req, res, next) => {
-  const { refreshToken, deviceId, rotate } = req.body ?? {};
+  const body = (req.body ?? {}) as Partial<{
+    refreshToken: string;
+    deviceId?: string;
+    rotate?: boolean;
+  }>;
+  const { refreshToken, deviceId, rotate } = body;
 
   if (!refreshToken || typeof refreshToken !== 'string') {
     return res.status(400).json({ error: { message: 'refreshToken is required' } });
@@ -54,7 +64,7 @@ authRouter.post('/refresh', async (req, res, next) => {
   try {
     const result = await refreshService.refresh({
       token: refreshToken,
-      deviceId: deviceId as string | undefined,
+      deviceId: deviceId ?? undefined,
       rotate: Boolean(rotate),
     });
 

@@ -8,7 +8,7 @@ import { REDACTED_TEXT, TRUNCATE_LENGTH, sanitizePayload } from '../observabilit
 describe('Property 1: Structured log envelope', () => {
   it('emits base metadata for arbitrary messages', () => {
     fc.assert(
-      fc.property(fc.string(), (message) => {
+      fc.property(fc.string(), () => {
         const bindings = logger.bindings();
         expect(typeof bindings.service).toBe('string');
         expect(typeof bindings.environment).toBe('string');

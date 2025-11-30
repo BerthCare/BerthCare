@@ -1,7 +1,4 @@
-import {
-  tokenValidationService,
-  TokenValidationService,
-} from '../services/token-validation-service';
+import { TokenValidationService } from '../services/token-validation-service';
 import { verifyAccessToken, verifyRefreshToken } from '../lib/jwt';
 import { refreshTokenRepository } from '../repositories/refresh-token';
 
@@ -25,9 +22,18 @@ describe('TokenValidationService', () => {
   const mockedVerifyRefreshToken = verifyRefreshToken as jest.MockedFunction<
     typeof verifyRefreshToken
   >;
-  const mockedRefreshTokenRepo = refreshTokenRepository as jest.Mocked<
-    typeof refreshTokenRepository
-  >;
+  const mockedRefreshTokenRepo = refreshTokenRepository as jest.Mocked<typeof refreshTokenRepository>;
+  const baseRecord = {
+    id: 'jti-1',
+    userId: 'user-1',
+    deviceId: 'device-1',
+    tokenHash: 'hash',
+    issuedAt: now,
+    expiresAt: new Date(now.getTime() + 86_400_000),
+    lastUsedAt: null,
+    revokedAt: null,
+    replacedByJti: null,
+  };
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -71,7 +77,7 @@ describe('TokenValidationService', () => {
       deviceId: 'device-1',
       jti: 'jti-1',
     });
-    mockedRefreshTokenRepo.findValidByJti.mockResolvedValue(null as any);
+    mockedRefreshTokenRepo.findValidByJti.mockResolvedValue(null);
 
     const result = await service.validateRefreshToken('token');
 
@@ -85,8 +91,9 @@ describe('TokenValidationService', () => {
       jti: 'jti-1',
     });
     mockedRefreshTokenRepo.findValidByJti.mockResolvedValue({
+      ...baseRecord,
       revokedAt: new Date(),
-    } as any);
+    });
 
     const result = await service.validateRefreshToken('token');
 
@@ -100,9 +107,10 @@ describe('TokenValidationService', () => {
       jti: 'jti-1',
     });
     mockedRefreshTokenRepo.findValidByJti.mockResolvedValue({
+      ...baseRecord,
       revokedAt: null,
       expiresAt: new Date('2024-12-31T23:59:59Z'),
-    } as any);
+    });
 
     const result = await service.validateRefreshToken('token');
 
@@ -124,9 +132,10 @@ describe('TokenValidationService', () => {
       jti: 'jti-1',
     });
     mockedRefreshTokenRepo.findValidByJti.mockResolvedValue({
+      ...baseRecord,
       revokedAt: null,
       expiresAt: new Date('2025-01-03T00:00:00Z'),
-    } as any);
+    });
 
     const result = await service.validateRefreshToken('token', 'device-1');
 

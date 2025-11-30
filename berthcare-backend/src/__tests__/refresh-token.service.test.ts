@@ -1,25 +1,31 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { createHash } from 'crypto';
 import { RefreshTokenService } from '../services/refresh-token-service';
 import { signRefreshToken } from '../lib/jwt';
+import type { RefreshTokenRepository, UpsertRefreshTokenInput } from '../repositories/refresh-token';
 
 jest.mock('../lib/jwt', () => ({
   signRefreshToken: jest.fn(),
 }));
 
-const mockRepo = {
+const mockRepo: jest.Mocked<RefreshTokenRepository> = {
   upsertForDevice: jest.fn(),
+  findValidByJti: jest.fn(),
+  markRevoked: jest.fn(),
+  touchLastUsed: jest.fn(),
   revokeByDevice: jest.fn(),
   revokeAllForUser: jest.fn(),
 };
 
 describe('RefreshTokenService', () => {
-  const service = new RefreshTokenService(mockRepo as any);
+  const service = new RefreshTokenService(mockRepo);
+  const mockedSignRefreshToken = signRefreshToken as jest.MockedFunction<typeof signRefreshToken>;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-02T00:00:00Z'));
     jest.clearAllMocks();
-    (signRefreshToken as jest.Mock).mockResolvedValue({
+    mockedSignRefreshToken.mockResolvedValue({
       token: 'opaque-refresh-token',
       expiresAt: new Date('2025-02-01T00:00:00Z'),
       claims: { sub: 'user', deviceId: 'device', jti: 'provided-jti' },
@@ -36,15 +42,15 @@ describe('RefreshTokenService', () => {
     expect(signRefreshToken).toHaveBeenCalledWith('user-1', 'device-1', expect.any(String));
 
     const expectedHash = createHash('sha256').update('opaque-refresh-token').digest('hex');
+    const expectedPayload: Partial<UpsertRefreshTokenInput> = {
+      userId: 'user-1',
+      deviceId: 'device-1',
+      tokenHash: expectedHash,
+      issuedAt: new Date('2025-01-02T00:00:00.000Z'),
+      expiresAt: new Date('2025-02-01T00:00:00.000Z'),
+    };
     expect(mockRepo.upsertForDevice).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: 'user-1',
-        deviceId: 'device-1',
-        tokenHash: expectedHash,
-        jti: expect.any(String),
-        issuedAt: new Date('2025-01-02T00:00:00.000Z'),
-        expiresAt: new Date('2025-02-01T00:00:00.000Z'),
-      })
+      expect.objectContaining(expectedPayload)
     );
 
     expect(result.refreshToken).toBe('opaque-refresh-token');

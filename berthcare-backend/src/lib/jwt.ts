@@ -35,7 +35,7 @@ const baseOptions = {
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 
-export const signAccessToken = async (
+export const signAccessToken = (
   userId: string,
   deviceId: string,
   extraClaims: Record<string, unknown> = {}
@@ -54,10 +54,10 @@ export const signAccessToken = async (
     mutatePayload: false,
   });
 
-  return { token, expiresAt, claims };
+  return Promise.resolve({ token, expiresAt, claims });
 };
 
-export const signRefreshToken = async (
+export const signRefreshToken = (
   userId: string,
   deviceId: string,
   jti: string
@@ -76,21 +76,21 @@ export const signRefreshToken = async (
     mutatePayload: false,
   });
 
-  return { token, expiresAt, claims };
+  return Promise.resolve({ token, expiresAt, claims });
 };
 
 const verifyToken = <T extends JwtPayload>(token: string): T => {
-  const payload = jwt.verify(token, getSecret(), baseOptions) as JwtPayload | string;
-  if (typeof payload === 'string') {
+  const payload = jwt.verify(token, getSecret(), baseOptions);
+  if (typeof payload === 'string' || payload === null) {
     throw new Error('JWT payload is not an object');
   }
   return payload as T;
 };
 
-export const verifyAccessToken = async (token: string): Promise<AccessClaims> => {
-  return verifyToken<AccessClaims>(token);
+export const verifyAccessToken = (token: string): Promise<AccessClaims> => {
+  return Promise.resolve(verifyToken<AccessClaims>(token));
 };
 
-export const verifyRefreshToken = async (token: string): Promise<RefreshClaims> => {
-  return verifyToken<RefreshClaims>(token);
+export const verifyRefreshToken = (token: string): Promise<RefreshClaims> => {
+  return Promise.resolve(verifyToken<RefreshClaims>(token));
 };

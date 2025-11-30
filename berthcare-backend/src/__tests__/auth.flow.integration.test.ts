@@ -1,22 +1,15 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import type { UpsertRefreshTokenInput } from '../repositories/refresh-token';
+import type { RefreshTokenRepository } from '../repositories/refresh-token';
+import type { RefreshToken } from '../generated/prisma/client';
 
 const deviceId = '11111111-1111-4111-8111-111111111111';
 
 // Shared in-memory refresh token store for mocks
-const refreshStore = new Map<
-  string,
-  {
-    userId: string;
-    deviceId: string;
-    tokenHash: string;
-    issuedAt: Date;
-    expiresAt: Date;
-    revokedAt: Date | null;
-    replacedByJti: string | null;
-    lastUsedAt: Date | null;
-  }
->();
+type RefreshRecord = RefreshToken;
+
+const refreshStore = new Map<string, RefreshRecord>();
 
 const setup = async () => {
   jest.resetModules();
@@ -39,10 +32,16 @@ const setup = async () => {
     },
   }));
 
-  jest.doMock('../repositories/refresh-token', () => ({
-    refreshTokenRepository: {
-      upsertForDevice: jest.fn(async (input: any) => {
-        refreshStore.set(input.jti, {
+  jest.doMock('../repositories/refresh-token', () => {
+    type MockRepo = Pick<
+      RefreshTokenRepository,
+      'upsertForDevice' | 'findValidByJti' | 'markRevoked' | 'touchLastUsed' | 'revokeByDevice' | 'revokeAllForUser'
+    >;
+
+    const repo: MockRepo = {
+      upsertForDevice: jest.fn((input: UpsertRefreshTokenInput) => {
+        const record: RefreshRecord = {
+          id: input.jti,
           userId: input.userId,
           deviceId: input.deviceId,
           tokenHash: input.tokenHash,
@@ -51,27 +50,29 @@ const setup = async () => {
           revokedAt: null,
           replacedByJti: null,
           lastUsedAt: null,
-        });
-        return refreshStore.get(input.jti);
+        };
+        refreshStore.set(input.jti, record);
+        return Promise.resolve(record);
       }),
-      findValidByJti: jest.fn(async (jti: string) => refreshStore.get(jti) ?? null),
-      markRevoked: jest.fn(async (jti: string, revokedAt: Date, replacedByJti?: string) => {
+      findValidByJti: jest.fn((jti: string) => Promise.resolve(refreshStore.get(jti) ?? null)),
+      markRevoked: jest.fn((jti: string, revokedAt: Date, replacedByJti?: string) => {
         const rec = refreshStore.get(jti);
-        if (!rec) return false;
+        if (!rec) return Promise.resolve(false);
         rec.revokedAt = revokedAt;
         rec.replacedByJti = replacedByJti ?? null;
-        return true;
+        return Promise.resolve(true);
       }),
-      touchLastUsed: jest.fn(async (jti: string, lastUsedAt = new Date()) => {
+      touchLastUsed: jest.fn((jti: string, lastUsedAt = new Date()) => {
         const rec = refreshStore.get(jti);
-        if (!rec) return false;
+        if (!rec) return Promise.resolve(false);
         rec.lastUsedAt = lastUsedAt;
-        return true;
+        return Promise.resolve(true);
       }),
-      revokeByDevice: jest.fn(),
-      revokeAllForUser: jest.fn(),
-    },
-  }));
+      revokeByDevice: jest.fn(() => Promise.resolve(0)),
+      revokeAllForUser: jest.fn(() => Promise.resolve(0)),
+    };
+    return { refreshTokenRepository: repo };
+  });
 
   const { authService } = await import('../services/auth-service.js');
   const { refreshService } = await import('../services/refresh-service.js');

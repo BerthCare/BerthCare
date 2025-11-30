@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { refreshService, RefreshError } from '../services/refresh-service';
 import { tokenValidationService } from '../services/token-validation-service';
 import { refreshTokenRepository } from '../repositories/refresh-token';

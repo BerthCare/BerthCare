@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
 import { signAccessToken } from '../lib/jwt';
 import { caregiverRepository } from '../repositories/caregiver';
 import { refreshTokenService } from './refresh-token-service';

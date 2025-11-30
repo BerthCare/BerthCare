@@ -191,11 +191,11 @@ export const createDatadogStream = (): Writable | undefined => {
     },
     final(callback) {
       flushBuffer();
-      waitForDrain().then(() => callback());
+      void waitForDrain().then(() => callback());
     },
     destroy(_error, callback) {
       flushBuffer();
-      waitForDrain().then(() => callback(_error));
+      void waitForDrain().then(() => callback(_error));
     },
   });
 };

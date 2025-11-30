@@ -4,7 +4,6 @@ import {
   CreateLogStreamCommand,
   PutLogEventsCommand,
 } from '@aws-sdk/client-cloudwatch-logs';
-import os from 'os';
 import { Writable } from 'stream';
 import { config } from '../../lib/config';
 

@@ -4,7 +4,9 @@ import { refreshService, RefreshError } from '../services/refresh-service';
 import { authService, AuthError } from '../services/auth-service';
 
 jest.mock('../services/refresh-service', () => {
-  const actual = jest.requireActual('../services/refresh-service');
+  const actual = jest.requireActual<typeof import('../services/refresh-service')>(
+    '../services/refresh-service'
+  );
   return {
     ...actual,
     refreshService: {
@@ -14,7 +16,9 @@ jest.mock('../services/refresh-service', () => {
 });
 
 jest.mock('../services/auth-service', () => {
-  const actual = jest.requireActual('../services/auth-service');
+  const actual = jest.requireActual<typeof import('../services/auth-service')>(
+    '../services/auth-service'
+  );
   return {
     ...actual,
     authService: {
@@ -56,8 +60,9 @@ describe('POST /api/auth/refresh', () => {
       .send({ refreshToken: 'token', deviceId: '11111111-1111-4111-8111-111111111111' })
       .expect(200);
 
-    expect(res.body.accessToken).toBe('access-token');
-    expect(res.body.accessExpiresAt).toBe('2025-02-01T00:00:00.000Z');
+    const body = res.body as { accessToken: string; accessExpiresAt: string };
+    expect(body.accessToken).toBe('access-token');
+    expect(body.accessExpiresAt).toBe('2025-02-01T00:00:00.000Z');
   });
 
   it('maps RefreshError EXPIRED to 401', async () => {
@@ -132,9 +137,16 @@ describe('POST /api/auth/login', () => {
       })
       .expect(200);
 
-    expect(res.body.accessToken).toBe('access-token');
-    expect(res.body.refreshToken).toBe('refresh-token');
-    expect(res.body.accessExpiresAt).toBe('2025-02-01T00:00:00.000Z');
-    expect(res.body.refreshExpiresAt).toBe('2025-03-01T00:00:00.000Z');
+    const body = res.body as {
+      accessToken: string;
+      refreshToken: string;
+      accessExpiresAt: string;
+      refreshExpiresAt: string;
+    };
+
+    expect(body.accessToken).toBe('access-token');
+    expect(body.refreshToken).toBe('refresh-token');
+    expect(body.accessExpiresAt).toBe('2025-02-01T00:00:00.000Z');
+    expect(body.refreshExpiresAt).toBe('2025-03-01T00:00:00.000Z');
   });
 });
