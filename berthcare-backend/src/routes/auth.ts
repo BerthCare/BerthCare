@@ -57,14 +57,14 @@ authRouter.post('/refresh', async (req, res, next) => {
     return res.status(400).json({ error: { message: 'refreshToken is required' } });
   }
 
-  if (deviceId && (typeof deviceId !== 'string' || !isUuid(deviceId))) {
+  if (!deviceId || typeof deviceId !== 'string' || !isUuid(deviceId)) {
     return res.status(400).json({ error: { message: 'Invalid deviceId' } });
   }
 
   try {
     const result = await refreshService.refresh({
       token: refreshToken,
-      deviceId: deviceId ?? undefined,
+      deviceId,
       rotate: Boolean(rotate),
     });
 

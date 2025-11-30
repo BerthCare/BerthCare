@@ -35,7 +35,12 @@ const setup = async () => {
   jest.doMock('../repositories/refresh-token', () => {
     type MockRepo = Pick<
       RefreshTokenRepository,
-      'upsertForDevice' | 'findValidByJti' | 'markRevoked' | 'touchLastUsed' | 'revokeByDevice' | 'revokeAllForUser'
+      | 'upsertForDevice'
+      | 'findValidByJti'
+      | 'markRevoked'
+      | 'touchLastUsed'
+      | 'revokeByDevice'
+      | 'revokeAllForUser'
     >;
 
     const repo: MockRepo = {
@@ -45,7 +50,7 @@ const setup = async () => {
           userId: input.userId,
           deviceId: input.deviceId,
           tokenHash: input.tokenHash,
-          issuedAt: input.issuedAt,
+          issuedAt: input.issuedAt ?? new Date(),
           expiresAt: input.expiresAt,
           revokedAt: null,
           replacedByJti: null,
@@ -54,7 +59,11 @@ const setup = async () => {
         refreshStore.set(input.jti, record);
         return Promise.resolve(record);
       }),
-      findValidByJti: jest.fn((jti: string) => Promise.resolve(refreshStore.get(jti) ?? null)),
+      findValidByJti: jest.fn((jti: string) => {
+        const rec = refreshStore.get(jti);
+        if (!rec || rec.revokedAt) return Promise.resolve(null);
+        return Promise.resolve(rec);
+      }),
       markRevoked: jest.fn((jti: string, revokedAt: Date, replacedByJti?: string) => {
         const rec = refreshStore.get(jti);
         if (!rec) return Promise.resolve(false);
@@ -82,10 +91,6 @@ const setup = async () => {
 };
 
 describe('Auth flow integration', () => {
-  beforeEach(() => {
-    refreshStore.clear();
-  });
-
   it('issues tokens on login and allows refresh with device binding enforced', async () => {
     const { authService, refreshService, refreshTokenRepository } = await setup();
 
@@ -117,5 +122,9 @@ describe('Auth flow integration', () => {
     expect(refreshed.deviceId).toBe(deviceId);
     expect(refreshed.refreshToken).toBeDefined();
     expect(refreshed.accessToken).toBeDefined();
+
+    // Verify old token was revoked
+    const oldToken = await refreshTokenRepository.findValidByJti(login.jti);
+    expect(oldToken).toBeNull(); // Should be null because it's revoked
   });
 });

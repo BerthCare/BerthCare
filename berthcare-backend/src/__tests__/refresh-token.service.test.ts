@@ -2,20 +2,23 @@
 import { createHash } from 'crypto';
 import { RefreshTokenService } from '../services/refresh-token-service';
 import { signRefreshToken } from '../lib/jwt';
-import type { RefreshTokenRepository, UpsertRefreshTokenInput } from '../repositories/refresh-token';
+import type {
+  RefreshTokenRepository,
+  UpsertRefreshTokenInput,
+} from '../repositories/refresh-token';
 
 jest.mock('../lib/jwt', () => ({
   signRefreshToken: jest.fn(),
 }));
 
-const mockRepo: jest.Mocked<RefreshTokenRepository> = {
+const mockRepo = {
   upsertForDevice: jest.fn(),
   findValidByJti: jest.fn(),
   markRevoked: jest.fn(),
   touchLastUsed: jest.fn(),
   revokeByDevice: jest.fn(),
   revokeAllForUser: jest.fn(),
-};
+} as unknown as RefreshTokenRepository;
 
 describe('RefreshTokenService', () => {
   const service = new RefreshTokenService(mockRepo);
@@ -49,9 +52,7 @@ describe('RefreshTokenService', () => {
       issuedAt: new Date('2025-01-02T00:00:00.000Z'),
       expiresAt: new Date('2025-02-01T00:00:00.000Z'),
     };
-    expect(mockRepo.upsertForDevice).toHaveBeenCalledWith(
-      expect.objectContaining(expectedPayload)
-    );
+    expect(mockRepo.upsertForDevice).toHaveBeenCalledWith(expect.objectContaining(expectedPayload));
 
     expect(result.refreshToken).toBe('opaque-refresh-token');
     expect(result.expiresAt.toISOString()).toBe('2025-02-01T00:00:00.000Z');
@@ -59,16 +60,16 @@ describe('RefreshTokenService', () => {
   });
 
   it('revokes tokens for a device', async () => {
-    mockRepo.revokeByDevice.mockResolvedValue(2);
+    const revokeByDevice = jest.spyOn(mockRepo, 'revokeByDevice').mockResolvedValue(2);
     const count = await service.revokeForDevice('user-1', 'device-1');
     expect(count).toBe(2);
-    expect(mockRepo.revokeByDevice).toHaveBeenCalledWith('user-1', 'device-1');
+    expect(revokeByDevice).toHaveBeenCalledWith('user-1', 'device-1');
   });
 
   it('revokes all tokens for a user', async () => {
-    mockRepo.revokeAllForUser.mockResolvedValue(5);
+    const revokeAllForUser = jest.spyOn(mockRepo, 'revokeAllForUser').mockResolvedValue(5);
     const count = await service.revokeAllForUser('user-1');
     expect(count).toBe(5);
-    expect(mockRepo.revokeAllForUser).toHaveBeenCalledWith('user-1');
+    expect(revokeAllForUser).toHaveBeenCalledWith('user-1');
   });
 });

@@ -95,6 +95,7 @@ describe('Feature: prisma-database-schema, Property 5: Soft Delete Data Preserva
         expect(afterDelete?.email).toBe(created.email);
         expect(afterDelete?.name).toBe(created.name);
         expect(afterDelete?.phone).toBe(created.phone);
+        expect(afterDelete?.passwordHash).toBe(created.passwordHash);
         expect(afterDelete?.organizationId).toBe(created.organizationId);
         expect(afterDelete?.role).toBe(created.role);
         expect(afterDelete?.createdAt.getTime()).toBe(created.createdAt.getTime());

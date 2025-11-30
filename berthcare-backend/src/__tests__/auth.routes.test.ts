@@ -1,5 +1,5 @@
+import type { Express } from 'express';
 import request from 'supertest';
-import { createApp } from '../index';
 import { refreshService, RefreshError } from '../services/refresh-service';
 import { authService, AuthError } from '../services/auth-service';
 
@@ -27,8 +27,20 @@ jest.mock('../services/auth-service', () => {
   };
 });
 
+let app: Express;
+const originalEnv = { ...process.env };
+
+beforeAll(async () => {
+  process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
+  const { createApp } = await import('../index.js');
+  app = createApp();
+});
+
+afterAll(() => {
+  process.env = { ...originalEnv };
+});
+
 describe('POST /api/auth/refresh', () => {
-  const app = createApp();
   const mockedRefreshService = refreshService as jest.Mocked<typeof refreshService>;
 
   beforeEach(() => {
@@ -37,6 +49,10 @@ describe('POST /api/auth/refresh', () => {
 
   it('returns 400 when refreshToken is missing', async () => {
     await request(app).post('/api/auth/refresh').send({}).expect(400);
+  });
+
+  it('returns 400 when deviceId is missing', async () => {
+    await request(app).post('/api/auth/refresh').send({ refreshToken: 'token' }).expect(400);
   });
 
   it('returns 400 when deviceId is invalid', async () => {
@@ -85,7 +101,6 @@ describe('POST /api/auth/refresh', () => {
 });
 
 describe('POST /api/auth/login', () => {
-  const app = createApp();
   const mockedAuthService = authService as jest.Mocked<typeof authService>;
 
   beforeEach(() => {

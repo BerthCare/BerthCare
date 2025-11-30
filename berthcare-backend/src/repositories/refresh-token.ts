@@ -51,7 +51,10 @@ export class RefreshTokenRepository {
   async markRevoked(jti: string, revokedAt = new Date(), replacedByJti?: string): Promise<boolean> {
     const result = await this.prisma.refreshToken.updateMany({
       where: { id: jti },
-      data: { revokedAt, replacedByJti: replacedByJti ?? undefined },
+      data: {
+        revokedAt,
+        ...(replacedByJti !== undefined ? { replacedByJti } : {}),
+      },
     });
     return result.count > 0;
   }

@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import type { RefreshClaims, SignedToken } from '../lib/jwt';
 
 type JwtHelpers = typeof import('../lib/jwt');
 
@@ -17,7 +18,7 @@ const loadJwtHelpers = async (
     JWT_REFRESH_TTL: '7200',
     ...overrides,
   };
-  const helpers = await import('../lib/jwt.js');
+  const helpers = (await import('../lib/jwt.js')) as JwtHelpers;
   process.env = { ...originalEnv };
   return helpers;
 };
@@ -32,7 +33,7 @@ describe('JWT helpers', () => {
     const userId = randomUUID();
     const deviceId = randomUUID();
 
-    const { token, expiresAt, claims } = await signAccessToken(userId, deviceId, {
+    const { token, expiresAt, claims } = signAccessToken(userId, deviceId, {
       role: 'caregiver',
     });
     expect(token).toBeDefined();
@@ -55,11 +56,15 @@ describe('JWT helpers', () => {
     const deviceId = randomUUID();
     const jti = randomUUID();
 
-    const { token, expiresAt, claims } = await signRefreshToken(userId, deviceId, jti);
+    const { token, expiresAt, claims }: SignedToken<RefreshClaims> = await signRefreshToken(
+      userId,
+      deviceId,
+      jti
+    );
     expect(claims.jti).toBe(jti);
     expect(claims.deviceId).toBe(deviceId);
 
-    const verified = await verifyRefreshToken(token);
+    const verified: RefreshClaims = await verifyRefreshToken(token);
     expect(verified.jti).toBe(jti);
     expect(verified.sub).toBe(userId);
     expect(expiresAt.getTime()).toBeGreaterThan(Date.now());
@@ -69,7 +74,7 @@ describe('JWT helpers', () => {
     const { signAccessToken } = await loadJwtHelpers({});
     const { verifyAccessToken } = await loadJwtHelpers({ JWT_SECRET: 'different-secret' });
 
-    const { token } = await signAccessToken('user', 'device');
+    const { token } = signAccessToken('user', 'device');
     await expect(verifyAccessToken(token)).rejects.toThrow();
   });
 });

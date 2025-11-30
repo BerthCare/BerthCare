@@ -22,7 +22,9 @@ describe('TokenValidationService', () => {
   const mockedVerifyRefreshToken = verifyRefreshToken as jest.MockedFunction<
     typeof verifyRefreshToken
   >;
-  const mockedRefreshTokenRepo = refreshTokenRepository as jest.Mocked<typeof refreshTokenRepository>;
+  const mockedRefreshTokenRepo = refreshTokenRepository as jest.Mocked<
+    typeof refreshTokenRepository
+  >;
   const baseRecord = {
     id: 'jti-1',
     userId: 'user-1',
@@ -54,7 +56,9 @@ describe('TokenValidationService', () => {
     const result = await service.validateAccessToken('access-token');
 
     expect(result.valid).toBe(true);
-    expect(result.claims.sub).toBe('user-1');
+    if (result.valid) {
+      expect(result.claims.sub).toBe('user-1');
+    }
     expect(verifyAccessToken).toHaveBeenCalledWith('access-token');
   });
 

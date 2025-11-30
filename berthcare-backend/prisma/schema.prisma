@@ -241,4 +241,5 @@ model RefreshToken {
 
   @@unique([userId, deviceId])
   @@index([expiresAt])
+  @@index([revokedAt])
 }

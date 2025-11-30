@@ -39,7 +39,7 @@ export const signAccessToken = (
   userId: string,
   deviceId: string,
   extraClaims: Record<string, unknown> = {}
-): Promise<SignedToken<AccessClaims>> => {
+): SignedToken<AccessClaims> => {
   const issuedAt = nowSeconds(); // approximate, actual iat set by jsonwebtoken
   const expiresAt = new Date((issuedAt + config.jwtAccessTtlSeconds) * 1000);
   const claims: AccessClaims = {
@@ -54,7 +54,7 @@ export const signAccessToken = (
     mutatePayload: false,
   });
 
-  return Promise.resolve({ token, expiresAt, claims });
+  return { token, expiresAt, claims };
 };
 
 export const signRefreshToken = (
@@ -88,28 +88,36 @@ const verifyToken = <T extends JwtPayload>(token: string): T => {
 };
 
 export const verifyAccessToken = (token: string): Promise<AccessClaims> => {
-  const payload = verifyToken<JwtPayload>(token);
-  if (
-    typeof payload !== 'object' ||
-    payload === null ||
-    typeof payload.sub !== 'string' ||
-    typeof (payload as Record<string, unknown>).deviceId !== 'string'
-  ) {
-    throw new Error('Invalid access token claims');
+  try {
+    const payload = verifyToken<JwtPayload>(token);
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      typeof payload.sub !== 'string' ||
+      typeof (payload as Record<string, unknown>).deviceId !== 'string'
+    ) {
+      return Promise.reject(new Error('Invalid access token claims'));
+    }
+    return Promise.resolve(payload as AccessClaims);
+  } catch (err) {
+    return Promise.reject(err instanceof Error ? err : new Error(String(err)));
   }
-  return Promise.resolve(payload as AccessClaims);
 };
 
 export const verifyRefreshToken = (token: string): Promise<RefreshClaims> => {
-  const payload = verifyToken<JwtPayload>(token);
-  if (
-    typeof payload !== 'object' ||
-    payload === null ||
-    typeof payload.sub !== 'string' ||
-    typeof (payload as Record<string, unknown>).deviceId !== 'string' ||
-    typeof (payload as Record<string, unknown>).jti !== 'string'
-  ) {
-    throw new Error('Invalid refresh token claims');
+  try {
+    const payload = verifyToken<JwtPayload>(token);
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      typeof payload.sub !== 'string' ||
+      typeof (payload as Record<string, unknown>).deviceId !== 'string' ||
+      typeof (payload as Record<string, unknown>).jti !== 'string'
+    ) {
+      return Promise.reject(new Error('Invalid refresh token claims'));
+    }
+    return Promise.resolve(payload as RefreshClaims);
+  } catch (err) {
+    return Promise.reject(err instanceof Error ? err : new Error(String(err)));
   }
-  return Promise.resolve(payload as RefreshClaims);
 };

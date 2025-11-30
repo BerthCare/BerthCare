@@ -43,7 +43,13 @@ export const config = {
   datadogSite: process.env.DATADOG_SITE || 'datadoghq.com',
   logEnableRequestLogs: parseBoolean(process.env.LOG_ENABLE_REQUEST_LOGS, true),
   allowEphemeralHostnames: parseBoolean(process.env.ALLOW_EPHEMERAL_HOSTNAMES, false),
-  jwtSecret: process.env.JWT_SECRET || '',
+  jwtSecret: (() => {
+    const secret = process.env.JWT_SECRET ?? (nodeEnv === 'test' ? 'test-secret' : undefined);
+    if (!secret) {
+      throw new Error('JWT_SECRET environment variable is required');
+    }
+    return secret;
+  })(),
   jwtIssuer: process.env.JWT_ISSUER || 'berthcare-backend',
   jwtAudience: process.env.JWT_AUDIENCE || 'berthcare-mobile',
   jwtAccessTtlSeconds: parsePositiveInt(process.env.JWT_ACCESS_TTL, DEFAULT_ACCESS_TTL_SECONDS),

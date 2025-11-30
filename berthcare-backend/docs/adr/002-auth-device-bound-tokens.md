@@ -23,6 +23,7 @@
 - Endpoints:
   - `POST /api/auth/login` (requires email, password, `deviceId` UUID) -> access/refresh tokens + expirations.
   - `POST /api/auth/refresh` (requires refresh token, optional deviceId for enforcement, optional rotate flag) -> new access token; optional new refresh.
+- Secrets: `JWT_SECRET` must be high-entropy (>=32 bytes), stored in a secrets manager (never in repo), enforced at startup, and rotated via a controlled process; leakage invalidates token integrity and rotations will invalidate existing tokens (clients must re-auth).
 
 ## Consequences
 - Sessions are constrained per device; replayed refresh tokens on other devices are rejected (`device-mismatch`).

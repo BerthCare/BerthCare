@@ -20,9 +20,7 @@ export type RefreshResult = {
 };
 
 export class RefreshError extends Error {
-  constructor(
-    public readonly code: 'INVALID_TOKEN' | 'REVOKED' | 'EXPIRED' | 'DEVICE_MISMATCH' | 'NOT_FOUND'
-  ) {
+  constructor(public readonly code: 'REVOKED' | 'EXPIRED' | 'DEVICE_MISMATCH' | 'NOT_FOUND') {
     super(code);
   }
 }
@@ -52,7 +50,7 @@ export class RefreshService {
     // touch usage for analytics/rotation gating
     await refreshTokenRepository.touchLastUsed(claims.jti);
 
-    const { token: accessToken, expiresAt: accessExpiresAt } = await signAccessToken(
+    const { token: accessToken, expiresAt: accessExpiresAt } = signAccessToken(
       claims.sub,
       claims.deviceId
     );

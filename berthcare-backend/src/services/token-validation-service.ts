@@ -6,10 +6,15 @@ import {
 } from '../lib/jwt';
 import { refreshTokenRepository } from '../repositories/refresh-token';
 
-export type AccessTokenValidationResult = {
-  valid: true;
-  claims: AccessClaims;
-};
+export type AccessTokenValidationResult =
+  | {
+      valid: true;
+      claims: AccessClaims;
+    }
+  | {
+      valid: false;
+      reason: 'invalid' | 'expired';
+    };
 
 export type RefreshTokenValidationResult =
   | { valid: true; claims: RefreshClaims }
@@ -17,8 +22,16 @@ export type RefreshTokenValidationResult =
 
 export class TokenValidationService {
   async validateAccessToken(token: string): Promise<AccessTokenValidationResult> {
-    const claims = await verifyAccessToken(token);
-    return { valid: true, claims };
+    try {
+      const claims = await verifyAccessToken(token);
+      return { valid: true, claims };
+    } catch (err) {
+      const name = (err as Error).name;
+      if (name === 'TokenExpiredError') {
+        return { valid: false, reason: 'expired' };
+      }
+      return { valid: false, reason: 'invalid' };
+    }
   }
 
   async validateRefreshToken(

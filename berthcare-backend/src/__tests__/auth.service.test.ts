@@ -47,7 +47,7 @@ describe('AuthService.login', () => {
   });
 
   it('rejects when password is incorrect', async () => {
-    const hash = await bcrypt.hash('correct-password', 10);
+    const hash = await bcrypt.hash('correct-password', 4);
     (caregiverRepository.findByEmail as jest.Mock).mockResolvedValue({
       id: 'user-1',
       role: 'caregiver',
@@ -64,7 +64,7 @@ describe('AuthService.login', () => {
   });
 
   it('issues access and refresh tokens when credentials and deviceId are valid', async () => {
-    const hash = await bcrypt.hash('correct-password', 10);
+    const hash = await bcrypt.hash('correct-password', 4);
     (caregiverRepository.findByEmail as jest.Mock).mockResolvedValue({
       id: 'user-1',
       role: 'caregiver',

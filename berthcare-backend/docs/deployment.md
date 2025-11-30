@@ -30,6 +30,7 @@
 - Token lifetimes: access 24h, refresh 30d by default; adjust via `JWT_ACCESS_TTL`/`JWT_REFRESH_TTL` if needed for incident response and document changes in the release notes.
 - Device binding: login requires `deviceId` UUID; refresh tokens are keyed by `(userId, deviceId)` and stored hashed. On incident/password reset/account disable, revoke device tokens (`revokeByDevice`) or all tokens for the user (`revokeAllForUser`) and invalidate sessions.
 - Logging/PII: request logs are redacted; avoid logging tokens, secrets, or password hashes in PRs or runbooks.
+- Migration note: migration `20251130193853_add_password_hash_to_caregiver` assumes the `Caregiver` table is empty or already backfilled with password hashes; it will raise if rows exist. If data exists, backfill hashes first (or split into nullable + backfill + NOT NULL) before running.
 
 ## Troubleshooting auth (runbook)
 - Invalid token errors:
