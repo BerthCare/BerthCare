@@ -20,8 +20,12 @@ describe('observability redaction', () => {
       request: {
         url: 'https://api.example.com/clients',
         headers: { Authorization: 'Bearer secret', Accept: 'application/json' },
-        data: 'Contact at +1 (555) 555-1212',
+        data: { email: 'user@example.com', token: 'abcd', payload: { address: '123 Main St' } },
       },
+      breadcrumbs: [
+        { category: 'api', data: { token: 'secret' } },
+        { category: 'navigation', data: { route: '/clients' } },
+      ],
       extra: { token: 'abcd', feature: 'visit', notes: '123 Main St Avenue' },
       contexts: { device: { model: 'ios' }, address: { line1: '1 Infinite Loop' } } as Contexts,
       tags: { existing: 'keep' },

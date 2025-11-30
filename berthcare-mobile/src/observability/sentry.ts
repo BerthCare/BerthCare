@@ -51,6 +51,36 @@ const redactIfSensitiveString = (value: unknown): { value: unknown; redacted: bo
   return { value, redacted: false };
 };
 
+const scrubAny = (
+  value: unknown,
+  visited: WeakSet<object> = new WeakSet()
+): { value: unknown; redacted: boolean } => {
+  if (Array.isArray(value)) {
+    if (visited.has(value)) {
+      return { value, redacted: false };
+    }
+    visited.add(value);
+    let redacted = false;
+    const mapped = value.map((item) => {
+      const { value: scrubbed, redacted: itemRedacted } = scrubAny(item, visited);
+      redacted = redacted || itemRedacted;
+      return scrubbed;
+    });
+    return { value: mapped, redacted };
+  }
+
+  if (value && typeof value === 'object') {
+    if (visited.has(value as object)) {
+      return { value, redacted: false };
+    }
+    visited.add(value as object);
+    const { redacted, data } = scrubObject(value as Record<string, unknown>, visited);
+    return { value: data, redacted };
+  }
+
+  return redactIfSensitiveString(value);
+};
+
 const scrubHeaders = (
   headers: Record<string, unknown>
 ): { headers: Record<string, string>; redacted: boolean } => {
@@ -68,7 +98,8 @@ const scrubHeaders = (
 };
 
 const scrubObject = (
-  input?: Record<string, unknown>
+  input?: Record<string, unknown>,
+  visited: WeakSet<object> = new WeakSet()
 ): { redacted: boolean; data: Record<string, unknown> } => {
   if (!input) {
     return { redacted: false, data: {} };
@@ -89,7 +120,7 @@ const scrubObject = (
       redacted = redacted || headersRedacted;
       return;
     }
-    const { value: maybeRedactedValue, redacted: valueRedacted } = redactIfSensitiveString(value);
+    const { value: maybeRedactedValue, redacted: valueRedacted } = scrubAny(value, visited);
     data[key] = maybeRedactedValue;
     redacted = redacted || valueRedacted;
   });
@@ -102,7 +133,10 @@ const scrubEvent = (event: Event): Event => {
   const scrubbedEvent: Event = { ...event };
 
   if (event.user) {
-    const { redacted: userRedacted, data } = scrubObject(event.user as Record<string, unknown>);
+    const { redacted: userRedacted, data } = scrubObject(
+      event.user as Record<string, unknown>,
+      new WeakSet()
+    );
     scrubbedEvent.user = data;
     redacted = redacted || userRedacted;
   }
@@ -119,23 +153,22 @@ const scrubEvent = (event: Event): Event => {
   }
 
   if (event.extra) {
-    const { redacted: extraRedacted, data } = scrubObject(event.extra);
+    const { redacted: extraRedacted, data } = scrubObject(event.extra, new WeakSet());
     scrubbedEvent.extra = data;
     redacted = redacted || extraRedacted;
   }
 
   if (event.contexts) {
     const { redacted: contextsRedacted, data } = scrubObject(
-      event.contexts as Record<string, unknown>
+      event.contexts as Record<string, unknown>,
+      new WeakSet()
     );
     scrubbedEvent.contexts = data as typeof event.contexts;
     redacted = redacted || contextsRedacted;
   }
 
   if (event.request?.data) {
-    const { value: requestData, redacted: requestDataRedacted } = redactIfSensitiveString(
-      event.request.data
-    );
+    const { value: requestData, redacted: requestDataRedacted } = scrubAny(event.request.data);
     scrubbedEvent.request = {
       ...scrubbedEvent.request,
       data: requestDataRedacted ? REDACTED : requestData,
