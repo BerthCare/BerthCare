@@ -184,6 +184,7 @@ describe('Property 4: Transport selection and resilience', () => {
         }
         delete process.env.DATADOG_AGENT_URL;
         jest.resetModules();
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const module = require('../observability/transport/datadog') as {
           createDatadogStream: () => Writable | undefined;
         };
@@ -202,6 +203,7 @@ describe('Property 4: Transport selection and resilience', () => {
         process.env.LOG_DESTINATION = 'cloudwatch';
         process.env.CLOUDWATCH_REGION = region as string | undefined;
         jest.resetModules();
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const module = require('../observability/transport/cloudwatch') as {
           createCloudWatchStream: () => Writable | undefined;
         };

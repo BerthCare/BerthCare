@@ -49,11 +49,11 @@ describe('config log level defaults', () => {
 
   type AppConfig = typeof import('../lib/config').config;
 
-  const loadConfig = async (overrides: Record<string, string | undefined>): Promise<AppConfig> => {
+  const loadConfig = (overrides: Record<string, string | undefined>): AppConfig => {
     jest.resetModules();
     process.env = { ...originalEnv, ...overrides };
-    // Dynamic import to pick up env changes.
-    const { config } = (await import('../lib/config')) as { config: AppConfig };
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { config } = require('../lib/config') as { config: AppConfig };
     process.env = { ...originalEnv };
     return config;
   };

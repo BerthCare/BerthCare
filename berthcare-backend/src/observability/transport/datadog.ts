@@ -168,11 +168,11 @@ export const createDatadogStream = (): Writable | undefined => {
     },
     final(callback) {
       flushBuffer();
-      waitForDrain().then(() => callback());
+      void waitForDrain().then(() => callback());
     },
     destroy(_error, callback) {
       flushBuffer();
-      waitForDrain().finally(() => callback(_error));
+      void waitForDrain().finally(() => callback(_error));
     },
   });
 };
