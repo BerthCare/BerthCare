@@ -7,9 +7,12 @@ type CreateData = Prisma.ConsentCreateInput;
 type UpdateData = Prisma.ConsentUpdateInput;
 type FindFilter = Prisma.ConsentWhereInput;
 
-export class ConsentRepository
-  implements BaseRepository<Consent, CreateData, UpdateData, FindFilter>
-{
+export class ConsentRepository implements BaseRepository<
+  Consent,
+  CreateData,
+  UpdateData,
+  FindFilter
+> {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateData): Promise<Consent> {

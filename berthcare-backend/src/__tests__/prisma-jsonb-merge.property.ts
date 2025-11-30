@@ -86,8 +86,8 @@ describe('Feature: prisma-database-schema, Property 6: JSONB Partial Update Merg
   it('merges partial documentation updates into existing JSON without losing untouched keys', async () => {
     await fc.assert(
       fc.asyncProperty(jsonValueArb, jsonValueArb, async (baseDoc, patchDoc) => {
-    const prisma = new MockPrismaClient();
-    const repository = new TestVisitRepository(prisma);
+        const prisma = new MockPrismaClient();
+        const repository = new TestVisitRepository(prisma);
 
         const visitId = randomUUID();
         const baseVisit: Visit = {

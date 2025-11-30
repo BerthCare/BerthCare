@@ -7,9 +7,12 @@ type CreateData = Prisma.CaregiverCreateInput;
 type UpdateData = Prisma.CaregiverUpdateInput;
 type FindFilter = Prisma.CaregiverWhereInput;
 
-export class CaregiverRepository
-  implements BaseRepository<Caregiver, CreateData, UpdateData, FindFilter>
-{
+export class CaregiverRepository implements BaseRepository<
+  Caregiver,
+  CreateData,
+  UpdateData,
+  FindFilter
+> {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateData): Promise<Caregiver> {

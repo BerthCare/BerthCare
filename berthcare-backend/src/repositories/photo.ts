@@ -6,9 +6,7 @@ type CreateData = Prisma.PhotoCreateInput;
 type UpdateData = Prisma.PhotoUpdateInput;
 type FindFilter = Prisma.PhotoWhereInput;
 
-export class PhotoRepository
-  implements BaseRepository<Photo, CreateData, UpdateData, FindFilter>
-{
+export class PhotoRepository implements BaseRepository<Photo, CreateData, UpdateData, FindFilter> {
   constructor(private readonly prisma: PrismaClient) {}
 
   create(data: CreateData): Promise<Photo> {
@@ -28,10 +26,12 @@ export class PhotoRepository
   }
 
   softDelete(id: string): Promise<void> {
-    return this.prisma.photo.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    }).then(() => undefined);
+    return this.prisma.photo
+      .update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      })
+      .then(() => undefined);
   }
 }
 

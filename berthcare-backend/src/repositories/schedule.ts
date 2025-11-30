@@ -7,9 +7,12 @@ type CreateData = Prisma.ScheduleCreateInput;
 type UpdateData = Prisma.ScheduleUpdateInput;
 type FindFilter = Prisma.ScheduleWhereInput;
 
-export class ScheduleRepository
-  implements BaseRepository<Schedule, CreateData, UpdateData, FindFilter>
-{
+export class ScheduleRepository implements BaseRepository<
+  Schedule,
+  CreateData,
+  UpdateData,
+  FindFilter
+> {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateData): Promise<Schedule> {

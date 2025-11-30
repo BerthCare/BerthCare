@@ -7,9 +7,7 @@ type CreateData = Prisma.VisitCreateInput;
 type UpdateData = Prisma.VisitUpdateInput;
 type FindFilter = Prisma.VisitWhereInput;
 
-export class VisitRepository
-  implements BaseRepository<Visit, CreateData, UpdateData, FindFilter>
-{
+export class VisitRepository implements BaseRepository<Visit, CreateData, UpdateData, FindFilter> {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateData): Promise<Visit> {
