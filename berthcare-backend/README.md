@@ -36,7 +36,9 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
    - `LOG_DESTINATION` (optional) `stdout` (default), `cloudwatch`, or `datadog`
    - `SERVICE_NAME` (optional) service identifier; default `berthcare-backend`
    - `ALLOW_EPHEMERAL_HOSTNAMES` (optional) set `true` to include hostnames in CloudWatch stream names; default `false` to avoid high-cardinality streams
-   - Auth: `JWT_SECRET` (required), `JWT_ISSUER` (default `berthcare-backend`), `JWT_AUDIENCE` (default `berthcare-mobile`), `JWT_ACCESS_TTL` seconds (default 86400), `JWT_REFRESH_TTL` seconds (default 2592000), `BCRYPT_SALT_ROUNDS` (default 10)
+   - Auth: `JWT_SECRET` (required; minimum 32 bytes / 256 bits of entropy; see [JWT_SECRET rotation](#jwt_secret-rotation) before changing), `JWT_ISSUER` (default `berthcare-backend`), `JWT_AUDIENCE` (default `berthcare-mobile`), `JWT_ACCESS_TTL` seconds (default 86400), `JWT_REFRESH_TTL` seconds (default 2592000), `BCRYPT_SALT_ROUNDS` (default 10)
+     - Generate a strong secret: `openssl rand -base64 32`
+     - Never commit secrets to source control; use a secrets manager or environment injection.
    - CloudWatch: `CLOUDWATCH_LOG_GROUP` (default `berthcare-backend`), `CLOUDWATCH_REGION`
    - Datadog: `DATADOG_API_KEY`, `DATADOG_SITE` (`datadoghq.com` default), optional `DATADOG_AGENT_URL`
    - `LOG_ENABLE_REQUEST_LOGS` (optional) toggle request logging
@@ -85,9 +87,34 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
 
 - Tokens: access token TTL default 24h (`JWT_ACCESS_TTL`), refresh token TTL default 30d (`JWT_REFRESH_TTL`); issuer/audience default to `berthcare-backend`/`berthcare-mobile`.
 - Secrets: set `JWT_SECRET` per environment; never log or return secrets, password hashes, or raw refresh tokens.
-- Device ID: `/api/auth/login` requires a valid UUID `deviceId`; refresh tokens are scoped to `(userId, deviceId)` and are rotated/revoked per device.
+- Device ID: refresh tokens are scoped to `(userId, deviceId)` and are rotated/revoked per device.
 - Revocation: `refreshTokenRepository` supports per-device revocation (`revokeByDevice`) and full-user revocation (`revokeAllForUser`), used for password resets/account disable.
-- Endpoints: `POST /api/auth/login` issues access/refresh; `POST /api/auth/refresh` validates signature/iss/aud/exp, enforces device match, and updates lastUsed/rotation.
+- Endpoints:
+  - `POST /api/auth/login` – issues access/refresh tokens.
+    - Requires a valid UUID `deviceId` in the request body.
+    - Returns `400 Bad Request` with message `"Invalid deviceId"` if `deviceId` is missing or not a valid UUID.
+  - `POST /api/auth/refresh` – validates signature/iss/aud/exp, enforces device match, rotates token, and updates `lastUsed`.
+    - Requires a valid UUID `deviceId` in the request body.
+    - Returns `400 Bad Request` with message `"Invalid deviceId"` if `deviceId` is missing or not a valid UUID.
+    - Returns `403 Forbidden` with error code `DEVICE_MISMATCH` if the supplied `deviceId` does not match the device bound to the refresh token (e.g., device re-registration or token replay attempt).
+    - Returns `401 Unauthorized` if the refresh token is expired, revoked, or invalid.
+- Client error handling: on `401` responses, clients should clear stored tokens and redirect to login; on `403 DEVICE_MISMATCH`, prompt the user to re-authenticate on this device.
+
+### JWT_SECRET rotation
+
+Changing `JWT_SECRET` immediately invalidates all existing access and refresh tokens—users must re-authenticate. Plan rotations carefully:
+
+1. **Schedule maintenance window** – coordinate with stakeholders; notify users of expected session expiration.
+2. **Test in staging first** – deploy the new secret to staging, verify token issuance/validation, and confirm old tokens fail gracefully (401).
+3. **Backup current secret** – store the old value in your secrets manager history in case rollback is needed.
+4. **Deploy to production** – update `JWT_SECRET` in your secrets store (e.g., AWS Secrets Manager, Parameter Store), then restart/redeploy ECS tasks so they pick up the new value.
+5. **Verify** – confirm `/health` is healthy, new logins succeed, and old tokens return 401.
+6. **Communicate** – if not using a maintenance window, push in-app or email notification so users know to log in again.
+
+**Operational notes:**
+- Roll out to all backend instances simultaneously; mixed secrets cause intermittent auth failures.
+- If using blue/green or rolling deployments, ensure the new secret is available before any instance restarts.
+- Monitor 401 rates post-rotation; a spike is expected but should stabilize as users re-authenticate.
 
 ### Prisma workflow
 
@@ -146,6 +173,7 @@ The server binds to `PORT` (or 3000 by default) and exposes `GET /health` for a 
 - Optional Datadog: set `LOG_DESTINATION=datadog` with `DATADOG_API_KEY` and `DATADOG_SITE` (or `DATADOG_AGENT_URL`); the app sends via agent when available, otherwise HTTP; falls back to stdout on failure.
 - Redaction: headers (`authorization`, `cookie`, `set-cookie`) and credential/PII-like fields are redacted; long strings are truncated; request logging is allowlisted to method/route/status/duration/requestId/userAgent.
 - Usage: import `logger` or `createLogger({ context })` from `src/observability/logger`, or use `getRequestLogger()` from the request context in handlers.
+- Redaction example: use the built-in redaction utilities to exclude passwords, `JWT_SECRET`, raw refresh tokens, and PII from logs and responses—never serialize these fields to JSON output without redaction.
 - See `docs/observability.md` for transport table, verification steps, and queries; avoid logging PII/secrets.
 
 ## How to Deploy (dev / staging / prod)
