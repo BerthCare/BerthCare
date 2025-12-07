@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/error-handler';
 import { loggingMiddleware } from './middleware/logging';
 import { logger } from './observability/logger';
 import { observabilityRouter } from './routes/observability';
+import { authRouter } from './routes/auth';
 
 export const createApp = (configureApp?: (app: Express) => void): Express => {
   const app = express();
@@ -17,6 +18,7 @@ export const createApp = (configureApp?: (app: Express) => void): Express => {
 
   configureApp?.(app);
 
+  app.use('/api/auth', authRouter);
   app.use('/health', healthRouter);
   app.use('/observability', observabilityRouter);
   app.use(errorHandler);

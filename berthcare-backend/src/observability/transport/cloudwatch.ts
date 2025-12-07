@@ -4,7 +4,6 @@ import {
   CreateLogStreamCommand,
   PutLogEventsCommand,
 } from '@aws-sdk/client-cloudwatch-logs';
-import os from 'os';
 import { Writable } from 'stream';
 import { config } from '../../lib/config';
 
@@ -116,7 +115,7 @@ export const createCloudWatchStream = (
 
   const defaultLogGroup = config.cloudwatchLogGroup || 'berthcare-backend';
   const hostname =
-    config.allowEphemeralHostnames === true && process.env.HOSTNAME ? process.env.HOSTNAME : undefined;
+    config.allowEphemeralHostnames && process.env.HOSTNAME ? process.env.HOSTNAME : undefined;
   const defaultLogStream =
     process.env.CLOUDWATCH_LOG_STREAM ||
     process.env.ECS_TASK_FAMILY ||
