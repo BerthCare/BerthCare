@@ -1,18 +1,33 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import type { UpsertRefreshTokenInput } from '../repositories/refresh-token';
-import type { RefreshTokenRepository } from '../repositories/refresh-token';
+import type {
+  UpsertRefreshTokenInput,
+  RefreshTokenRepository,
+} from '../repositories/refresh-token';
 import type { RefreshToken } from '../generated/prisma/client';
+import type { AuthService, LoginResult } from '../services/auth-service';
+import type { RefreshService, RefreshResult } from '../services/refresh-service';
 
 const deviceId = '11111111-1111-4111-8111-111111111111';
+
+// Pre-computed bcrypt hash for 'correct-password' with 10 rounds
+// This avoids regenerating the hash on every findByEmail call
+const TEST_PASSWORD_HASH = bcrypt.hashSync('correct-password', 10);
 
 // Shared in-memory refresh token store for mocks
 type RefreshRecord = RefreshToken;
 
 const refreshStore = new Map<string, RefreshRecord>();
 
-const setup = async () => {
+type SetupResult = {
+  authService: AuthService;
+  refreshService: RefreshService;
+  refreshTokenRepository: RefreshTokenRepository;
+};
+
+const setup = async (): Promise<SetupResult> => {
   jest.resetModules();
+  refreshStore.clear(); // Clear store for test isolation
 
   process.env.JWT_SECRET = 'integration-secret';
   process.env.JWT_ISSUER = 'berthcare-backend';
@@ -20,14 +35,13 @@ const setup = async () => {
 
   jest.doMock('../repositories/caregiver', () => ({
     caregiverRepository: {
-      findByEmail: jest.fn(async (email: string) => {
-        if (email.toLowerCase() !== 'user@example.com') return null;
-        const passwordHash = await bcrypt.hash('correct-password', 10);
-        return {
+      findByEmail: jest.fn((email: string) => {
+        if (email.toLowerCase() !== 'user@example.com') return Promise.resolve(null);
+        return Promise.resolve({
           id: 'user-1',
           role: 'caregiver',
-          passwordHash,
-        };
+          passwordHash: TEST_PASSWORD_HASH,
+        });
       }),
     },
   }));
@@ -61,7 +75,7 @@ const setup = async () => {
       }),
       findValidByJti: jest.fn((jti: string) => {
         const rec = refreshStore.get(jti);
-        if (!rec || rec.revokedAt) return Promise.resolve(null);
+        if (!rec || rec.revokedAt || rec.expiresAt < new Date()) return Promise.resolve(null);
         return Promise.resolve(rec);
       }),
       markRevoked: jest.fn((jti: string, revokedAt: Date, replacedByJti?: string) => {
@@ -83,18 +97,26 @@ const setup = async () => {
     return { refreshTokenRepository: repo };
   });
 
-  const { authService } = await import('../services/auth-service');
-  const { refreshService } = await import('../services/refresh-service');
-  const { refreshTokenRepository } = await import('../repositories/refresh-token');
+  const authModule = (await import('../services/auth-service.js')) as { authService: AuthService };
+  const refreshModule = (await import('../services/refresh-service.js')) as {
+    refreshService: RefreshService;
+  };
+  const repoModule = (await import('../repositories/refresh-token.js')) as {
+    refreshTokenRepository: RefreshTokenRepository;
+  };
 
-  return { authService, refreshService, refreshTokenRepository };
+  return {
+    authService: authModule.authService,
+    refreshService: refreshModule.refreshService,
+    refreshTokenRepository: repoModule.refreshTokenRepository,
+  };
 };
 
 describe('Auth flow integration', () => {
   it('issues tokens on login and allows refresh with device binding enforced', async () => {
     const { authService, refreshService, refreshTokenRepository } = await setup();
 
-    const login = await authService.login({
+    const login: LoginResult = await authService.login({
       email: 'USER@example.com',
       password: 'correct-password',
       deviceId,
@@ -112,7 +134,7 @@ describe('Auth flow integration', () => {
     expect(stored?.deviceId).toBe(deviceId);
     expect(stored?.userId).toBe('user-1');
 
-    const refreshed = await refreshService.refresh({
+    const refreshed: RefreshResult = await refreshService.refresh({
       token: login.refreshToken,
       deviceId,
       rotate: true,

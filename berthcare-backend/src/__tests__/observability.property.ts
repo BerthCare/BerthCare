@@ -8,7 +8,8 @@ import { REDACTED_TEXT, TRUNCATE_LENGTH, sanitizePayload } from '../observabilit
 describe('Property 1: Structured log envelope', () => {
   it('emits base metadata for arbitrary messages', () => {
     fc.assert(
-      fc.property(fc.string(), (message) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      fc.property(fc.string(), (_message) => {
         const bindings = logger.bindings();
         expect(typeof bindings.service).toBe('string');
         expect(typeof bindings.environment).toBe('string');

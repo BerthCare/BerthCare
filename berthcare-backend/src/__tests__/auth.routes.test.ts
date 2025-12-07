@@ -32,7 +32,7 @@ const originalEnv = { ...process.env };
 
 beforeAll(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
-  const { createApp } = await import('../index.js');
+  const { createApp } = (await import('../index.js')) as { createApp: () => Express };
   app = createApp();
 });
 
@@ -66,6 +66,8 @@ describe('POST /api/auth/refresh', () => {
     mockedRefreshService.refresh.mockResolvedValue({
       accessToken: 'access-token',
       accessExpiresAt: new Date('2025-02-01T00:00:00Z'),
+      refreshToken: 'new-refresh-token',
+      refreshExpiresAt: new Date('2025-03-01T00:00:00Z'),
       jti: 'jti-1',
       deviceId: '11111111-1111-4111-8111-111111111111',
       userId: 'user-1',
@@ -76,9 +78,16 @@ describe('POST /api/auth/refresh', () => {
       .send({ refreshToken: 'token', deviceId: '11111111-1111-4111-8111-111111111111' })
       .expect(200);
 
-    const body = res.body as { accessToken: string; accessExpiresAt: string };
+    const body = res.body as {
+      accessToken: string;
+      accessExpiresAt: string;
+      refreshToken?: string;
+      refreshExpiresAt?: string;
+    };
     expect(body.accessToken).toBe('access-token');
     expect(body.accessExpiresAt).toBe('2025-02-01T00:00:00.000Z');
+    expect(body.refreshToken).toBe('new-refresh-token');
+    expect(body.refreshExpiresAt).toBe('2025-03-01T00:00:00.000Z');
   });
 
   it('maps RefreshError EXPIRED to 401', async () => {
