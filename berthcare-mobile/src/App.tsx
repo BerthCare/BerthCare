@@ -258,6 +258,19 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  authPanel: {
+    backgroundColor: palette.surface,
+    borderColor: palette.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+  },
+  buttonRow: {
+    columnGap: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
   container: {
     backgroundColor: palette.background,
     flex: 1,
@@ -279,36 +292,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
-  authPanel: {
-    backgroundColor: '#f4f6f9',
-    borderColor: '#dfe3e8',
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-  },
-  panelTitle: {
-    color: palette.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  label: {
-    color: palette.textSecondary,
-    fontSize: 12,
-    marginTop: 8,
-  },
-  value: {
-    color: palette.textPrimary,
-    fontSize: 13,
-    marginTop: 2,
-  },
-  inputGroup: {
-    marginTop: 12,
-    width: '100%',
-  },
   input: {
-    backgroundColor: '#fff',
-    borderColor: '#dfe3e8',
+    backgroundColor: palette.white,
+    borderColor: palette.border,
     borderRadius: 8,
     borderWidth: 1,
     color: palette.textPrimary,
@@ -316,10 +302,24 @@ const styles = StyleSheet.create({
     padding: 10,
     width: '100%',
   },
-  buttonRow: {
-    columnGap: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  inputGroup: {
+    marginTop: 12,
+    width: '100%',
+  },
+  label: {
+    color: palette.textSecondary,
+    fontSize: 12,
+    marginTop: 8,
+  },
+  panelTitle: {
+    color: palette.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  status: {
+    color: palette.textSecondary,
+    fontSize: 13,
     marginTop: 12,
   },
   subtitle: {
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
   },
-  status: {
-    color: palette.textSecondary,
+  value: {
+    color: palette.textPrimary,
     fontSize: 13,
-    marginTop: 12,
+    marginTop: 2,
   },
 });

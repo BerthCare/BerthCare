@@ -180,14 +180,16 @@ export class AuthService implements TokenProvider {
   }
 
   /**
-   * Get the number of refresh calls made (for testing).
+   * Get the number of refresh calls made.
+   * @internal Test-only helper to assert refresh behaviors.
    */
   getRefreshCallCount(): number {
     return this.refreshCallCount;
   }
 
   /**
-   * Reset the refresh call count (for testing).
+   * Reset the refresh call count.
+   * @internal Test-only helper to reset call counters between tests.
    */
   resetRefreshCallCount(): void {
     this.refreshCallCount = 0;
@@ -644,8 +646,6 @@ export class AuthService implements TokenProvider {
         ...this.authState,
         requiresReauth: true,
       };
-      // Optional: log for debugging; avoid throwing to honor contract
-      // eslint-disable-next-line no-console
       console.error('Failed to refresh access token:', error);
       return null;
     }
@@ -670,7 +670,19 @@ export class AuthService implements TokenProvider {
    * ```
    */
   async refreshToken(): Promise<string | null> {
-    return this.refreshAccessToken();
+    try {
+      return await this.refreshAccessToken();
+    } catch (error) {
+      // Avoid throwing to honor contract; mark reauth if it's an auth failure
+      if (error instanceof AuthError) {
+        this.authState = {
+          ...this.authState,
+          requiresReauth: true,
+        };
+      }
+      console.error('Failed to refresh token:', error);
+      return null;
+    }
   }
 
   /**
