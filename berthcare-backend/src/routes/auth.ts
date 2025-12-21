@@ -1,24 +1,96 @@
 import { Router } from 'express';
-import { createAuthController } from '../controllers/auth';
-import { rateLimit } from '../middleware/rate-limit';
-import type { AuthService } from '../services/auth';
-import { authService } from '../services/auth';
+import { authService, AuthError } from '../services/auth-service';
+import { refreshService, RefreshError } from '../services/refresh-service';
 
-export const createAuthRouter = (service: AuthService = authService) => {
-  const router = Router();
-  const { postLogin, postRefresh } = createAuthController(service);
-  const loginLimiter = rateLimit({ windowMs: 60_000, max: 10 });
-  const refreshLimiter = rateLimit({ windowMs: 60_000, max: 30 });
+const authRouter = Router();
 
-  router.post('/login', loginLimiter, (req, res, next) => {
-    // Bind controller to service instance
-    postLogin(req, res).catch(next);
-  });
-  router.post('/refresh', refreshLimiter, (req, res, next) => {
-    postRefresh(req, res).catch(next);
-  });
+const isUuid = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
-  return router;
-};
+authRouter.post('/login', async (req, res, next) => {
+  const body = (req.body ?? {}) as Partial<{
+    email: string;
+    password: string;
+    deviceId: string;
+  }>;
+  const { email, password, deviceId } = body;
 
-export const authRouter = createAuthRouter();
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return res.status(400).json({ error: { message: 'Invalid email' } });
+  }
+  if (!password || typeof password !== 'string') {
+    return res.status(400).json({ error: { message: 'Password is required' } });
+  }
+  if (!deviceId || typeof deviceId !== 'string' || !isUuid(deviceId)) {
+    return res.status(400).json({ error: { message: 'Invalid deviceId' } });
+  }
+
+  try {
+    const result = await authService.login({ email, password, deviceId });
+    return res.status(200).json({
+      accessToken: result.accessToken,
+      accessExpiresAt: result.accessExpiresAt.toISOString(),
+      refreshToken: result.refreshToken,
+      refreshExpiresAt: result.refreshExpiresAt.toISOString(),
+      userId: result.userId,
+      deviceId: result.deviceId,
+      jti: result.jti,
+    });
+  } catch (err) {
+    if (err instanceof AuthError) {
+      const status = err.code === 'INVALID_CREDENTIALS' ? 401 : 400;
+      return res.status(status).json({ error: { message: err.message } });
+    }
+    next(err);
+  }
+});
+
+authRouter.post('/refresh', async (req, res, next) => {
+  const body = (req.body ?? {}) as Partial<{
+    refreshToken: string;
+    deviceId?: string;
+    rotate?: boolean;
+  }>;
+  const { refreshToken, deviceId, rotate } = body;
+
+  if (!refreshToken || typeof refreshToken !== 'string') {
+    return res.status(400).json({ error: { message: 'refreshToken is required' } });
+  }
+
+  if (!deviceId || typeof deviceId !== 'string' || !isUuid(deviceId)) {
+    return res.status(400).json({ error: { message: 'Invalid deviceId' } });
+  }
+
+  try {
+    const result = await refreshService.refresh({
+      token: refreshToken,
+      deviceId,
+      rotate: Boolean(rotate),
+    });
+
+    return res.status(200).json({
+      accessToken: result.accessToken,
+      accessExpiresAt: result.accessExpiresAt.toISOString(),
+      refreshToken: result.refreshToken,
+      refreshExpiresAt: result.refreshExpiresAt?.toISOString(),
+      jti: result.jti,
+      deviceId: result.deviceId,
+      userId: result.userId,
+    });
+  } catch (err) {
+    if (err instanceof RefreshError) {
+      const status = err.code === 'DEVICE_MISMATCH' || err.code === 'REVOKED' ? 403 : 401;
+      return res.status(status).json({ error: { message: err.message } });
+    }
+    // jsonwebtoken errors bubble as generic Errors; treat as 401
+    if (
+      (err as Error).name === 'JsonWebTokenError' ||
+      (err as Error).name === 'TokenExpiredError'
+    ) {
+      return res.status(401).json({ error: { message: 'Invalid token' } });
+    }
+    next(err);
+  }
+});
+
+export { authRouter };

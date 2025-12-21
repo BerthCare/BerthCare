@@ -129,6 +129,7 @@ describe('Feature: prisma-database-schema, Property 3: CRUD Round-Trip Consisten
           email: createData.email,
           name: createData.name,
           phone: createData.phone,
+          passwordHash: createData.passwordHash,
           organizationId: createData.organizationId,
           role: createData.role,
           isActive: createData.isActive,

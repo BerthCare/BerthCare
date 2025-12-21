@@ -1,39 +1,86 @@
-import type { PrismaClient, RefreshToken, Prisma } from '../generated/prisma/client';
-import { prisma } from '../models';
+import type { PrismaClient, RefreshToken } from '../generated/prisma/client.js';
+import { prisma } from '../models/index.js';
 
-export type CreateRefreshTokenInput = Prisma.RefreshTokenCreateInput;
+export type UpsertRefreshTokenInput = {
+  jti: string;
+  userId: string;
+  deviceId: string;
+  tokenHash: string;
+  issuedAt?: Date;
+  expiresAt: Date;
+};
 
 export class RefreshTokenRepository {
-  constructor(private readonly db: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
-  async create(data: CreateRefreshTokenInput): Promise<RefreshToken> {
-    return this.db.refreshToken.create({ data });
-  }
+  async upsertForDevice(input: UpsertRefreshTokenInput): Promise<RefreshToken> {
+    const { jti, userId, deviceId, tokenHash, expiresAt, issuedAt = new Date() } = input;
 
-  async findById(id: string): Promise<RefreshToken | null> {
-    return this.db.refreshToken.findUnique({ where: { id } });
-  }
-
-  async findActiveById(id: string): Promise<RefreshToken | null> {
-    return this.db.refreshToken.findFirst({ where: { id, status: 'active' } });
-  }
-
-  async markRotated(id: string): Promise<void> {
-    await this.db.refreshToken.update({
-      where: { id },
-      data: { status: 'rotated', revokedAt: new Date(), revocationReason: 'rotated' },
+    return this.prisma.refreshToken.upsert({
+      where: { userId_deviceId: { userId, deviceId } },
+      create: {
+        id: jti,
+        userId,
+        deviceId,
+        tokenHash,
+        issuedAt,
+        expiresAt,
+      },
+      update: {
+        id: jti,
+        tokenHash,
+        issuedAt,
+        expiresAt,
+        revokedAt: null,
+        replacedByJti: null,
+        lastUsedAt: null,
+      },
     });
   }
 
-  async revoke(id: string, reason: string): Promise<void> {
-    await this.db.refreshToken.update({
-      where: { id },
-      data: { status: 'revoked', revokedAt: new Date(), revocationReason: reason },
+  async findValidByJti(jti: string, now = new Date()): Promise<RefreshToken | null> {
+    return this.prisma.refreshToken.findFirst({
+      where: {
+        id: jti,
+        revokedAt: null,
+        expiresAt: { gt: now },
+      },
     });
   }
 
-  async touchLastSeen(id: string, at: Date): Promise<void> {
-    await this.db.refreshToken.update({ where: { id }, data: { lastSeenAt: at } });
+  async markRevoked(jti: string, revokedAt = new Date(), replacedByJti?: string): Promise<boolean> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { id: jti },
+      data: {
+        revokedAt,
+        ...(replacedByJti !== undefined ? { replacedByJti } : {}),
+      },
+    });
+    return result.count > 0;
+  }
+
+  async touchLastUsed(jti: string, lastUsedAt = new Date()): Promise<boolean> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { id: jti },
+      data: { lastUsedAt },
+    });
+    return result.count > 0;
+  }
+
+  async revokeByDevice(userId: string, deviceId: string, revokedAt = new Date()): Promise<number> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { userId, deviceId },
+      data: { revokedAt, replacedByJti: null },
+    });
+    return result.count;
+  }
+
+  async revokeAllForUser(userId: string, revokedAt = new Date()): Promise<number> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { userId },
+      data: { revokedAt, replacedByJti: null },
+    });
+    return result.count;
   }
 }
 

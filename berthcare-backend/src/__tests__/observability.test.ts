@@ -51,7 +51,7 @@ describe('config log level defaults', () => {
 
   const loadConfig = async (overrides: Record<string, string | undefined>): Promise<AppConfig> => {
     jest.resetModules();
-    process.env = { ...originalEnv, ...overrides };
+    process.env = { ...originalEnv, JWT_SECRET: 'test-secret', ...overrides };
     const { config } = (await import('../lib/config.js')) as { config: AppConfig };
     process.env = { ...originalEnv };
     return config;
@@ -98,6 +98,8 @@ describe('redaction helpers', () => {
     const input = {
       password: 'supersecret',
       token: 'bearer abc.def.ghi',
+      refreshToken: 'opaque-refresh-token',
+      passwordHash: '$2b$10$abc',
       profile: {
         email: 'user@example.com',
         phone: '+1 (555) 123-4567',
@@ -111,6 +113,8 @@ describe('redaction helpers', () => {
     expect(sanitized).toMatchObject({
       password: REDACTED_TEXT,
       token: REDACTED_TEXT,
+      refreshToken: REDACTED_TEXT,
+      passwordHash: REDACTED_TEXT,
       profile: {
         email: REDACTED_TEXT,
         phone: REDACTED_TEXT,
