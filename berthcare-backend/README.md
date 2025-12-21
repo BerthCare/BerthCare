@@ -26,6 +26,8 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
    cp .env.example .env
    ```
    - `DATABASE_URL` (required) PostgreSQL connection string  
+   - `JWT_SECRET` (required) secret used to sign/verify access tokens; minimum 32 characters  
+   - `BCRYPT_SALT_ROUNDS` (optional) defaults to 10 for password hashing; values below 10 are ignored  
    - `PORT` (optional) defaults 3000  
    - `NODE_ENV` (optional) e.g., development, production  
    - `LOG_LEVEL` (optional) defaults `debug` in dev/test, `info` in prod  

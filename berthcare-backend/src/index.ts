@@ -3,6 +3,7 @@ import express, { type Express } from 'express';
 import type { Server } from 'http';
 import { config } from './lib/config';
 import { healthRouter } from './routes/health';
+import { authRouter } from './routes/auth';
 import { errorHandler } from './middleware/error-handler';
 import { loggingMiddleware } from './middleware/logging';
 import { logger } from './observability/logger';
@@ -17,6 +18,7 @@ export const createApp = (configureApp?: (app: Express) => void): Express => {
 
   configureApp?.(app);
 
+  app.use('/api/auth', authRouter);
   app.use('/health', healthRouter);
   app.use('/observability', observabilityRouter);
   app.use(errorHandler);

@@ -50,11 +50,19 @@ enum ConsentType {
   location
 }
 
+enum RefreshTokenStatus {
+  active
+  revoked
+  rotated
+  expired
+}
+
 model Caregiver {
   id             String        @id @default(uuid())
   email          String        @unique
   name           String
   phone          String
+  passwordHash   String
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id])
   role           CaregiverRole
@@ -67,6 +75,7 @@ model Caregiver {
   coordinatedAlerts Alert[]      @relation("CaregiverCoordinatedAlerts")
   consents         Consent[]     @relation("CaregiverConsents")
   photos          Photo[]
+  refreshTokens   RefreshToken[]
 
   @@index([email])
 }
@@ -222,4 +231,30 @@ model Organization {
   updatedAt   DateTime     @updatedAt
   caregivers  Caregiver[]
   clients     Client[]
+}
+
+model RefreshToken {
+  id                String               @id @default(uuid())
+  caregiverId       String
+  deviceId          String
+  secretHash        String
+  salt              String
+  status            RefreshTokenStatus   @default(active)
+  issuedAt          DateTime             @default(now())
+  expiresAt         DateTime
+  lastSeenAt        DateTime?
+  rotatedFromId     String?
+  revokedAt         DateTime?
+  revocationReason  String?
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  caregiver         Caregiver            @relation(fields: [caregiverId], references: [id])
+  rotatedFrom       RefreshToken?        @relation("RefreshRotation", fields: [rotatedFromId], references: [id])
+  rotatedChildren   RefreshToken[]       @relation("RefreshRotation")
+
+  @@index([caregiverId, deviceId])
+  @@index([secretHash])
 }
