@@ -4,10 +4,10 @@ import App from './App';
 
 describe('App', () => {
   it('renders correctly', () => {
-    const { getByText } = render(<App />);
+    const { getByText, getByTestId } = render(<App />);
 
     expect(getByText('BerthCare')).toBeTruthy();
-    expect(getByText('Mobile App Initialized')).toBeTruthy();
+    expect(getByTestId('auth-status-subtitle')).toHaveTextContent('Signed out');
   });
 
   it('has correct title styling', () => {
@@ -22,9 +22,9 @@ describe('App', () => {
   });
 
   it('has correct subtitle styling', () => {
-    const { getByText } = render(<App />);
+    const { getByTestId } = render(<App />);
 
-    const subtitle = getByText('Mobile App Initialized');
+    const subtitle = getByTestId('auth-status-subtitle');
     expect(subtitle.props.style).toMatchObject({
       fontSize: 16,
       color: '#666666',

@@ -10,11 +10,15 @@
  * | Error Type | Description | Recovery Action |
  * |------------|-------------|-----------------|
  * | `InvalidCredentials` | Wrong email/password | Show error, let user retry |
+ * | `InvalidRequest` | Missing/invalid request payload | Ask user to retry or update inputs |
+ * | `RateLimited` | Too many auth attempts | Back off and retry later |
  * | `NetworkError` | Network timeout/failure | Retry later, use offline mode |
  * | `TokenExpired` | Access/refresh token expired | Re-authenticate |
  * | `TokenRevoked` | Token was revoked server-side | Re-authenticate |
  * | `StorageError` | Secure storage read/write failed | Log error, attempt recovery |
  * | `OfflineGracePeriodExpired` | Offline > 7 days | Require network connection |
+ * | `ServerError` | Auth service failure | Retry later or report issue |
+ * | `InvalidResponse` | Auth response missing expected fields | Treat as auth failure |
  * | `Unknown` | Unexpected error | Log and report |
  *
  * @example
@@ -40,14 +44,62 @@
  * }
  * ```
  */
-export type AuthErrorType =
-  | 'InvalidCredentials'
-  | 'NetworkError'
-  | 'TokenExpired'
-  | 'TokenRevoked'
-  | 'StorageError'
-  | 'OfflineGracePeriodExpired'
-  | 'Unknown';
+export const AUTH_ERROR_TYPES = [
+  'InvalidCredentials',
+  'InvalidRequest',
+  'RateLimited',
+  'NetworkError',
+  'TokenExpired',
+  'TokenRevoked',
+  'StorageError',
+  'OfflineGracePeriodExpired',
+  'ServerError',
+  'InvalidResponse',
+  'Unknown',
+] as const;
+
+export type AuthErrorType = (typeof AUTH_ERROR_TYPES)[number];
+
+export const isAuthErrorType = (value: unknown): value is AuthErrorType =>
+  typeof value === 'string' && (AUTH_ERROR_TYPES as readonly string[]).includes(value);
+
+export interface AuthErrorResponse {
+  error: {
+    message: string;
+    requestId?: string;
+    code?: string;
+  };
+}
+
+const isAuthErrorDetails = (value: unknown): value is AuthErrorResponse['error'] => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const details = value as { message?: unknown; requestId?: unknown; code?: unknown };
+  return (
+    typeof details.message === 'string' &&
+    (details.requestId == null || typeof details.requestId === 'string') &&
+    (details.code == null || typeof details.code === 'string')
+  );
+};
+
+export const isAuthErrorResponse = (value: unknown): value is AuthErrorResponse => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as { error?: unknown };
+  return isAuthErrorDetails(payload.error);
+};
+
+export const extractAuthErrorMessage = (value: unknown): string | undefined => {
+  if (!isAuthErrorResponse(value)) {
+    return undefined;
+  }
+
+  return value.error.message;
+};
 
 /**
  * Custom error class for authentication-related errors.

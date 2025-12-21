@@ -42,6 +42,16 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
     storage = new InMemorySecureStorage();
   });
 
+  it('all STORAGE_KEYS are unique and non-empty', () => {
+    const values = Object.values(STORAGE_KEYS);
+    const unique = new Set(values);
+    expect(unique.size).toBe(values.length);
+    values.forEach((value) => {
+      expect(value).toEqual(expect.any(String));
+      expect(value.trim().length).toBeGreaterThan(0);
+    });
+  });
+
   it('for any valid token string, storing and retrieving returns the exact same value', async () => {
     await fc.assert(
       fc.asyncProperty(
@@ -172,6 +182,9 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
           expect(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY)).toBeNull();
           expect(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY)).toBeNull();
           expect(await storage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP)).toBeNull();
+
+          // Storage should be empty
+          expect(storage.getStorageSize()).toBe(0);
         }
       ),
       { numRuns: 100 }

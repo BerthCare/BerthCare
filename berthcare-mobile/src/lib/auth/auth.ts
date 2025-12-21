@@ -69,6 +69,11 @@
  * ```
  */
 
+import {
+  assertAuthServiceConfig,
+  normalizeLoginResponse,
+  normalizeRefreshResponse,
+} from './types';
 import type {
   AuthServiceConfig,
   AuthState,
@@ -85,6 +90,18 @@ import { STORAGE_KEYS } from './secure-storage';
  * Default offline grace period in days.
  */
 const DEFAULT_OFFLINE_GRACE_PERIOD_DAYS = 7;
+
+/**
+ * Buffer window before token expiry to account for clock skew.
+ */
+const TOKEN_EXPIRY_BUFFER_MS = 60_000;
+
+const isTokenExpired = (expiresAt: number, now: number): boolean => {
+  if (!Number.isFinite(expiresAt)) {
+    return true;
+  }
+  return now + TOKEN_EXPIRY_BUFFER_MS >= expiresAt;
+};
 
 /**
  * AuthService singleton class.
@@ -144,15 +161,7 @@ export class AuthService implements TokenProvider {
    * ```
    */
   static configure(config: AuthServiceConfig): void {
-    if (!config.apiClient) {
-      throw new Error('apiClient is required');
-    }
-    if (!config.secureStorage) {
-      throw new Error('secureStorage is required');
-    }
-    if (!config.deviceId || config.deviceId.trim() === '') {
-      throw new Error('deviceId is required and cannot be empty');
-    }
+    assertAuthServiceConfig(config);
 
     const instance = AuthService.getInstance();
     instance.config = {
@@ -256,21 +265,32 @@ export class AuthService implements TokenProvider {
         deviceId: config.deviceId,
       });
 
-      // Calculate expiry timestamps (convert seconds to milliseconds)
       const now = Date.now();
-      const accessTokenExpiresAt = now + response.accessTokenExpiresIn * 1000;
-      const refreshTokenExpiresAt = now + response.refreshTokenExpiresIn * 1000;
+      let normalizedResponse: ReturnType<typeof normalizeLoginResponse>;
+
+      try {
+        normalizedResponse = normalizeLoginResponse(response, now);
+      } catch (validationError) {
+        return {
+          success: false,
+          error: new AuthError(
+            'InvalidResponse',
+            'Login response missing required fields',
+            validationError instanceof Error ? validationError : undefined
+          ),
+        };
+      }
 
       // Store tokens in secure storage
-      await config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
-      await config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+      await config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken);
+      await config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken);
       await config.secureStorage.setItem(
         STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
-        accessTokenExpiresAt.toString()
+        normalizedResponse.accessTokenExpiresAt.toString()
       );
       await config.secureStorage.setItem(
         STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
-        refreshTokenExpiresAt.toString()
+        normalizedResponse.refreshTokenExpiresAt.toString()
       );
       await config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString());
 
@@ -334,7 +354,7 @@ export class AuthService implements TokenProvider {
     await config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     await config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY);
     await config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY);
-    // Note: We keep LAST_ONLINE_TIMESTAMP for potential analytics
+    await config.secureStorage.removeItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP);
 
     // Clear in-memory auth state
     this.authState = {
@@ -390,7 +410,7 @@ export class AuthService implements TokenProvider {
     const refreshExpiry = refreshExpiryStr ? Number(refreshExpiryStr) : 0;
 
     // If access token is valid (not expired), user is authenticated
-    if (accessToken && accessExpiry > now) {
+    if (accessToken && !isTokenExpired(accessExpiry, now)) {
       this.authState = {
         isAuthenticated: true,
         isOffline: false,
@@ -400,7 +420,7 @@ export class AuthService implements TokenProvider {
     }
 
     // Access token expired, check if refresh token is valid
-    if (refreshToken && refreshExpiry > now) {
+    if (refreshToken && !isTokenExpired(refreshExpiry, now)) {
       // Refresh token is valid - user is authenticated but may need refresh on first API call
       this.authState = {
         isAuthenticated: true,
@@ -624,7 +644,7 @@ export class AuthService implements TokenProvider {
         const now = Date.now();
 
         // If token is expired, attempt to refresh
-        if (now >= expiresAt) {
+        if (isTokenExpired(expiresAt, now)) {
           const newToken = await this.refreshAccessToken();
           if (newToken) {
             return newToken;
@@ -756,24 +776,22 @@ export class AuthService implements TokenProvider {
         deviceId: config.deviceId,
       });
 
-      // Calculate expiry timestamps
       const now = Date.now();
-      const accessTokenExpiresAt = now + response.accessTokenExpiresIn * 1000;
+      const normalizedResponse = normalizeRefreshResponse(response, now);
 
       // Store new access token
-      await config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, response.accessToken);
+      await config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken);
       await config.secureStorage.setItem(
         STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
-        accessTokenExpiresAt.toString()
+        normalizedResponse.accessTokenExpiresAt.toString()
       );
 
       // Store new refresh token if rotated
-      if (response.refreshToken && response.refreshTokenExpiresIn) {
-        const refreshTokenExpiresAt = now + response.refreshTokenExpiresIn * 1000;
-        await config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, response.refreshToken);
+      if (normalizedResponse.refreshToken && normalizedResponse.refreshTokenExpiresAt) {
+        await config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken);
         await config.secureStorage.setItem(
           STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
-          refreshTokenExpiresAt.toString()
+          normalizedResponse.refreshTokenExpiresAt.toString()
         );
       }
 

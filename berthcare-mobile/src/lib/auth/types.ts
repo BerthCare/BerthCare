@@ -33,6 +33,58 @@ export interface AuthServiceConfig {
   offlineGracePeriodDays?: number;
 }
 
+const isFunction = (value: unknown): value is (...args: unknown[]) => unknown =>
+  typeof value === 'function';
+
+/**
+ * Runtime validation for AuthServiceConfig to guard against misconfiguration.
+ */
+export function assertAuthServiceConfig(config: unknown): asserts config is AuthServiceConfig {
+  if (!config || typeof config !== 'object') {
+    throw new Error('AuthService config is required');
+  }
+
+  const typedConfig = config as AuthServiceConfig;
+
+  if (!typedConfig.apiClient) {
+    throw new Error('apiClient is required');
+  }
+  if (!isFunction(typedConfig.apiClient.post)) {
+    throw new Error('apiClient.post is required');
+  }
+  if (
+    'setTokenProvider' in typedConfig.apiClient &&
+    typedConfig.apiClient.setTokenProvider != null &&
+    !isFunction(typedConfig.apiClient.setTokenProvider)
+  ) {
+    throw new Error('apiClient.setTokenProvider must be a function');
+  }
+
+  if (!typedConfig.secureStorage) {
+    throw new Error('secureStorage is required');
+  }
+  if (
+    !isFunction(typedConfig.secureStorage.setItem) ||
+    !isFunction(typedConfig.secureStorage.getItem) ||
+    !isFunction(typedConfig.secureStorage.removeItem) ||
+    !isFunction(typedConfig.secureStorage.clear)
+  ) {
+    throw new Error('secureStorage must implement setItem/getItem/removeItem/clear');
+  }
+
+  if (typeof typedConfig.deviceId !== 'string' || typedConfig.deviceId.trim() === '') {
+    throw new Error('deviceId is required and cannot be empty');
+  }
+
+  if (
+    typedConfig.offlineGracePeriodDays != null &&
+    (!Number.isFinite(typedConfig.offlineGracePeriodDays) ||
+      typedConfig.offlineGracePeriodDays <= 0)
+  ) {
+    throw new Error('offlineGracePeriodDays must be a positive number');
+  }
+}
+
 /**
  * Minimal interface for the API client dependency.
  *
@@ -231,7 +283,7 @@ export interface LoginRequest {
 /**
  * Response from the login endpoint (POST /api/auth/login).
  */
-export interface LoginResponse {
+export interface LoginResponseSeconds {
   /** JWT access token */
   accessToken: string;
   /** Refresh token for obtaining new access tokens */
@@ -241,6 +293,27 @@ export interface LoginResponse {
   /** Refresh token lifetime in seconds */
   refreshTokenExpiresIn: number;
 }
+
+/**
+ * Response from the login endpoint when expiries are absolute timestamps.
+ */
+export interface LoginResponseTimestamps {
+  /** JWT access token */
+  accessToken: string;
+  /** Refresh token for obtaining new access tokens */
+  refreshToken: string;
+  /** Access token expiry as ISO timestamp */
+  accessTokenExpiresAt: string;
+  /** Refresh token expiry as ISO timestamp */
+  refreshTokenExpiresAt: string;
+}
+
+/**
+ * Response from the login endpoint (POST /api/auth/login).
+ *
+ * Supports either expiry seconds or absolute expiry timestamps.
+ */
+export type LoginResponse = LoginResponseSeconds | LoginResponseTimestamps;
 
 /**
  * Request payload for the refresh endpoint (POST /api/auth/refresh).
@@ -255,7 +328,7 @@ export interface RefreshRequest {
 /**
  * Response from the refresh endpoint (POST /api/auth/refresh).
  */
-export interface RefreshResponse {
+export interface RefreshResponseSeconds {
   /** New JWT access token */
   accessToken: string;
   /** New refresh token (only present if token rotation is enabled) */
@@ -264,6 +337,185 @@ export interface RefreshResponse {
   accessTokenExpiresIn: number;
   /** Refresh token lifetime in seconds (only present if rotated) */
   refreshTokenExpiresIn?: number;
+}
+
+/**
+ * Response from the refresh endpoint when expiries are absolute timestamps.
+ */
+export interface RefreshResponseTimestamps {
+  /** New JWT access token */
+  accessToken: string;
+  /** New refresh token (only present if token rotation is enabled) */
+  refreshToken?: string;
+  /** Access token expiry as ISO timestamp */
+  accessTokenExpiresAt: string;
+  /** Refresh token expiry as ISO timestamp (only present if rotated) */
+  refreshTokenExpiresAt?: string;
+}
+
+/**
+ * Response from the refresh endpoint (POST /api/auth/refresh).
+ *
+ * Supports either expiry seconds or absolute expiry timestamps.
+ */
+export type RefreshResponse = RefreshResponseSeconds | RefreshResponseTimestamps;
+
+export interface NormalizedLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
+}
+
+export interface NormalizedRefreshResponse {
+  accessToken: string;
+  accessTokenExpiresAt: number;
+  refreshToken?: string;
+  refreshTokenExpiresAt?: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
+
+const isPositiveNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0;
+
+const isIsoDateString = (value: unknown): value is string =>
+  isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
+
+export const isLoginResponseSeconds = (value: unknown): value is LoginResponseSeconds => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isNonEmptyString(value.accessToken) &&
+    isNonEmptyString(value.refreshToken) &&
+    isPositiveNumber(value.accessTokenExpiresIn) &&
+    isPositiveNumber(value.refreshTokenExpiresIn)
+  );
+};
+
+export const isLoginResponseTimestamps = (value: unknown): value is LoginResponseTimestamps => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isNonEmptyString(value.accessToken) &&
+    isNonEmptyString(value.refreshToken) &&
+    isIsoDateString(value.accessTokenExpiresAt) &&
+    isIsoDateString(value.refreshTokenExpiresAt)
+  );
+};
+
+export const isRefreshResponseSeconds = (value: unknown): value is RefreshResponseSeconds => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (!isNonEmptyString(value.accessToken) || !isPositiveNumber(value.accessTokenExpiresIn)) {
+    return false;
+  }
+
+  if (value.refreshToken != null) {
+    return isNonEmptyString(value.refreshToken) && isPositiveNumber(value.refreshTokenExpiresIn);
+  }
+
+  return value.refreshTokenExpiresIn == null;
+};
+
+export const isRefreshResponseTimestamps = (value: unknown): value is RefreshResponseTimestamps => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (!isNonEmptyString(value.accessToken) || !isIsoDateString(value.accessTokenExpiresAt)) {
+    return false;
+  }
+
+  if (value.refreshToken != null) {
+    return isNonEmptyString(value.refreshToken) && isIsoDateString(value.refreshTokenExpiresAt);
+  }
+
+  return value.refreshTokenExpiresAt == null;
+};
+
+export function normalizeLoginResponse(
+  value: unknown,
+  now = Date.now()
+): NormalizedLoginResponse {
+  if (isLoginResponseSeconds(value)) {
+    return {
+      accessToken: value.accessToken,
+      refreshToken: value.refreshToken,
+      accessTokenExpiresAt: now + value.accessTokenExpiresIn * 1000,
+      refreshTokenExpiresAt: now + value.refreshTokenExpiresIn * 1000,
+    };
+  }
+
+  if (isLoginResponseTimestamps(value)) {
+    const accessTokenExpiresAt = Date.parse(value.accessTokenExpiresAt);
+    const refreshTokenExpiresAt = Date.parse(value.refreshTokenExpiresAt);
+
+    if (Number.isNaN(accessTokenExpiresAt) || Number.isNaN(refreshTokenExpiresAt)) {
+      throw new Error('Invalid login response expiry timestamps');
+    }
+
+    return {
+      accessToken: value.accessToken,
+      refreshToken: value.refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    };
+  }
+
+  throw new Error('Invalid login response');
+}
+
+export function normalizeRefreshResponse(
+  value: unknown,
+  now = Date.now()
+): NormalizedRefreshResponse {
+  if (isRefreshResponseSeconds(value)) {
+    const refreshTokenExpiresAt =
+      value.refreshToken != null && value.refreshTokenExpiresIn != null
+        ? now + value.refreshTokenExpiresIn * 1000
+        : undefined;
+
+    return {
+      accessToken: value.accessToken,
+      accessTokenExpiresAt: now + value.accessTokenExpiresIn * 1000,
+      refreshToken: value.refreshToken,
+      refreshTokenExpiresAt,
+    };
+  }
+
+  if (isRefreshResponseTimestamps(value)) {
+    const accessTokenExpiresAt = Date.parse(value.accessTokenExpiresAt);
+    if (Number.isNaN(accessTokenExpiresAt)) {
+      throw new Error('Invalid refresh response access expiry');
+    }
+
+    const refreshTokenExpiresAt =
+      value.refreshTokenExpiresAt != null ? Date.parse(value.refreshTokenExpiresAt) : undefined;
+
+    if (value.refreshTokenExpiresAt != null && Number.isNaN(refreshTokenExpiresAt)) {
+      throw new Error('Invalid refresh response refresh expiry');
+    }
+
+    return {
+      accessToken: value.accessToken,
+      accessTokenExpiresAt,
+      refreshToken: value.refreshToken,
+      refreshTokenExpiresAt,
+    };
+  }
+
+  throw new Error('Invalid refresh response');
 }
 
 /**
