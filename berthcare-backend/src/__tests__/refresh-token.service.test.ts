@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { createHash } from 'crypto';
-import { RefreshTokenService } from '../services/refresh-token-service';
+import { RefreshTokenService } from '../services/refresh-token';
 import { signRefreshToken } from '../lib/jwt';
 import type {
   RefreshTokenRepository,

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import bcrypt from 'bcrypt';
-import { AuthService, AuthError } from '../services/auth-service';
+import { AuthService, AuthError } from '../services/auth';
 import { caregiverRepository } from '../repositories/caregiver';
 import { signAccessToken } from '../lib/jwt';
-import { refreshTokenService } from '../services/refresh-token-service';
+import { refreshTokenService } from '../services/refresh-token';
 
 jest.mock('../repositories/caregiver', () => ({
   caregiverRepository: {
@@ -15,7 +15,7 @@ jest.mock('../lib/jwt', () => ({
   signAccessToken: jest.fn(),
 }));
 
-jest.mock('../services/refresh-token-service', () => ({
+jest.mock('../services/refresh-token', () => ({
   refreshTokenService: {
     createRefreshToken: jest.fn(),
   },

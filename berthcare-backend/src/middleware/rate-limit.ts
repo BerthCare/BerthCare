@@ -17,8 +17,9 @@ const buckets: Map<RateLimitKey, RateLimitBucket> = new Map();
 
 const defaultKeyBuilder = (req: Request): string => {
   const ip = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
-  const email = (req.body?.email as string | undefined) ?? '';
-  const deviceId = (req.body?.deviceId as string | undefined) ?? '';
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const email = typeof body.email === 'string' ? body.email : '';
+  const deviceId = typeof body.deviceId === 'string' ? body.deviceId : '';
   return `${ip}:${email}:${deviceId}:${req.path}`;
 };
 

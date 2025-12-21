@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
 import { AuthService } from '../../services/auth';
 import { auditLogRepository } from '../../repositories/audit-log';
 import { hashRefreshSecret } from '../../lib/auth/tokens';
@@ -52,13 +53,13 @@ describe.skip('AuthService.refresh', () => {
 
   it('rotates refresh token and issues new access token', async () => {
     const refreshRepo = buildRefreshRepo();
-    const caregiverRepo = {
+    const caregiverRepo: any = {
       findById: jest.fn().mockResolvedValue(baseCaregiver),
       findByEmail: jest.fn(),
-    } as any;
+    };
     jest.spyOn(auditLogRepository, 'create').mockResolvedValue({} as any);
 
-    const service = new AuthService(caregiverRepo as any, refreshRepo as any);
+    const service = new AuthService(caregiverRepo, refreshRepo as any);
 
     // seed existing refresh token
     const salt = 'salt';

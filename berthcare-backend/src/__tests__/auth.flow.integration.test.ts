@@ -5,8 +5,8 @@ import type {
   RefreshTokenRepository,
 } from '../repositories/refresh-token';
 import type { RefreshToken } from '../generated/prisma/client';
-import type { AuthService, LoginResult } from '../services/auth-service';
-import type { RefreshService, RefreshResult } from '../services/refresh-service';
+import type { AuthService, LoginResult } from '../services/auth';
+import type { RefreshService, RefreshResult } from '../services/refresh';
 
 const deviceId = '11111111-1111-4111-8111-111111111111';
 
@@ -97,8 +97,8 @@ const setup = async (): Promise<SetupResult> => {
     return { refreshTokenRepository: repo };
   });
 
-  const authModule = (await import('../services/auth-service.js')) as { authService: AuthService };
-  const refreshModule = (await import('../services/refresh-service.js')) as {
+  const authModule = (await import('../services/auth.js')) as { authService: AuthService };
+  const refreshModule = (await import('../services/refresh.js')) as {
     refreshService: RefreshService;
   };
   const repoModule = (await import('../repositories/refresh-token.js')) as {

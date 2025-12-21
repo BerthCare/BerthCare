@@ -20,8 +20,8 @@ module.exports = {
     '^\\.\\./observability/transport/cloudwatch\\.js$':
       '<rootDir>/src/observability/transport/cloudwatch.ts',
     '^\\.\\./lib/jwt\\.js$': '<rootDir>/src/lib/jwt.ts',
-    '^\\.\\./services/auth-service\\.js$': '<rootDir>/src/services/auth-service.ts',
-    '^\\.\\./services/refresh-service\\.js$': '<rootDir>/src/services/refresh-service.ts',
+    '^\\.\\./services/auth\\.js$': '<rootDir>/src/services/auth.ts',
+    '^\\.\\./services/refresh\\.js$': '<rootDir>/src/services/refresh.ts',
     '^\\.\\./repositories/refresh-token\\.js$': '<rootDir>/src/repositories/refresh-token.ts',
     '^\\.\\./index\\.js$': '<rootDir>/src/index.ts',
   },

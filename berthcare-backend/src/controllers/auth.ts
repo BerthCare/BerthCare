@@ -8,9 +8,16 @@ const extractClientMeta = (req: Request) => ({
   userAgent: req.get('user-agent') ?? undefined,
 });
 
+const getBody = (req: Request): Record<string, unknown> =>
+  req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
+
 export const createAuthController = (service: AuthService = authService) => {
   const postLogin = async (req: Request, res: Response): Promise<void> => {
-    const { email, password, deviceId } = req.body ?? {};
+    const body = getBody(req);
+    const email = typeof body.email === 'string' ? body.email : undefined;
+    const password = typeof body.password === 'string' ? body.password : undefined;
+    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
+
     if (!email || !password || !deviceId) {
       res.status(400).json({ error: { message: 'email, password, and deviceId are required' } });
       return;
@@ -29,7 +36,10 @@ export const createAuthController = (service: AuthService = authService) => {
   };
 
   const postRefresh = async (req: Request, res: Response): Promise<void> => {
-    const { refreshToken, deviceId } = req.body ?? {};
+    const body = getBody(req);
+    const refreshToken = typeof body.refreshToken === 'string' ? body.refreshToken : undefined;
+    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
+
     if (!refreshToken || !deviceId) {
       res.status(400).json({ error: { message: 'refreshToken and deviceId are required' } });
       return;

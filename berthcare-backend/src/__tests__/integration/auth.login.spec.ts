@@ -2,11 +2,11 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { LoginResult } from '../../services/auth-service';
+import type { AuthService, LoginResult } from '../../services/auth';
 
 class FakeAuthService {
-  async login(): Promise<LoginResult> {
-    return {
+  login(): Promise<LoginResult> {
+    return Promise.resolve({
       accessToken: 'access-token',
       accessExpiresAt: new Date(Date.now() + 1000),
       refreshToken: 'refresh-token',
@@ -14,11 +14,11 @@ class FakeAuthService {
       userId: 'cg-1',
       deviceId: 'device-1',
       jti: 'jti-1',
-    };
+    });
   }
 
-  async refresh(): Promise<LoginResult> {
-    return {
+  refresh(): Promise<LoginResult> {
+    return Promise.resolve({
       accessToken: 'new-access-token',
       accessExpiresAt: new Date(Date.now() + 1000),
       refreshToken: 'new-refresh-token',
@@ -26,7 +26,7 @@ class FakeAuthService {
       userId: 'cg-1',
       deviceId: 'device-1',
       jti: 'jti-2',
-    };
+    });
   }
 }
 
@@ -34,7 +34,7 @@ describe('Auth routes', () => {
   let app: Express;
 
   beforeEach(() => {
-    const fakeService = new FakeAuthService() as any;
+    const fakeService: AuthService = new FakeAuthService();
     app = createApp((instance) => {
       instance.use('/api/auth', createAuthRouter(fakeService));
     });
@@ -46,8 +46,9 @@ describe('Auth routes', () => {
       .send({ email: 'user@example.com', password: 'pass', deviceId: 'device-1' })
       .expect(200);
 
-    expect(res.body.accessToken).toBe('access-token');
-    expect(res.body.refreshToken).toBe('refresh-token');
+    const body = res.body as { accessToken: string; refreshToken: string };
+    expect(body.accessToken).toBe('access-token');
+    expect(body.refreshToken).toBe('refresh-token');
   });
 
   it('returns 400 on missing params', async () => {

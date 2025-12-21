@@ -2,11 +2,12 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { LoginResult } from '../../services/auth-service';
+import type { AuthService, LoginResult } from '../../services/auth';
+import type { RefreshService } from '../../services/refresh';
 
 class FakeAuthService {
-  async login(): Promise<LoginResult> {
-    return {
+  login(): Promise<LoginResult> {
+    return Promise.resolve({
       accessToken: 'access-token',
       accessExpiresAt: new Date(Date.now() + 1000),
       refreshToken: 'refresh-token',
@@ -14,13 +15,13 @@ class FakeAuthService {
       userId: 'cg-1',
       deviceId: 'device-1',
       jti: 'jti-1',
-    };
+    });
   }
 }
 
 class FakeRefreshService {
-  async refresh(): Promise<LoginResult> {
-    return {
+  refresh(): Promise<LoginResult> {
+    return Promise.resolve({
       accessToken: 'new-access-token',
       accessExpiresAt: new Date(Date.now() + 1000),
       refreshToken: 'new-refresh-token',
@@ -28,7 +29,7 @@ class FakeRefreshService {
       userId: 'cg-1',
       deviceId: 'device-1',
       jti: 'jti-2',
-    };
+    });
   }
 }
 
@@ -36,8 +37,8 @@ describe('Auth refresh route', () => {
   let app: Express;
 
   beforeEach(() => {
-    const fakeAuth = new FakeAuthService() as any;
-    const fakeRefresh = new FakeRefreshService() as any;
+    const fakeAuth: AuthService = new FakeAuthService();
+    const fakeRefresh: RefreshService = new FakeRefreshService();
     app = createApp((instance) => {
       instance.use('/api/auth', createAuthRouter(fakeAuth, fakeRefresh));
     });
@@ -49,8 +50,9 @@ describe('Auth refresh route', () => {
       .send({ refreshToken: 'rt-1.secret', deviceId: 'device-1' })
       .expect(200);
 
-    expect(res.body.accessToken).toBe('new-access-token');
-    expect(res.body.refreshToken).toBe('new-refresh-token');
+    const body = res.body as { accessToken: string; refreshToken: string };
+    expect(body.accessToken).toBe('new-access-token');
+    expect(body.refreshToken).toBe('new-refresh-token');
   });
 
   it('rejects missing refreshToken/deviceId', async () => {

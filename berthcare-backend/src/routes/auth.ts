@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authService, AuthError, AuthService } from '../services/auth-service';
-import { refreshService, RefreshError, RefreshService } from '../services/refresh-service';
+import { authService, AuthError, AuthService } from '../services/auth';
+import { refreshService, RefreshError, RefreshService } from '../services/refresh';
+import type { Request } from 'express';
 
 const isUuid = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -11,21 +12,23 @@ export const createAuthRouter = (
 ) => {
   const router = Router();
 
+  const getBody = (req: Request): Record<string, unknown> => {
+    return req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
+  };
+
   router.post('/login', async (req, res, next) => {
-  const body = (req.body ?? {}) as Partial<{
-    email: string;
-    password: string;
-    deviceId: string;
-  }>;
-  const { email, password, deviceId } = body;
+    const body = getBody(req);
+    const email = typeof body.email === 'string' ? body.email : undefined;
+    const password = typeof body.password === 'string' ? body.password : undefined;
+    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return res.status(400).json({ error: { message: 'Invalid email' } });
   }
-  if (!password || typeof password !== 'string') {
+  if (!password) {
     return res.status(400).json({ error: { message: 'Password is required' } });
   }
-  if (!deviceId || typeof deviceId !== 'string' || !isUuid(deviceId)) {
+  if (!deviceId || !isUuid(deviceId)) {
     return res.status(400).json({ error: { message: 'Invalid deviceId' } });
   }
 
@@ -50,18 +53,16 @@ export const createAuthRouter = (
   });
 
   router.post('/refresh', async (req, res, next) => {
-  const body = (req.body ?? {}) as Partial<{
-    refreshToken: string;
-    deviceId?: string;
-    rotate?: boolean;
-  }>;
-  const { refreshToken, deviceId, rotate } = body;
+    const body = getBody(req);
+    const refreshToken = typeof body.refreshToken === 'string' ? body.refreshToken : undefined;
+    const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
+    const rotate = Boolean(body.rotate);
 
   if (!refreshToken || typeof refreshToken !== 'string') {
     return res.status(400).json({ error: { message: 'refreshToken is required' } });
   }
 
-  if (!deviceId || typeof deviceId !== 'string' || !isUuid(deviceId)) {
+  if (!deviceId || !isUuid(deviceId)) {
     return res.status(400).json({ error: { message: 'Invalid deviceId' } });
   }
 

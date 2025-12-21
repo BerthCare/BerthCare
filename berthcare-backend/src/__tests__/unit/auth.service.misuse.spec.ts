@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 import { AuthService } from '../../services/auth';
 import { hashRefreshSecret } from '../../lib/auth/tokens';
 import { auditLogRepository } from '../../repositories/audit-log';

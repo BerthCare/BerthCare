@@ -1,11 +1,11 @@
 import type { Express } from 'express';
 import request from 'supertest';
-import { refreshService, RefreshError } from '../services/refresh-service';
-import { authService, AuthError } from '../services/auth-service';
+import { refreshService, RefreshError } from '../services/refresh';
+import { authService, AuthError } from '../services/auth';
 
-jest.mock('../services/refresh-service', () => {
-  const actual = jest.requireActual<typeof import('../services/refresh-service')>(
-    '../services/refresh-service'
+jest.mock('../services/refresh', () => {
+  const actual = jest.requireActual<typeof import('../services/refresh')>(
+    '../services/refresh'
   );
   return {
     ...actual,
@@ -15,9 +15,9 @@ jest.mock('../services/refresh-service', () => {
   };
 });
 
-jest.mock('../services/auth-service', () => {
-  const actual = jest.requireActual<typeof import('../services/auth-service')>(
-    '../services/auth-service'
+jest.mock('../services/auth', () => {
+  const actual = jest.requireActual<typeof import('../services/auth')>(
+    '../services/auth'
   );
   return {
     ...actual,

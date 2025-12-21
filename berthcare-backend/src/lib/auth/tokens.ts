@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { logger } from '../../observability/logger';
 
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24; // 24h
