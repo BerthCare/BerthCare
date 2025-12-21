@@ -12,7 +12,7 @@ class FakeAuthService {
       refreshToken: 'refresh-token',
       refreshExpiresAt: new Date(Date.now() + 2000),
       userId: 'cg-1',
-      deviceId: 'device-1',
+      deviceId: '11111111-1111-4111-8111-111111111111',
       jti: 'jti-1',
     });
   }
@@ -24,7 +24,7 @@ class FakeAuthService {
       refreshToken: 'new-refresh-token',
       refreshExpiresAt: new Date(Date.now() + 2000),
       userId: 'cg-1',
-      deviceId: 'device-1',
+      deviceId: '11111111-1111-4111-8111-111111111111',
       jti: 'jti-2',
     });
   }
@@ -43,7 +43,11 @@ describe('Auth routes', () => {
   it('returns tokens on login', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'user@example.com', password: 'pass', deviceId: 'device-1' })
+      .send({
+        email: 'user@example.com',
+        password: 'pass',
+        deviceId: '11111111-1111-4111-8111-111111111111',
+      })
       .expect(200);
 
     const body = res.body as { accessToken: string; refreshToken: string };

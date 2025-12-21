@@ -50,13 +50,6 @@ enum ConsentType {
   location
 }
 
-enum RefreshTokenStatus {
-  active
-  revoked
-  rotated
-  expired
-}
-
 model Caregiver {
   id                String         @id @default(uuid())
   email             String         @unique

@@ -4,6 +4,7 @@ import { auditLogRepository } from '../../repositories/audit-log';
 
 describe('AuthService.login', () => {
   const JWT_SECRET = 'test-secret';
+  const DEVICE_ID = '11111111-1111-4111-8111-111111111111';
 
   beforeAll(() => {
     process.env.JWT_SECRET = JWT_SECRET;
@@ -37,6 +38,12 @@ describe('AuthService.login', () => {
 
     const refreshStore: any[] = [];
     const mockRefreshRepo = {
+      createRefreshToken: jest.fn(async () => ({
+        refreshToken: `rt-${refreshStore.length + 1}.secret`,
+        jti: `rt-${refreshStore.length + 1}`,
+        expiresAt: new Date(),
+        issuedAt: new Date(),
+      })),
       create: jest.fn(async (data) => {
         const created = { id: `rt-${refreshStore.length + 1}`, ...data };
         refreshStore.push(created);
@@ -54,20 +61,14 @@ describe('AuthService.login', () => {
     const result = await service.login({
       email: caregiver.email,
       password,
-      deviceId: 'device-1',
+      deviceId: DEVICE_ID,
     });
 
     expect(result.accessToken).toBeTruthy();
     expect(result.refreshToken).toContain('rt-1.');
     expect(result.accessExpiresAt).toBeInstanceOf(Date);
     expect(result.refreshExpiresAt).toBeInstanceOf(Date);
-    expect(mockRefreshRepo.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        caregiver: { connect: { id: caregiver.id } },
-        deviceId: 'device-1',
-        status: 'active',
-      })
-    );
+    expect(mockRefreshRepo.createRefreshToken).toHaveBeenCalledWith(caregiver.id, DEVICE_ID);
   });
 
   it('rejects invalid password', async () => {
@@ -103,8 +104,8 @@ describe('AuthService.login', () => {
     const service = new AuthService(mockCaregiverRepo, mockRefreshRepo);
 
     await expect(
-      service.login({ email: caregiver.email, password: 'wrong', deviceId: 'dev' })
-    ).rejects.toHaveProperty('status', 401);
+      service.login({ email: caregiver.email, password: 'wrong', deviceId: DEVICE_ID })
+    ).rejects.toThrow('INVALID_CREDENTIALS');
     expect(mockRefreshRepo.create).not.toHaveBeenCalled();
   });
 });

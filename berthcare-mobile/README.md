@@ -103,6 +103,200 @@ Naming stays simple (folder implies context), and path aliases are provided via 
   - Expo build/update mapping: `expo start` uses `development`; `eas build --profile preview` and `eas update --branch preview` use `staging`; `eas build --profile production` and `eas update --branch production` use `production`.
 - Behavior (planned): auth header injection via secure token provider, 30s default timeout with AbortController, exponential backoff (idempotent methods only), 401 refresh queue, cancellation support, and property-based tests under `src/lib/api/__tests__/`.
 
+## Authentication Service
+
+The auth module (`src/lib/auth/`) provides secure token storage and authentication management for the BerthCare mobile app.
+
+### Features
+- **Secure Token Storage**: Uses platform-native secure storage (iOS Keychain, Android Keystore) via `react-native-keychain`
+- **Automatic Token Refresh**: Transparently refreshes expired tokens on API calls
+- **Concurrent 401 Handling**: Queues multiple 401 responses to make a single refresh request
+- **Offline Support**: 7-day grace period for offline operation in rural areas
+- **Token Persistence**: Tokens survive app restarts while remaining encrypted
+
+### Configuration and Initialization
+
+Configure the auth service during app initialization:
+
+```typescript
+import { AuthService, secureStorage } from '@/lib/auth';
+import { apiClient } from '@/lib/api';
+
+// Configure once at app startup
+AuthService.configure({
+  apiClient,
+  secureStorage,
+  deviceId: 'unique-device-id', // Use a persistent device identifier
+  offlineGracePeriodDays: 7,    // Optional, defaults to 7
+});
+```
+
+### Login
+
+```typescript
+import { AuthService } from '@/lib/auth';
+import type { LoginResult } from '@/lib/auth';
+
+async function handleLogin(email: string, password: string) {
+  const authService = AuthService.getInstance();
+  const result: LoginResult = await authService.login(email, password);
+
+  if (result.success) {
+    // Navigate to main app
+    navigation.navigate('Home');
+  } else {
+    // Handle error based on type
+    switch (result.error?.type) {
+      case 'InvalidCredentials':
+        showToast('Invalid email or password');
+        break;
+      case 'NetworkError':
+        showToast('Network error, please try again');
+        break;
+      default:
+        showToast('Login failed, please try again');
+    }
+  }
+}
+```
+
+### Logout
+
+```typescript
+async function handleLogout() {
+  const authService = AuthService.getInstance();
+  await authService.logout();
+  // Navigate to login screen
+  navigation.navigate('Login');
+}
+```
+
+### Checking Authentication State
+
+```typescript
+// On app startup, check if user is already authenticated
+async function checkAuthOnStartup() {
+  const authService = AuthService.getInstance();
+  const isLoggedIn = await authService.isAuthenticated();
+
+  if (isLoggedIn) {
+    navigation.navigate('Home');
+  } else {
+    navigation.navigate('Login');
+  }
+}
+
+// Or restore full auth state
+async function restoreSession() {
+  const authService = AuthService.getInstance();
+  const state = await authService.restoreAuthState();
+
+  if (state.isAuthenticated) {
+    navigation.navigate('Home');
+  } else if (state.requiresReauth) {
+    showToast('Session expired, please log in again');
+    navigation.navigate('Login');
+  }
+}
+```
+
+### Getting Access Token for API Requests
+
+The auth service automatically handles token refresh when tokens expire:
+
+```typescript
+async function makeAuthenticatedRequest() {
+  const authService = AuthService.getInstance();
+  const token = await authService.getAccessToken();
+
+  if (token) {
+    // Token is valid (or was just refreshed)
+    const response = await fetch('/api/data', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.json();
+  } else {
+    // No valid token, user needs to re-authenticate
+    const state = authService.getAuthState();
+    if (state.requiresReauth) {
+      navigation.navigate('Login');
+    }
+  }
+}
+```
+
+### Offline Support
+
+For caregivers working in rural areas with limited connectivity:
+
+```typescript
+async function handleOfflineAccess() {
+  const authService = AuthService.getInstance();
+  const { canContinue, reason } = await authService.checkOfflineAccess();
+
+  if (canContinue) {
+    // User can continue using cached data
+    const token = await authService.getOfflineAccessToken();
+    // Use token for local operations
+  } else {
+    switch (reason) {
+      case 'OfflineGracePeriodExpired':
+        showToast('Please connect to the internet to continue');
+        break;
+      case 'NoTokens':
+        navigation.navigate('Login');
+        break;
+    }
+  }
+}
+```
+
+### Error Handling
+
+The auth module uses `AuthError` for all authentication-related errors:
+
+```typescript
+import { AuthError, AuthErrorType } from '@/lib/auth';
+
+// Type guard for error handling
+if (AuthError.isAuthError(error)) {
+  switch (error.type) {
+    case 'InvalidCredentials':
+      // Wrong email/password
+      break;
+    case 'NetworkError':
+      // Network timeout/failure
+      break;
+    case 'TokenExpired':
+      // Access/refresh token expired
+      break;
+    case 'TokenRevoked':
+      // Token was revoked server-side
+      break;
+    case 'StorageError':
+      // Secure storage read/write failed
+      break;
+    case 'OfflineGracePeriodExpired':
+      // Offline > 7 days
+      break;
+  }
+}
+```
+
+### API Client Integration
+
+The auth service implements the `TokenProvider` interface for seamless API client integration:
+
+```typescript
+// The API client automatically uses AuthService for token management
+// when configured via AuthService.configure()
+
+// This enables:
+// 1. Automatic token injection in request headers
+// 2. Automatic token refresh on 401 responses
+// 3. Request queuing during refresh to avoid multiple refresh calls
+```
+
 ## Database Architecture (Local-First with Encryption)
 - **Engine:** `react-native-quick-sqlite` with SQLCipher enabled; AES-256 at rest.
 - **Key management:** 256-bit key generated via `crypto.getRandomValues` and stored only in secure storage (`expo-secure-store`, Keychain/Keystore). Key is never logged or bundled.

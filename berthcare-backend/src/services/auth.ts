@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import { signAccessToken } from '../lib/jwt';
 import { caregiverRepository } from '../repositories/caregiver';
-import { refreshTokenService } from './refresh-token.js';
-import { refreshService, type RefreshResult, type RefreshService } from './refresh.js';
+import { refreshTokenService } from './refresh-token';
+import { refreshService, type RefreshResult, type RefreshService } from './refresh';
 
 export type LoginInput = {
   email: string;

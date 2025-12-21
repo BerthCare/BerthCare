@@ -26,14 +26,18 @@ describe('Auth misuse protections (integration)', () => {
   it('propagates 401 on login misuse', async () => {
     await request(app)
       .post('/api/auth/login')
-      .send({ email: 'user@example.com', password: 'bad', deviceId: 'device-1' })
+      .send({
+        email: 'user@example.com',
+        password: 'bad',
+        deviceId: '11111111-1111-4111-8111-111111111111',
+      })
       .expect(401);
   });
 
   it('propagates 401 on refresh misuse', async () => {
     await request(app)
       .post('/api/auth/refresh')
-      .send({ refreshToken: 'rt.bad', deviceId: 'device-1' })
+      .send({ refreshToken: 'rt.bad', deviceId: '11111111-1111-4111-8111-111111111111' })
       .expect(401);
   });
 });

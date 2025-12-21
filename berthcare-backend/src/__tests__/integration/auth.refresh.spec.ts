@@ -13,7 +13,7 @@ class FakeAuthService {
       refreshToken: 'refresh-token',
       refreshExpiresAt: new Date(Date.now() + 2000),
       userId: 'cg-1',
-      deviceId: 'device-1',
+      deviceId: '11111111-1111-4111-8111-111111111111',
       jti: 'jti-1',
     });
   }
@@ -39,7 +39,7 @@ class FakeRefreshService {
       refreshToken: 'new-refresh-token',
       refreshExpiresAt: new Date(Date.now() + 2000),
       userId: 'cg-1',
-      deviceId: 'device-1',
+      deviceId: '11111111-1111-4111-8111-111111111111',
       jti: 'jti-2',
     });
   }
@@ -59,7 +59,10 @@ describe('Auth refresh route', () => {
   it('returns new tokens on refresh', async () => {
     const res = await request(app)
       .post('/api/auth/refresh')
-      .send({ refreshToken: 'rt-1.secret', deviceId: 'device-1' })
+      .send({
+        refreshToken: 'rt-1.secret',
+        deviceId: '11111111-1111-4111-8111-111111111111',
+      })
       .expect(200);
 
     const body = res.body as { accessToken: string; refreshToken: string };
@@ -68,6 +71,9 @@ describe('Auth refresh route', () => {
   });
 
   it('rejects missing refreshToken/deviceId', async () => {
-    await request(app).post('/api/auth/refresh').send({ deviceId: 'device-1' }).expect(400);
+    await request(app)
+      .post('/api/auth/refresh')
+      .send({ deviceId: '11111111-1111-4111-8111-111111111111' })
+      .expect(400);
   });
 });

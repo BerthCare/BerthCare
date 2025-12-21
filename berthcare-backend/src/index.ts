@@ -3,11 +3,11 @@ import express, { type Express } from 'express';
 import type { Server } from 'http';
 import { config } from './lib/config';
 import { healthRouter } from './routes/health';
-import { authRouter } from './routes/auth';
 import { errorHandler } from './middleware/error-handler';
 import { loggingMiddleware } from './middleware/logging';
 import { logger } from './observability/logger';
 import { observabilityRouter } from './routes/observability';
+import { authRouter } from './routes/auth';
 
 export const createApp = (configureApp?: (app: Express) => void): Express => {
   const app = express();

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import type { AuthHandler } from '../services/auth';
-import { authService } from '../services/auth';
-import { setRequestUser } from '../middleware/logging';
+import { AuthError, authService } from '../services/auth';
+import { RefreshError } from '../services/refresh';
+import { getRequestLogger, setRequestUser } from '../middleware/logging';
 
 const extractClientMeta = (req: Request) => ({
   ipAddress: (req.ip || req.headers['x-forwarded-for']?.toString()) ?? undefined,
@@ -23,16 +24,28 @@ export const createAuthController = (service: AuthHandler = authService) => {
       return;
     }
 
-    const meta = extractClientMeta(req);
-    const result = await service.login({ email, password, deviceId, ...meta });
-    setRequestUser(result.userId ?? email);
+    try {
+      const meta = extractClientMeta(req);
+      const result = await service.login({ email, password, deviceId, ...meta });
+      setRequestUser(result.userId ?? email);
 
-    res.status(200).json({
-      accessToken: result.accessToken,
-      accessTokenExpiresAt: result.accessExpiresAt.toISOString(),
-      refreshToken: result.refreshToken,
-      refreshTokenExpiresAt: result.refreshExpiresAt.toISOString(),
-    });
+      res.status(200).json({
+        accessToken: result.accessToken,
+        accessTokenExpiresAt: result.accessExpiresAt.toISOString(),
+        refreshToken: result.refreshToken,
+        refreshTokenExpiresAt: result.refreshExpiresAt.toISOString(),
+      });
+    } catch (error) {
+      if (error instanceof AuthError) {
+        const status = error.code === 'INVALID_DEVICE' ? 400 : 401;
+        res.status(status).json({ error: { message: 'invalid credentials' } });
+        return;
+      }
+
+      const logger = getRequestLogger();
+      logger.error({ err: error }, 'Login failed unexpectedly');
+      res.status(500).json({ error: { message: 'internal server error' } });
+    }
   };
 
   const postRefresh = async (req: Request, res: Response): Promise<void> => {
@@ -45,15 +58,32 @@ export const createAuthController = (service: AuthHandler = authService) => {
       return;
     }
 
-    const meta = extractClientMeta(req);
-    const result = await service.refresh({ token: refreshToken, deviceId, ...meta });
+    try {
+      const meta = extractClientMeta(req);
+      const result = await service.refresh({ token: refreshToken, deviceId, ...meta });
 
-    res.status(200).json({
-      accessToken: result.accessToken,
-      accessTokenExpiresAt: result.accessExpiresAt.toISOString(),
-      refreshToken: result.refreshToken,
-      refreshTokenExpiresAt: result.refreshExpiresAt?.toISOString(),
-    });
+      res.status(200).json({
+        accessToken: result.accessToken,
+        accessTokenExpiresAt: result.accessExpiresAt.toISOString(),
+        refreshToken: result.refreshToken,
+        refreshTokenExpiresAt: result.refreshExpiresAt?.toISOString(),
+      });
+    } catch (error) {
+      if (error instanceof RefreshError) {
+        const status =
+          error.code === 'EXPIRED'
+            ? 401
+            : error.code === 'REVOKED' || error.code === 'DEVICE_MISMATCH'
+              ? 403
+              : 404;
+        res.status(status).json({ error: { message: 'refresh failed' } });
+        return;
+      }
+
+      const logger = getRequestLogger();
+      logger.error({ err: error }, 'Refresh failed unexpectedly');
+      res.status(500).json({ error: { message: 'internal server error' } });
+    }
   };
 
   return { postLogin, postRefresh };

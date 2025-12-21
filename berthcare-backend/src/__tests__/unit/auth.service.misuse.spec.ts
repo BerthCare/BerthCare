@@ -5,7 +5,7 @@ import { auditLogRepository } from '../../repositories/audit-log';
 
 describe.skip('AuthService misuse protections', () => {
   beforeAll(() => {
-    process.env.JWT_SECRET = 'test-secret';
+    process.env.JWT_SECRET = 'test-secret-should-be-32-characters-long';
   });
 
   afterEach(() => {

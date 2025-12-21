@@ -689,7 +689,7 @@ export class AuthService implements TokenProvider {
           : new AuthError('Unknown', 'Refresh failed', error instanceof Error ? error : undefined);
       this.rejectPendingRequests(authError);
 
-      throw error;
+      throw authError;
     } finally {
       // Reset refresh state
       this.isRefreshing = false;

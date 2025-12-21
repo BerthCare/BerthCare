@@ -14,6 +14,9 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
 ## Prerequisites
 
 - Node.js 20+
+- Native build tooling for bcrypt (native module):
+  - macOS/Linux: ensure Python 3, make, and a C/C++ compiler are available. For Alpine/musl images: `apk add --no-cache python3 make g++` and run `npm rebuild bcrypt --build-from-source`.
+  - Windows: install the "Desktop development with C++" workload (Visual Studio Build Tools) so `node-gyp` can compile native deps.
 - PostgreSQL instance (local or remote)
 - Docker (optional — easiest way to run PostgreSQL for integration tests)
 

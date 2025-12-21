@@ -113,3 +113,23 @@ jobs:
       - run: npm run prisma:generate
       - run: npx prisma migrate deploy
       - run: npm run test:integration
+
+  native-bcrypt-build:
+    name: Native bcrypt build (Alpine)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: postgresql://user:pass@localhost:5432/berthcare
+    defaults:
+      run:
+        working-directory: berthcare-backend
+    container:
+      image: node:20-alpine
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: apk add --no-cache python3 make g++
+      - name: Install dependencies
+        run: npm ci
+      - name: Rebuild bcrypt for musl
+        run: npm rebuild bcrypt --build-from-source
