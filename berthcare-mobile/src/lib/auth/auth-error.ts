@@ -101,6 +101,9 @@ export class AuthError extends Error {
     this.type = type;
     this.originalError = originalError;
 
+    // Restore prototype chain for proper instanceof checks in transpiled code
+    Object.setPrototypeOf(this, AuthError.prototype);
+
     // Maintains proper stack trace for where error was thrown (V8 engines)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, AuthError);

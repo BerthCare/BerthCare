@@ -37,6 +37,7 @@ type RedisLike = {
   incr: (key: string) => Promise<number>;
   pExpire?: (key: string, ttl: number) => Promise<number | boolean>;
   expire?: (key: string, ttlSeconds: number) => Promise<number | boolean>;
+  eval?: (script: string, keys: string[], args: string[]) => Promise<number>;
 };
 
 export type RateLimitStore = {
@@ -60,6 +61,14 @@ const inMemoryStore: RateLimitStore = {
 
 export const createRedisStore = (client: RedisLike): RateLimitStore => ({
   async increment(key: string, windowMs: number): Promise<number> {
+    if (client.eval) {
+      // atomic: INCR + PEXPIRE in one script to avoid orphaned keys without TTL
+      const script =
+        'local current=redis.call("INCR", KEYS[1]); if current==1 then redis.call("PEXPIRE", KEYS[1], ARGV[1]); end; return current;';
+      const result = await client.eval(script, [key], [String(windowMs)]);
+      return Number(result);
+    }
+
     const count = await client.incr(key);
     if (count === 1) {
       // newly created key, set expiry
@@ -95,8 +104,10 @@ export const rateLimit =
         return;
       }
       next();
-    } catch {
+    } catch (error) {
       // fail-open keeps availability; fail-closed can be opted into
+      // Log for observability but don't block request
+      console.error('Rate limiter error:', error);
       if (failOpen) {
         next();
       } else {

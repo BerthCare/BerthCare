@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 import { AuthService } from '../../services/auth';
-import { hashRefreshSecret } from '../../lib/auth/tokens';
-import { auditLogRepository } from '../../repositories/audit-log';
+import type { CaregiverRepository } from '../../repositories/caregiver';
+import type { RefreshTokenService } from '../../services/refresh-token';
+import { RefreshError, type RefreshService } from '../../services/refresh';
 
-describe.skip('AuthService misuse protections', () => {
+describe('AuthService misuse protections', () => {
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret-should-be-32-characters-long';
   });
@@ -12,78 +12,50 @@ describe.skip('AuthService misuse protections', () => {
     jest.restoreAllMocks();
   });
 
-  const caregiver = {
-    id: 'cg-1',
-    email: 'user@example.com',
-    name: 'User',
-    phone: '123',
-    organizationId: 'org',
-    role: 'caregiver',
-    isActive: true,
-    passwordHash: 'hash',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const buildRefresh = (overrides: Partial<any> = {}) => {
-    const salt = overrides.salt ?? 'salt';
-    const secret = overrides.secret ?? 'secret';
-    return {
-      id: overrides.id ?? 'rt-1',
-      caregiverId: caregiver.id,
-      deviceId: overrides.deviceId ?? 'device-1',
-      salt,
-      secretHash: hashRefreshSecret(secret, salt),
-      status: overrides.status ?? 'active',
-      expiresAt: overrides.expiresAt ?? new Date(Date.now() + 1_000_000),
-      issuedAt: overrides.issuedAt ?? new Date(Date.now() - 1000),
-      lastSeenAt: overrides.lastSeenAt ?? new Date(),
-      revocationReason: overrides.revocationReason,
+  const buildService = (error: RefreshError) => {
+    const refresher: Pick<RefreshService, 'refresh'> = {
+      refresh: jest.fn().mockRejectedValue(error),
     };
-  };
-
-  const buildService = (refreshRecord: any) => {
-    const refreshRepo = {
-      findById: jest.fn().mockResolvedValue(refreshRecord),
-      revoke: jest.fn().mockResolvedValue(undefined),
-      markRotated: jest.fn(),
-      touchLastSeen: jest.fn(),
-      create: jest.fn(),
-    } as any;
-    const caregiverRepo = {
-      findById: jest.fn().mockResolvedValue(caregiver),
+    const caregiverRepo: Pick<CaregiverRepository, 'findById' | 'findByEmail'> = {
+      findById: jest.fn(),
       findByEmail: jest.fn(),
-    } as any;
-    jest.spyOn(auditLogRepository, 'create').mockResolvedValue({} as any);
-    return { service: new AuthService(caregiverRepo, refreshRepo), refreshRepo };
+    };
+    const refreshTokenRepo: Pick<RefreshTokenService, 'createRefreshToken'> = {
+      createRefreshToken: jest.fn(),
+    };
+    return { service: new AuthService(caregiverRepo as CaregiverRepository, refreshTokenRepo as RefreshTokenService, refresher as RefreshService), refresher };
   };
 
   it('rejects device mismatch', async () => {
-    const refresh = buildRefresh({ deviceId: 'other-device' });
-    const { service } = buildService(refresh);
+    const { service } = buildService(new RefreshError('DEVICE_MISMATCH'));
 
     await expect(
-      service.refresh({ token: `${refresh.id}.secret`, deviceId: 'device-1' })
-    ).rejects.toHaveProperty('status', 401);
+      service.refresh({ token: 'rt-1.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
+    ).rejects.toBeInstanceOf(RefreshError);
+    await expect(
+      service.refresh({ token: 'rt-1.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
+    ).rejects.toHaveProperty('code', 'DEVICE_MISMATCH');
   });
 
-  it('rejects offline >7 days', async () => {
-    const refresh = buildRefresh({
-      lastSeenAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
-    });
-    const { service } = buildService(refresh);
+  it('rejects offline >7 days (expired)', async () => {
+    const { service } = buildService(new RefreshError('EXPIRED'));
 
     await expect(
-      service.refresh({ token: `${refresh.id}.secret`, deviceId: 'device-1' })
-    ).rejects.toHaveProperty('status', 401);
+      service.refresh({ token: 'rt-2.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
+    ).rejects.toBeInstanceOf(RefreshError);
+    await expect(
+      service.refresh({ token: 'rt-2.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
+    ).rejects.toHaveProperty('code', 'EXPIRED');
   });
 
   it('rejects expired token', async () => {
-    const refresh = buildRefresh({ expiresAt: new Date(Date.now() - 1000) });
-    const { service } = buildService(refresh);
+    const { service } = buildService(new RefreshError('EXPIRED'));
 
     await expect(
-      service.refresh({ token: `${refresh.id}.secret`, deviceId: 'device-1' })
-    ).rejects.toHaveProperty('status', 401);
+      service.refresh({ token: 'rt-3.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
+    ).rejects.toBeInstanceOf(RefreshError);
+    await expect(
+      service.refresh({ token: 'rt-3.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
+    ).rejects.toHaveProperty('code', 'EXPIRED');
   });
 });

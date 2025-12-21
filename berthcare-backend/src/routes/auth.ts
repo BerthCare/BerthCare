@@ -22,34 +22,34 @@ export const createAuthRouter = (
     const password = typeof body.password === 'string' ? body.password : undefined;
     const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
 
-  if (!email || typeof email !== 'string' || !email.includes('@')) {
-    return res.status(400).json({ error: { message: 'Invalid email' } });
-  }
-  if (!password) {
-    return res.status(400).json({ error: { message: 'Password is required' } });
-  }
-  if (!deviceId || !isUuid(deviceId)) {
-    return res.status(400).json({ error: { message: 'Invalid deviceId' } });
-  }
-
-  try {
-    const result = await authSvc.login({ email, password, deviceId });
-    return res.status(200).json({
-      accessToken: result.accessToken,
-      accessExpiresAt: result.accessExpiresAt.toISOString(),
-      refreshToken: result.refreshToken,
-      refreshExpiresAt: result.refreshExpiresAt.toISOString(),
-      userId: result.userId,
-      deviceId: result.deviceId,
-      jti: result.jti,
-    });
-  } catch (err) {
-    if (err instanceof AuthError) {
-      const status = err.code === 'INVALID_CREDENTIALS' ? 401 : 400;
-      return res.status(status).json({ error: { message: err.message } });
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: { message: 'Invalid email' } });
     }
-    next(err);
-  }
+    if (!password) {
+      return res.status(400).json({ error: { message: 'Password is required' } });
+    }
+    if (!deviceId || !isUuid(deviceId)) {
+      return res.status(400).json({ error: { message: 'Invalid deviceId' } });
+    }
+
+    try {
+      const result = await authSvc.login({ email, password, deviceId });
+      return res.status(200).json({
+        accessToken: result.accessToken,
+        accessExpiresAt: result.accessExpiresAt.toISOString(),
+        refreshToken: result.refreshToken,
+        refreshExpiresAt: result.refreshExpiresAt.toISOString(),
+        userId: result.userId,
+        deviceId: result.deviceId,
+        jti: result.jti,
+      });
+    } catch (err) {
+      if (err instanceof AuthError) {
+        const status = err.code === 'INVALID_CREDENTIALS' ? 401 : 400;
+        return res.status(status).json({ error: { message: err.message } });
+      }
+      next(err);
+    }
   });
 
   router.post('/refresh', async (req, res, next) => {
@@ -58,44 +58,46 @@ export const createAuthRouter = (
     const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
     const rotate = Boolean(body.rotate);
 
-  if (!refreshToken || typeof refreshToken !== 'string') {
-    return res.status(400).json({ error: { message: 'refreshToken is required' } });
-  }
-
-  if (!deviceId || !isUuid(deviceId)) {
-    return res.status(400).json({ error: { message: 'Invalid deviceId' } });
-  }
-
-  try {
-    const result = await refreshSvc.refresh({
-      token: refreshToken,
-      deviceId,
-      rotate: Boolean(rotate),
-    });
-
-    return res.status(200).json({
-      accessToken: result.accessToken,
-      accessExpiresAt: result.accessExpiresAt.toISOString(),
-      refreshToken: result.refreshToken,
-      refreshExpiresAt: result.refreshExpiresAt?.toISOString(),
-      jti: result.jti,
-      deviceId: result.deviceId,
-      userId: result.userId,
-    });
-  } catch (err) {
-    if (err instanceof RefreshError) {
-      const status = err.code === 'DEVICE_MISMATCH' || err.code === 'REVOKED' ? 403 : 401;
-      return res.status(status).json({ error: { message: err.message } });
+    if (!refreshToken) {
+      return res.status(400).json({ error: { message: 'refreshToken is required' } });
     }
-    // jsonwebtoken errors bubble as generic Errors; treat as 401
-    if (
-      (err as Error).name === 'JsonWebTokenError' ||
-      (err as Error).name === 'TokenExpiredError'
-    ) {
-      return res.status(401).json({ error: { message: 'Invalid token' } });
+
+    if (!deviceId || !isUuid(deviceId)) {
+      return res.status(400).json({ error: { message: 'Invalid deviceId' } });
     }
-    next(err);
-  }
+
+    try {
+      const result = await refreshSvc.refresh({
+        token: refreshToken,
+        deviceId,
+        rotate,
+      });
+
+      return res.status(200).json({
+        accessToken: result.accessToken,
+        accessExpiresAt: result.accessExpiresAt.toISOString(),
+        ...(result.refreshToken && {
+          refreshToken: result.refreshToken,
+          refreshExpiresAt: result.refreshExpiresAt?.toISOString(),
+        }),
+        jti: result.jti,
+        deviceId: result.deviceId,
+        userId: result.userId,
+      });
+    } catch (err) {
+      if (err instanceof RefreshError) {
+        const status = err.code === 'DEVICE_MISMATCH' || err.code === 'REVOKED' ? 403 : 401;
+        return res.status(status).json({ error: { message: err.message } });
+      }
+      // jsonwebtoken errors bubble as generic Errors; treat as 401
+      if (
+        (err as Error).name === 'JsonWebTokenError' ||
+        (err as Error).name === 'TokenExpiredError'
+      ) {
+        return res.status(401).json({ error: { message: 'Invalid token' } });
+      }
+      next(err);
+    }
   });
 
   return router;

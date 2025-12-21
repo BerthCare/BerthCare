@@ -828,6 +828,11 @@ export class AuthService implements TokenProvider {
    */
   private isNetworkError(error: unknown): boolean {
     if (error instanceof Error) {
+      // TypeError is commonly thrown for fetch/network failures
+      if (error instanceof TypeError) {
+        return true;
+      }
+
       const message = error.message.toLowerCase();
       return (
         message.includes('network') ||
