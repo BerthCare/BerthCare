@@ -1,7 +1,8 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { signAccessToken } from '../lib/jwt';
 import { caregiverRepository } from '../repositories/caregiver';
 import { refreshTokenService } from './refresh-token-service';
+import { refreshService, type RefreshResult, type RefreshService } from './refresh-service.js';
 
 export type LoginInput = {
   email: string;
@@ -31,13 +32,19 @@ const isUuid = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 export class AuthService {
+  constructor(
+    private readonly caregivers = caregiverRepository,
+    private readonly refreshTokens = refreshTokenService,
+    private readonly refresher: RefreshService = refreshService
+  ) {}
+
   async login({ email, password, deviceId }: LoginInput): Promise<LoginResult> {
     if (!deviceId || !isUuid(deviceId)) {
       throw new AuthError('INVALID_DEVICE');
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await caregiverRepository.findByEmail(normalizedEmail);
+    const user = await this.caregivers.findByEmail(normalizedEmail);
 
     // Always perform bcrypt compare to prevent timing attacks
     const dummyHash = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcg7b3XeKeUxWdeS86AGR0Ifxm';
@@ -51,7 +58,7 @@ export class AuthService {
       role: user.role,
     });
 
-    const refresh = await refreshTokenService.createRefreshToken(user.id, deviceId);
+    const refresh = await this.refreshTokens.createRefreshToken(user.id, deviceId);
 
     return {
       accessToken,
@@ -62,6 +69,10 @@ export class AuthService {
       deviceId,
       jti: refresh.jti,
     };
+  }
+
+  async refresh(input: { token: string; deviceId: string; rotate?: boolean }): Promise<RefreshResult> {
+    return this.refresher.refresh(input);
   }
 }
 

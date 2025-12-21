@@ -1,13 +1,17 @@
 import { Router } from 'express';
-import { authService, AuthError } from '../services/auth-service';
-import { refreshService, RefreshError } from '../services/refresh-service';
-
-const authRouter = Router();
+import { authService, AuthError, AuthService } from '../services/auth-service';
+import { refreshService, RefreshError, RefreshService } from '../services/refresh-service';
 
 const isUuid = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
-authRouter.post('/login', async (req, res, next) => {
+export const createAuthRouter = (
+  authSvc: AuthService = authService,
+  refreshSvc: RefreshService = refreshService
+) => {
+  const router = Router();
+
+  router.post('/login', async (req, res, next) => {
   const body = (req.body ?? {}) as Partial<{
     email: string;
     password: string;
@@ -26,7 +30,7 @@ authRouter.post('/login', async (req, res, next) => {
   }
 
   try {
-    const result = await authService.login({ email, password, deviceId });
+    const result = await authSvc.login({ email, password, deviceId });
     return res.status(200).json({
       accessToken: result.accessToken,
       accessExpiresAt: result.accessExpiresAt.toISOString(),
@@ -43,9 +47,9 @@ authRouter.post('/login', async (req, res, next) => {
     }
     next(err);
   }
-});
+  });
 
-authRouter.post('/refresh', async (req, res, next) => {
+  router.post('/refresh', async (req, res, next) => {
   const body = (req.body ?? {}) as Partial<{
     refreshToken: string;
     deviceId?: string;
@@ -62,7 +66,7 @@ authRouter.post('/refresh', async (req, res, next) => {
   }
 
   try {
-    const result = await refreshService.refresh({
+    const result = await refreshSvc.refresh({
       token: refreshToken,
       deviceId,
       rotate: Boolean(rotate),
@@ -91,6 +95,11 @@ authRouter.post('/refresh', async (req, res, next) => {
     }
     next(err);
   }
-});
+  });
+
+  return router;
+};
+
+const authRouter = createAuthRouter();
 
 export { authRouter };

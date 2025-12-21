@@ -54,14 +54,12 @@ describe('AuthService.login', () => {
       email: caregiver.email,
       password,
       deviceId: 'device-1',
-      ipAddress: '127.0.0.1',
-      userAgent: 'jest',
     });
 
     expect(result.accessToken).toBeTruthy();
     expect(result.refreshToken).toContain('rt-1.');
-    expect(result.accessTokenExpiresAt).toBeInstanceOf(Date);
-    expect(result.refreshTokenExpiresAt).toBeInstanceOf(Date);
+    expect(result.accessExpiresAt).toBeInstanceOf(Date);
+    expect(result.refreshExpiresAt).toBeInstanceOf(Date);
     expect(mockRefreshRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         caregiver: { connect: { id: caregiver.id } },

@@ -250,29 +250,3 @@ model RefreshToken {
   @@index([expiresAt])
   @@index([revokedAt])
 }
-
-model RefreshToken {
-  id                String               @id @default(uuid())
-  caregiverId       String
-  deviceId          String
-  secretHash        String
-  salt              String
-  status            RefreshTokenStatus   @default(active)
-  issuedAt          DateTime             @default(now())
-  expiresAt         DateTime
-  lastSeenAt        DateTime?
-  rotatedFromId     String?
-  revokedAt         DateTime?
-  revocationReason  String?
-  ipAddress         String?
-  userAgent         String?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-
-  caregiver         Caregiver            @relation(fields: [caregiverId], references: [id])
-  rotatedFrom       RefreshToken?        @relation("RefreshRotation", fields: [rotatedFromId], references: [id])
-  rotatedChildren   RefreshToken[]       @relation("RefreshRotation")
-
-  @@index([caregiverId, deviceId])
-  @@index([secretHash])
-}

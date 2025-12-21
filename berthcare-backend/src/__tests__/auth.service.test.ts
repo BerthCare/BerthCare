@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { AuthService, AuthError } from '../services/auth-service';
 import { caregiverRepository } from '../repositories/caregiver';
 import { signAccessToken } from '../lib/jwt';

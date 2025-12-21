@@ -2,26 +2,30 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { AuthResponse } from '../../services/auth';
+import type { LoginResult } from '../../services/auth-service';
 
 class FakeAuthService {
-  async login(): Promise<AuthResponse> {
+  async login(): Promise<LoginResult> {
     return {
       accessToken: 'access-token',
-      accessTokenExpiresAt: new Date(Date.now() + 1000),
+      accessExpiresAt: new Date(Date.now() + 1000),
       refreshToken: 'refresh-token',
-      refreshTokenExpiresAt: new Date(Date.now() + 2000),
-      caregiverId: 'cg-1',
+      refreshExpiresAt: new Date(Date.now() + 2000),
+      userId: 'cg-1',
+      deviceId: 'device-1',
+      jti: 'jti-1',
     };
   }
 
-  async refresh(): Promise<AuthResponse> {
+  async refresh(): Promise<LoginResult> {
     return {
       accessToken: 'new-access-token',
-      accessTokenExpiresAt: new Date(Date.now() + 1000),
+      accessExpiresAt: new Date(Date.now() + 1000),
       refreshToken: 'new-refresh-token',
-      refreshTokenExpiresAt: new Date(Date.now() + 2000),
-      caregiverId: 'cg-1',
+      refreshExpiresAt: new Date(Date.now() + 2000),
+      userId: 'cg-1',
+      deviceId: 'device-1',
+      jti: 'jti-2',
     };
   }
 }

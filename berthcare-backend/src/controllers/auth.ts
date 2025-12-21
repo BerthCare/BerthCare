@@ -18,13 +18,13 @@ export const createAuthController = (service: AuthService = authService) => {
 
     const meta = extractClientMeta(req);
     const result = await service.login({ email, password, deviceId, ...meta });
-    setRequestUser(result.caregiverId ?? email);
+    setRequestUser(result.userId ?? email);
 
     res.status(200).json({
       accessToken: result.accessToken,
-      accessTokenExpiresAt: result.accessTokenExpiresAt.toISOString(),
+      accessTokenExpiresAt: result.accessExpiresAt.toISOString(),
       refreshToken: result.refreshToken,
-      refreshTokenExpiresAt: result.refreshTokenExpiresAt.toISOString(),
+      refreshTokenExpiresAt: result.refreshExpiresAt.toISOString(),
     });
   };
 
@@ -36,13 +36,13 @@ export const createAuthController = (service: AuthService = authService) => {
     }
 
     const meta = extractClientMeta(req);
-    const result = await service.refresh({ refreshToken, deviceId, ...meta });
+    const result = await service.refresh({ token: refreshToken, deviceId, ...meta });
 
     res.status(200).json({
       accessToken: result.accessToken,
-      accessTokenExpiresAt: result.accessTokenExpiresAt.toISOString(),
+      accessTokenExpiresAt: result.accessExpiresAt.toISOString(),
       refreshToken: result.refreshToken,
-      refreshTokenExpiresAt: result.refreshTokenExpiresAt.toISOString(),
+      refreshTokenExpiresAt: result.refreshExpiresAt?.toISOString(),
     });
   };
 
