@@ -2,7 +2,7 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { AuthService } from '../../services/auth';
+import type { AuthHandler } from '../../services/auth';
 
 class RejectingAuthService {
   login(): Promise<never> {
@@ -17,7 +17,7 @@ describe('Auth misuse protections (integration)', () => {
   let app: Express;
 
   beforeEach(() => {
-    const rejectingService: AuthService = new RejectingAuthService();
+    const rejectingService: AuthHandler = new RejectingAuthService();
     app = createApp((instance) => {
       instance.use('/api/auth', createAuthRouter(rejectingService));
     });

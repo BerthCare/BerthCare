@@ -20,6 +20,8 @@ export type LoginResult = {
   jti: string;
 };
 
+export type AuthHandler = Pick<AuthService, 'login' | 'refresh'>;
+
 export class AuthError extends Error {
   constructor(public readonly code: 'INVALID_DEVICE' | 'INVALID_CREDENTIALS') {
     super(code);

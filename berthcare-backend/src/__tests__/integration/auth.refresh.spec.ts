@@ -2,11 +2,23 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { AuthService, LoginResult } from '../../services/auth';
+import type { AuthHandler, LoginResult } from '../../services/auth';
 import type { RefreshService } from '../../services/refresh';
 
 class FakeAuthService {
   login(): Promise<LoginResult> {
+    return Promise.resolve({
+      accessToken: 'access-token',
+      accessExpiresAt: new Date(Date.now() + 1000),
+      refreshToken: 'refresh-token',
+      refreshExpiresAt: new Date(Date.now() + 2000),
+      userId: 'cg-1',
+      deviceId: 'device-1',
+      jti: 'jti-1',
+    });
+  }
+
+  refresh(): Promise<LoginResult> {
     return Promise.resolve({
       accessToken: 'access-token',
       accessExpiresAt: new Date(Date.now() + 1000),
@@ -37,7 +49,7 @@ describe('Auth refresh route', () => {
   let app: Express;
 
   beforeEach(() => {
-    const fakeAuth: AuthService = new FakeAuthService();
+    const fakeAuth: AuthHandler = new FakeAuthService();
     const fakeRefresh: RefreshService = new FakeRefreshService();
     app = createApp((instance) => {
       instance.use('/api/auth', createAuthRouter(fakeAuth, fakeRefresh));

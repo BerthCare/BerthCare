@@ -2,7 +2,7 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { AuthService, LoginResult } from '../../services/auth';
+import type { AuthHandler, LoginResult } from '../../services/auth';
 
 class FakeAuthService {
   login(): Promise<LoginResult> {
@@ -34,7 +34,7 @@ describe('Auth routes', () => {
   let app: Express;
 
   beforeEach(() => {
-    const fakeService: AuthService = new FakeAuthService();
+    const fakeService: AuthHandler = new FakeAuthService();
     app = createApp((instance) => {
       instance.use('/api/auth', createAuthRouter(fakeService));
     });

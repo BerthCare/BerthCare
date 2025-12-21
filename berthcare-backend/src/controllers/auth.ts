@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { AuthService } from '../services/auth';
+import type { AuthHandler } from '../services/auth';
 import { authService } from '../services/auth';
 import { setRequestUser } from '../middleware/logging';
 
@@ -11,7 +11,7 @@ const extractClientMeta = (req: Request) => ({
 const getBody = (req: Request): Record<string, unknown> =>
   req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
 
-export const createAuthController = (service: AuthService = authService) => {
+export const createAuthController = (service: AuthHandler = authService) => {
   const postLogin = async (req: Request, res: Response): Promise<void> => {
     const body = getBody(req);
     const email = typeof body.email === 'string' ? body.email : undefined;
