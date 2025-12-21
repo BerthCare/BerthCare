@@ -107,6 +107,9 @@ const defaultKeyBuilder = (req: Request): string => {
   return `rl:${ip}:${email}:${deviceId}:${req.path}`;
 };
 
+const hashIdentifier = (value: string): string =>
+  value ? createHash('sha256').update(value).digest('hex').slice(0, 16) : '';
+
 export const rateLimit =
   (options: RateLimitOptions) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
