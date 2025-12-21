@@ -1,6 +1,6 @@
 import { signAccessToken } from '../lib/jwt';
-import { refreshTokenService } from './refresh-token-service';
-import { tokenValidationService } from './token-validation-service';
+import { refreshTokenService } from './refresh-token';
+import { tokenValidationService } from './token-validation';
 import { refreshTokenRepository } from '../repositories/refresh-token';
 
 export type RefreshInput = {

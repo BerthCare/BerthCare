@@ -28,6 +28,7 @@
     "update:production": "eas update --branch production --message"
   },
   "dependencies": {
+    "@sentry/react-native": "^7.8.0",
     "expo": "~54.0.25",
     "expo-dev-client": "^6.0.18",
     "expo-secure-store": "~15.0.7",
@@ -35,9 +36,9 @@
     "expo-updates": "~29.0.13",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-keychain": "^10.0.0",
     "react-native-quick-sqlite": "^8.2.7",
-    "react-native-safe-area-context": "^5.6.2",
-    "@sentry/react-native": "^7.7.0"
+    "react-native-safe-area-context": "^5.6.2"
   },
   "devDependencies": {
     "@sentry/cli": "^2.58.2",

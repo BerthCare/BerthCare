@@ -1,7 +1,7 @@
-import type { PrismaClient } from '../generated/prisma/client.js';
-import { Prisma, Alert } from '../generated/prisma/client.js';
-import { BaseRepository } from './base.js';
-import { prisma } from '../models/index.js';
+import type { PrismaClient } from '../generated/prisma/client';
+import { Prisma, Alert } from '../generated/prisma/client';
+import { BaseRepository } from './base';
+import { prisma } from '../models';
 
 type CreateData = Prisma.AlertCreateInput;
 type UpdateData = Prisma.AlertUpdateInput;

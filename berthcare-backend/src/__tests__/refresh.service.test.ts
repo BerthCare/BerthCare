@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { refreshService, RefreshError } from '../services/refresh-service';
-import { tokenValidationService } from '../services/token-validation-service';
+import { refreshService, RefreshError } from '../services/refresh';
+import { tokenValidationService } from '../services/token-validation';
 import { refreshTokenRepository } from '../repositories/refresh-token';
-import { refreshTokenService } from '../services/refresh-token-service';
+import { refreshTokenService } from '../services/refresh-token';
 import { signAccessToken } from '../lib/jwt';
 
-jest.mock('../services/token-validation-service', () => ({
+jest.mock('../services/token-validation', () => ({
   tokenValidationService: {
     validateRefreshToken: jest.fn(),
   },
@@ -18,7 +18,7 @@ jest.mock('../repositories/refresh-token', () => ({
   },
 }));
 
-jest.mock('../services/refresh-token-service', () => ({
+jest.mock('../services/refresh-token', () => ({
   refreshTokenService: {
     createRefreshToken: jest.fn(),
   },

@@ -1,4 +1,4 @@
-import { TokenValidationService } from '../services/token-validation-service';
+import { TokenValidationService } from '../services/token-validation';
 import { verifyAccessToken, verifyRefreshToken } from '../lib/jwt';
 import { refreshTokenRepository } from '../repositories/refresh-token';
 

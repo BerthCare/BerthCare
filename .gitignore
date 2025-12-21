@@ -35,6 +35,7 @@ berthcare-backend/dist/
 .kiro/
 project-documentation/
 IMPLEMENTATION_PLAN.md
+berthcare-spec/
 
 # Terraform
 .terraform/

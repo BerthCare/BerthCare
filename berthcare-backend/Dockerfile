@@ -9,11 +9,13 @@ ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
 RUN npm install -g npm@${NPM_VERSION}
+RUN apk add --no-cache python3 make g++
 
 # Ensure Prisma schema is available before npm ci (prisma generate runs during install)
 COPY package*.json prisma.config.ts ./
 COPY prisma ./prisma
 RUN npm ci
+RUN npm rebuild bcrypt --build-from-source
 
 COPY tsconfig.json ./
 COPY src ./src

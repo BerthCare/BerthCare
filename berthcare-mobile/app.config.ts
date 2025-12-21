@@ -1,6 +1,6 @@
 import { ConfigContext, ExpoConfig } from '@expo/config';
 
-import { APP_IDENTIFIER, buildSentryRelease } from './src/observability/release';
+import { APP_IDENTIFIER, buildSentryRelease } from './src/observability/release.js';
 
 const projectId = '5a324903-de4d-41bb-8d29-ab44b5c2f621';
 

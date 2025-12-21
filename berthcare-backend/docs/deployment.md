@@ -19,6 +19,11 @@
 - Staging: manual trigger via Actions `workflow_dispatch` on the staging deploy workflow (mirror of dev) from the release commit/tag; release owner/backend engineer triggers after CI green, migrations reviewed/backward-compatible, env secrets/params set, and rollback plan confirmed.
 - Production: manual trigger (workflow_dispatch or approved release/tag) by release owner with product/engineering approval; require staging green, smoke tests passed, stakeholder comms posted (e.g., #eng and incident channel on standby), DB migrations reviewed/ready, and rollback path identified before starting.
 
+## Native module build (bcrypt)
+- The backend uses native `bcrypt`; Alpine/musl builds require a toolchain. The Dockerfile installs `python3`, `make`, and `g++` in the build stage and runs `npm rebuild bcrypt --build-from-source` to produce musl-compatible binaries—keep these steps if the base image changes.
+- CI includes an Alpine job to ensure native modules compile in the same environment as production; do not merge if it fails.
+- Windows developers need the “Desktop development with C++” workload (Visual Studio Build Tools) so `node-gyp` can compile bcrypt.
+
 ## Rollback
 - Identify last known good version: use the last green deploy for the target environment (GitHub Actions run, release tag, or ECS task definition revision) and confirm it passed health checks.
 - Revert offending change: `git revert <bad_sha>` (or a range) on a branch, open a PR, merge to `main`; this creates a corrective commit and preserves history. If urgent, revert via a hotfix branch merged immediately with review.
@@ -30,6 +35,7 @@
 - Token lifetimes: access 24h, refresh 30d by default; adjust via `JWT_ACCESS_TTL`/`JWT_REFRESH_TTL` if needed for incident response and document changes in the release notes.
 - Device binding: login requires `deviceId` UUID; refresh tokens are keyed by `(userId, deviceId)` and stored hashed. On incident/password reset/account disable, revoke device tokens (`revokeByDevice`) or all tokens for the user (`revokeAllForUser`) and invalidate sessions.
 - Logging/PII: request logs are redacted; avoid logging tokens, secrets, or password hashes in PRs or runbooks.
+- Rate limiting: production/staging should use a shared store (e.g., Redis) for rate-limit counters. Configure the middleware with a Redis client (see `rate-limit.ts` `createRedisStore`) so limits apply across all instances. In dev/local the in-memory fallback is acceptable; ensure `failOpen` policy matches your availability stance.
 - Migration note: migration `20251130193853_add_password_hash_to_caregiver` assumes the `Caregiver` table is empty or already backfilled with password hashes; it will raise if rows exist. If data exists, backfill hashes first (or split into nullable + backfill + NOT NULL) before running.
 
 ## Troubleshooting auth (runbook)

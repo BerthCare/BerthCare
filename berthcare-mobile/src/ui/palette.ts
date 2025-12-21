@@ -9,4 +9,6 @@ export const palette = {
   disabledTextIOS: '#999999',
   disabledTextAndroid: '#9E9E9E',
   white: '#FFFFFF',
+  surface: '#F4F6F9',
+  border: '#DFE3E8',
 };

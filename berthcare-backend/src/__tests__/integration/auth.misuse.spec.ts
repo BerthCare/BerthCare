@@ -1,0 +1,43 @@
+import request from 'supertest';
+import type { Express } from 'express';
+import { createApp } from '../../index';
+import { createAuthRouter } from '../../routes/auth';
+import type { AuthHandler } from '../../services/auth';
+
+class RejectingAuthService {
+  login(): Promise<never> {
+    return Promise.reject(Object.assign(new Error('Invalid credentials'), { status: 401 }));
+  }
+  refresh(): Promise<never> {
+    return Promise.reject(Object.assign(new Error('Refresh token expired'), { status: 401 }));
+  }
+}
+
+describe('Auth misuse protections (integration)', () => {
+  let app: Express;
+
+  beforeEach(() => {
+    const rejectingService: AuthHandler = new RejectingAuthService();
+    app = createApp((instance) => {
+      instance.use('/api/auth', createAuthRouter(rejectingService));
+    });
+  });
+
+  it('propagates 401 on login misuse', async () => {
+    await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'user@example.com',
+        password: 'bad',
+        deviceId: '11111111-1111-4111-8111-111111111111',
+      })
+      .expect(401);
+  });
+
+  it('propagates 401 on refresh misuse', async () => {
+    await request(app)
+      .post('/api/auth/refresh')
+      .send({ refreshToken: 'rt.bad', deviceId: '11111111-1111-4111-8111-111111111111' })
+      .expect(401);
+  });
+});
