@@ -22,7 +22,7 @@ export const createAuthRouter = (
     const password = typeof body.password === 'string' ? body.password : undefined;
     const deviceId = typeof body.deviceId === 'string' ? body.deviceId : undefined;
 
-    if (!email || !email.includes('@')) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ error: { message: 'Invalid email' } });
     }
     if (!password) {

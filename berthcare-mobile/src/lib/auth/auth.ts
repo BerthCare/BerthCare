@@ -144,6 +144,16 @@ export class AuthService implements TokenProvider {
    * ```
    */
   static configure(config: AuthServiceConfig): void {
+    if (!config.apiClient) {
+      throw new Error('apiClient is required');
+    }
+    if (!config.secureStorage) {
+      throw new Error('secureStorage is required');
+    }
+    if (!config.deviceId || config.deviceId.trim() === '') {
+      throw new Error('deviceId is required and cannot be empty');
+    }
+
     const instance = AuthService.getInstance();
     instance.config = {
       ...config,
@@ -605,28 +615,40 @@ export class AuthService implements TokenProvider {
     }
 
     // Check expiry timestamp
-    const expiryStr = await config.secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY);
-    if (expiryStr) {
-      const expiresAt = Number(expiryStr);
-      const now = Date.now();
+    try {
+      const expiryStr = await config.secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY);
+      if (expiryStr) {
+        const expiresAt = Number(expiryStr);
+        const now = Date.now();
 
-      // If token is expired, attempt to refresh
-      if (now >= expiresAt) {
-        const newToken = await this.refreshAccessToken();
-        if (newToken) {
-          return newToken;
+        // If token is expired, attempt to refresh
+        if (now >= expiresAt) {
+          const newToken = await this.refreshAccessToken();
+          if (newToken) {
+            return newToken;
+          }
+          // Refresh failed - signal re-authentication required
+          this.authState = {
+            ...this.authState,
+            requiresReauth: true,
+          };
+          return null;
         }
-        // Refresh failed - signal re-authentication required
-        this.authState = {
-          ...this.authState,
-          requiresReauth: true,
-        };
-        return null;
       }
-    }
 
-    // Token is valid, return it
-    return accessToken;
+      // Token is valid, return it
+      return accessToken;
+    } catch (error) {
+      // On any failure during refresh, mark reauth required and fail closed
+      this.authState = {
+        ...this.authState,
+        requiresReauth: true,
+      };
+      // Optional: log for debugging; avoid throwing to honor contract
+      // eslint-disable-next-line no-console
+      console.error('Failed to refresh access token:', error);
+      return null;
+    }
   }
 
   /**
@@ -799,10 +821,12 @@ export class AuthService implements TokenProvider {
    */
   private async clearAllTokens(): Promise<void> {
     const config = this.ensureConfigured();
-    await config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    await config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    await config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY);
-    await config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY);
+    await Promise.allSettled([
+      config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN),
+      config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
+      config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY),
+      config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY),
+    ]);
   }
 
   /**
