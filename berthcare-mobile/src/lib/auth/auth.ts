@@ -69,11 +69,7 @@
  * ```
  */
 
-import {
-  assertAuthServiceConfig,
-  normalizeLoginResponse,
-  normalizeRefreshResponse,
-} from './types';
+import { assertAuthServiceConfig, normalizeLoginResponse, normalizeRefreshResponse } from './types';
 import type {
   AuthServiceConfig,
   AuthState,
@@ -283,7 +279,10 @@ export class AuthService implements TokenProvider {
 
       // Store tokens in secure storage
       await config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken);
-      await config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken);
+      await config.secureStorage.setItem(
+        STORAGE_KEYS.REFRESH_TOKEN,
+        normalizedResponse.refreshToken
+      );
       await config.secureStorage.setItem(
         STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
         normalizedResponse.accessTokenExpiresAt.toString()
@@ -788,7 +787,10 @@ export class AuthService implements TokenProvider {
 
       // Store new refresh token if rotated
       if (normalizedResponse.refreshToken && normalizedResponse.refreshTokenExpiresAt) {
-        await config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken);
+        await config.secureStorage.setItem(
+          STORAGE_KEYS.REFRESH_TOKEN,
+          normalizedResponse.refreshToken
+        );
         await config.secureStorage.setItem(
           STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
           normalizedResponse.refreshTokenExpiresAt.toString()

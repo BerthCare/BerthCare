@@ -133,7 +133,11 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
     value: string,
     securityLevel?: Keychain.SECURITY_LEVEL
   ): Promise<void> {
-    const result = await Keychain.setGenericPassword(key, value, buildSetOptions(key, securityLevel));
+    const result = await Keychain.setGenericPassword(
+      key,
+      value,
+      buildSetOptions(key, securityLevel)
+    );
     if (!result) {
       throw new Error('Secure storage write failed');
     }

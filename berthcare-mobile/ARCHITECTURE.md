@@ -46,6 +46,13 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - All required native functionality is available through Expo modules
 - Development speed is prioritized during the 3-month build phase
 
+## Authentication & Secure Token Storage
+- Auth module lives in `src/lib/auth` and integrates with the API client in `src/lib/api`.
+- Access/refresh tokens and expiry metadata are stored in `react-native-keychain` (iOS Keychain, Android Keystore).
+- App launch restores auth state via `AuthService.restoreAuthState`, and 401 responses trigger a single-flight refresh queue.
+- Technical Blueprint alignment: [Section 5 (Flow 1)](../project-documentation/technical-blueprint.md#flow-1-app-launch-and-schedule-retrieval) and [Section 6 (Security)](../project-documentation/technical-blueprint.md#security-your-data-is-safe).
+- Deviations: none noted for this feature.
+
 ## Build Performance Analysis
 
 ### Target Requirements

@@ -251,9 +251,7 @@ function AuthDebugPanel({
         title="Force Expire Access"
       />
 
-      <Text style={styles.status}>
-        Status: {isAuthConfigured ? status : 'Auth initializing…'}
-      </Text>
+      <Text style={styles.status}>Status: {isAuthConfigured ? status : 'Auth initializing…'}</Text>
     </View>
   );
 }

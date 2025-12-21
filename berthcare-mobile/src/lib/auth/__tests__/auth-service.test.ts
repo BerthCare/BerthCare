@@ -257,10 +257,7 @@ describe('AuthService unit tests', () => {
       await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, 'expired-access');
       await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, (fakeNow - 1_000).toString());
       await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, 'valid-refresh');
-      await storage.setItem(
-        STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
-        (fakeNow + 5 * 60_000).toString()
-      );
+      await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY, (fakeNow + 5 * 60_000).toString());
 
       const authService = AuthService.getInstance();
       const state = await authService.restoreAuthState();

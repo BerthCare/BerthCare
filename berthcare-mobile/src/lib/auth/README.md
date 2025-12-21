@@ -8,6 +8,16 @@ Centralized auth module for the BerthCare mobile app. Handles secure token stora
 - Auth state restoration on app launch.
 - Offline grace handling for limited connectivity.
 
+## Architecture Alignment
+- Technical Blueprint Section 5 (Flow 1: App Launch and Schedule Retrieval): [Flow 1](../../../../project-documentation/technical-blueprint.md#flow-1-app-launch-and-schedule-retrieval).
+- Technical Blueprint Section 6 (Security: "Your data is safe"): [Security](../../../../project-documentation/technical-blueprint.md#security-your-data-is-safe).
+- Deviations: none noted for this feature.
+
+## Security Validation Notes
+- Storage uses `react-native-keychain` with AES-GCM and after-first-unlock device-only accessibility.
+- Hardware-backed security is requested with software fallback; cloud sync is disabled.
+- Tokens are never stored in AsyncStorage or plaintext files.
+
 ## Configure Once at App Startup
 Call `AuthService.configure` once and reuse the singleton:
 

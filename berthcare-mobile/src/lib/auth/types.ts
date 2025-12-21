@@ -444,10 +444,7 @@ export const isRefreshResponseTimestamps = (value: unknown): value is RefreshRes
   return value.refreshTokenExpiresAt == null;
 };
 
-export function normalizeLoginResponse(
-  value: unknown,
-  now = Date.now()
-): NormalizedLoginResponse {
+export function normalizeLoginResponse(value: unknown, now = Date.now()): NormalizedLoginResponse {
   if (isLoginResponseSeconds(value)) {
     return {
       accessToken: value.accessToken,
@@ -486,12 +483,20 @@ export function normalizeRefreshResponse(
         ? now + value.refreshTokenExpiresIn * 1000
         : undefined;
 
-    return {
+    const baseResponse = {
       accessToken: value.accessToken,
       accessTokenExpiresAt: now + value.accessTokenExpiresIn * 1000,
-      refreshToken: value.refreshToken,
-      refreshTokenExpiresAt,
     };
+
+    if (value.refreshToken != null && refreshTokenExpiresAt != null) {
+      return {
+        ...baseResponse,
+        refreshToken: value.refreshToken,
+        refreshTokenExpiresAt,
+      };
+    }
+
+    return baseResponse;
   }
 
   if (isRefreshResponseTimestamps(value)) {
@@ -507,12 +512,20 @@ export function normalizeRefreshResponse(
       throw new Error('Invalid refresh response refresh expiry');
     }
 
-    return {
+    const baseResponse = {
       accessToken: value.accessToken,
       accessTokenExpiresAt,
-      refreshToken: value.refreshToken,
-      refreshTokenExpiresAt,
     };
+
+    if (value.refreshToken != null && refreshTokenExpiresAt != null) {
+      return {
+        ...baseResponse,
+        refreshToken: value.refreshToken,
+        refreshTokenExpiresAt,
+      };
+    }
+
+    return baseResponse;
   }
 
   throw new Error('Invalid refresh response');
