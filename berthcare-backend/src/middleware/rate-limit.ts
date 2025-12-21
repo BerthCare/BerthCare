@@ -1,4 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
+import { logger } from '../observability/logger';
+import { createHash } from 'crypto';
 
 type RateLimitKey = string;
 
@@ -59,6 +61,8 @@ const inMemoryStore: RateLimitStore = {
   },
 };
 
+let warnedRedisFallback = false;
+
 export const createRedisStore = (client: RedisLike): RateLimitStore => ({
   async increment(key: string, windowMs: number): Promise<number> {
     if (client.eval) {
@@ -67,6 +71,16 @@ export const createRedisStore = (client: RedisLike): RateLimitStore => ({
         'local current=redis.call("INCR", KEYS[1]); if current==1 then redis.call("PEXPIRE", KEYS[1], ARGV[1]); end; return current;';
       const result = await client.eval(script, [key], [String(windowMs)]);
       return Number(result);
+    }
+
+    if (!warnedRedisFallback) {
+      warnedRedisFallback = true;
+      logger.warn(
+        {
+          event: 'rate_limit.redis_fallback_non_atomic',
+        },
+        'Rate limiter fallback in use: Redis client has no eval support, using non-atomic INCR+EXPIRE. This can leave keys without TTL if the process crashes between calls. Enable a Redis client with eval support or upgrade Redis to avoid orphaned keys.'
+      );
     }
 
     const count = await client.incr(key);
@@ -85,10 +99,13 @@ export const createRedisStore = (client: RedisLike): RateLimitStore => ({
 const defaultKeyBuilder = (req: Request): string => {
   const ip = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
   const body = (req.body ?? {}) as Record<string, unknown>;
-  const email = typeof body.email === 'string' ? body.email : '';
-  const deviceId = typeof body.deviceId === 'string' ? body.deviceId : '';
-  return `${ip}:${email}:${deviceId}:${req.path}`;
+  const email = typeof body.email === 'string' ? hashIdentifier(body.email) : '';
+  const deviceId = typeof body.deviceId === 'string' ? hashIdentifier(body.deviceId) : '';
+  return `rl:${ip}:${email}:${deviceId}:${req.path}`;
 };
+
+const hashIdentifier = (value: string): string =>
+  value ? createHash('sha256').update(value).digest('hex').slice(0, 16) : '';
 
 export const rateLimit =
   (options: RateLimitOptions) =>

@@ -31,10 +31,15 @@ const DEFAULT_AUTH_STATE: AuthState = {
 };
 
 const defaultBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? createDefaultConfig().baseUrl;
+const DEV_DEVICE_IDS: Record<string, string> = {
+  ios: '00000000-0000-4000-8000-000000000001',
+  android: '00000000-0000-4000-8000-000000000002',
+};
+
 const defaultDeviceId =
   process.env.EXPO_PUBLIC_DEVICE_ID && process.env.EXPO_PUBLIC_DEVICE_ID.trim() !== ''
     ? process.env.EXPO_PUBLIC_DEVICE_ID
-    : `dev-${Platform.OS}-sim`;
+    : DEV_DEVICE_IDS[Platform.OS] ?? '00000000-0000-4000-8000-000000000000';
 
 const createAuthApiAdapter = (baseUrl: string): ApiClientInterface => {
   const client = ApiClient.configure(createDefaultConfig({ baseUrl }));
@@ -105,17 +110,11 @@ function AuthDebugPanel({
       return;
     }
 
-    authService
-      .restoreAuthState()
-      .then((state) => {
-        setAuthState(state);
-        return refreshSnapshot();
-      })
-      .catch((error) => {
-        console.error('Auth restore failed', error);
-        setStatus('Auth restore failed');
-      });
-  }, [authService, isAuthConfigured, refreshSnapshot]);
+    setAuthState(initialAuthState);
+    refreshSnapshot().catch((error) => {
+      console.error('Token snapshot refresh failed', error);
+    });
+  }, [initialAuthState, isAuthConfigured, refreshSnapshot]);
 
   const handleLogin = useCallback(async () => {
     setLoading(true);

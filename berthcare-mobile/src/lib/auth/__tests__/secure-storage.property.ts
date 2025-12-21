@@ -2,38 +2,8 @@
 // **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
 
 import fc from 'fast-check';
-import type { SecureStorageAdapter } from '../types';
 import { STORAGE_KEYS } from '../secure-storage';
-
-/**
- * In-memory implementation of SecureStorageAdapter for testing.
- * Simulates the behavior of react-native-keychain without native dependencies.
- */
-class InMemorySecureStorage implements SecureStorageAdapter {
-  private storage: Map<string, string> = new Map();
-
-  async setItem(key: string, value: string): Promise<void> {
-    this.storage.set(key, value);
-  }
-
-  async getItem(key: string): Promise<string | null> {
-    return this.storage.get(key) ?? null;
-  }
-
-  async removeItem(key: string): Promise<void> {
-    this.storage.delete(key);
-  }
-
-  async clear(): Promise<void> {
-    const keys = Object.values(STORAGE_KEYS);
-    keys.forEach((key) => this.storage.delete(key));
-  }
-
-  // Helper for testing
-  getStorageSize(): number {
-    return this.storage.size;
-  }
-}
+import { InMemorySecureStorage } from './helpers/in-memory-storage';
 
 describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-trip', () => {
   let storage: InMemorySecureStorage;
@@ -76,6 +46,8 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
 
   it('for any JWT-like token, storing and retrieving preserves the exact format', async () => {
     // JWT tokens have a specific format: header.payload.signature (base64url encoded)
+    // Note: fast-check base64String uses standard base64 (not base64url). This is fine for
+    // storage round-trip validation but not for strict JWT format validation.
     const jwtArbitrary = fc
       .tuple(
         fc.base64String({ minLength: 10, maxLength: 100 }), // header

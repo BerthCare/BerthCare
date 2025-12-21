@@ -72,6 +72,15 @@ export const STORAGE_KEYS = {
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
 
 const STORAGE_KEY_LIST = Object.values(STORAGE_KEYS) as StorageKey[];
+const STORAGE_KEY_SET = new Set<StorageKey>(STORAGE_KEY_LIST);
+
+const assertStorageKey = (key: string): StorageKey => {
+  const storageKey = key as StorageKey;
+  if (!STORAGE_KEY_SET.has(storageKey)) {
+    throw new Error(`Invalid storage key: ${key}`);
+  }
+  return storageKey;
+};
 
 /**
  * Service name used for Keychain storage.
@@ -159,7 +168,7 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async setItem(key: string, value: string): Promise<void> {
-    const storageKey = key as StorageKey;
+    const storageKey = assertStorageKey(key);
     try {
       await this.writeValue(storageKey, value, KEYCHAIN_PRIMARY_SECURITY_LEVEL);
     } catch (error) {
@@ -189,7 +198,7 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async getItem(key: string): Promise<string | null> {
-    const storageKey = key as StorageKey;
+    const storageKey = assertStorageKey(key);
     const result = await Keychain.getGenericPassword(buildBaseOptions(storageKey));
 
     if (result && result.password) {
@@ -213,7 +222,7 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async removeItem(key: string): Promise<void> {
-    const storageKey = key as StorageKey;
+    const storageKey = assertStorageKey(key);
     await Keychain.resetGenericPassword(buildBaseOptions(storageKey));
   }
 

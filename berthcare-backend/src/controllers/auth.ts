@@ -3,14 +3,12 @@ import type { AuthHandler } from '../services/auth';
 import { AuthError, authService } from '../services/auth';
 import { RefreshError } from '../services/refresh';
 import { getRequestLogger, setRequestUser } from '../middleware/logging';
+import { getBody } from '../lib/http';
 
 const extractClientMeta = (req: Request) => ({
   ipAddress: (req.ip || req.headers['x-forwarded-for']?.toString()) ?? undefined,
   userAgent: req.get('user-agent') ?? undefined,
 });
-
-const getBody = (req: Request): Record<string, unknown> =>
-  req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
 
 export const createAuthController = (service: AuthHandler = authService) => {
   const postLogin = async (req: Request, res: Response): Promise<void> => {
@@ -70,12 +68,13 @@ export const createAuthController = (service: AuthHandler = authService) => {
       });
     } catch (error) {
       if (error instanceof RefreshError) {
-        const status =
-          error.code === 'EXPIRED'
-            ? 401
-            : error.code === 'REVOKED' || error.code === 'DEVICE_MISMATCH'
-              ? 403
-              : 404;
+        const statusByCode: Record<RefreshError['code'], number> = {
+          EXPIRED: 401,
+          NOT_FOUND: 401,
+          REVOKED: 403,
+          DEVICE_MISMATCH: 403,
+        };
+        const status = statusByCode[error.code] ?? 401;
         res.status(status).json({ error: { message: 'refresh failed' } });
         return;
       }

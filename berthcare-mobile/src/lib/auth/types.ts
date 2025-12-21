@@ -383,8 +383,11 @@ const isNonEmptyString = (value: unknown): value is string =>
 const isPositiveNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value > 0;
 
+const ISO_DATE_REGEX =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})$/;
+
 const isIsoDateString = (value: unknown): value is string =>
-  isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
+  isNonEmptyString(value) && ISO_DATE_REGEX.test(value) && !Number.isNaN(Date.parse(value));
 
 export const isLoginResponseSeconds = (value: unknown): value is LoginResponseSeconds => {
   if (!isRecord(value)) {

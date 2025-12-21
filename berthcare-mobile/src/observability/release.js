@@ -14,7 +14,7 @@ const buildSentryRelease = (appVersion, buildNumber, gitSha) => {
   }
 
   const safeBuild = buildNumber == null ? '0' : String(buildNumber);
-  const base = `${APP_IDENTIFIER ?? 'berthcare-mobile'}@${appVersion}+${safeBuild}`;
+  const base = `${APP_IDENTIFIER}@${appVersion}+${safeBuild}`;
 
   if (typeof gitSha !== 'string' || gitSha.length === 0) {
     return base;

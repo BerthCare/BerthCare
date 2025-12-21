@@ -4,6 +4,8 @@ import type { RefreshTokenService } from '../../services/refresh-token';
 import { RefreshError, type RefreshService } from '../../services/refresh';
 
 describe('AuthService misuse protections', () => {
+  const DEVICE_ID = '11111111-1111-4111-8111-111111111111';
+
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret-should-be-32-characters-long';
   });
@@ -23,39 +25,32 @@ describe('AuthService misuse protections', () => {
     const refreshTokenRepo: Pick<RefreshTokenService, 'createRefreshToken'> = {
       createRefreshToken: jest.fn(),
     };
-    return { service: new AuthService(caregiverRepo as CaregiverRepository, refreshTokenRepo as RefreshTokenService, refresher as RefreshService), refresher };
+    return {
+      service: new AuthService(
+        caregiverRepo as CaregiverRepository,
+        refreshTokenRepo as RefreshTokenService,
+        refresher as RefreshService
+      ),
+      refresher,
+    };
   };
 
   it('rejects device mismatch', async () => {
     const { service } = buildService(new RefreshError('DEVICE_MISMATCH'));
 
-    await expect(
-      service.refresh({ token: 'rt-1.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
-    ).rejects.toBeInstanceOf(RefreshError);
-    await expect(
-      service.refresh({ token: 'rt-1.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
-    ).rejects.toHaveProperty('code', 'DEVICE_MISMATCH');
+    const promise = service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID });
+    await expect(promise).rejects.toMatchObject({ code: 'DEVICE_MISMATCH' });
   });
 
-  it('rejects offline >7 days (expired)', async () => {
+  const expiredScenarios = [
+    ['offline grace period exceeded', 'rt-2.secret'],
+    ['refresh token expired', 'rt-3.secret'],
+  ] as const;
+
+  it.each(expiredScenarios)('rejects expired token when %s', async (_scenario, token) => {
     const { service } = buildService(new RefreshError('EXPIRED'));
 
-    await expect(
-      service.refresh({ token: 'rt-2.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
-    ).rejects.toBeInstanceOf(RefreshError);
-    await expect(
-      service.refresh({ token: 'rt-2.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
-    ).rejects.toHaveProperty('code', 'EXPIRED');
-  });
-
-  it('rejects expired token', async () => {
-    const { service } = buildService(new RefreshError('EXPIRED'));
-
-    await expect(
-      service.refresh({ token: 'rt-3.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
-    ).rejects.toBeInstanceOf(RefreshError);
-    await expect(
-      service.refresh({ token: 'rt-3.secret', deviceId: '11111111-1111-4111-8111-111111111111' })
-    ).rejects.toHaveProperty('code', 'EXPIRED');
+    const promise = service.refresh({ token, deviceId: DEVICE_ID });
+    await expect(promise).rejects.toMatchObject({ code: 'EXPIRED' });
   });
 });

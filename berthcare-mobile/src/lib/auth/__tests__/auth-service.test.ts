@@ -1,31 +1,7 @@
-import type {
-  ApiClientInterface,
-  LoginResponse,
-  RefreshResponse,
-  SecureStorageAdapter,
-} from '../types';
+import type { ApiClientInterface, LoginResponse, RefreshResponse } from '../types';
 import { AuthService } from '../auth';
 import { STORAGE_KEYS } from '../secure-storage';
-
-class InMemorySecureStorage implements SecureStorageAdapter {
-  private storage = new Map<string, string>();
-
-  async setItem(key: string, value: string): Promise<void> {
-    this.storage.set(key, value);
-  }
-
-  async getItem(key: string): Promise<string | null> {
-    return this.storage.get(key) ?? null;
-  }
-
-  async removeItem(key: string): Promise<void> {
-    this.storage.delete(key);
-  }
-
-  async clear(): Promise<void> {
-    this.storage.clear();
-  }
-}
+import { InMemorySecureStorage } from './helpers/in-memory-storage';
 
 class MockApiClient implements ApiClientInterface {
   private loginResponse: LoginResponse | null = null;

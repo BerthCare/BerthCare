@@ -92,6 +92,7 @@ describe('AuthService.login', () => {
     } as any;
 
     const mockRefreshRepo = {
+      createRefreshToken: jest.fn(),
       create: jest.fn(),
       findById: jest.fn(),
       revoke: jest.fn(),
@@ -106,6 +107,6 @@ describe('AuthService.login', () => {
     await expect(
       service.login({ email: caregiver.email, password: 'wrong', deviceId: DEVICE_ID })
     ).rejects.toThrow('INVALID_CREDENTIALS');
-    expect(mockRefreshRepo.create).not.toHaveBeenCalled();
+    expect(mockRefreshRepo.createRefreshToken).not.toHaveBeenCalled();
   });
 });

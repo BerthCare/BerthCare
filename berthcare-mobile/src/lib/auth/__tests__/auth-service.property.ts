@@ -8,43 +8,10 @@
 // **Validates: Requirements 1.5, 3.1, 3.2, 3.3, 3.4**
 
 import fc from 'fast-check';
-import type {
-  SecureStorageAdapter,
-  ApiClientInterface,
-  LoginResponse,
-  RefreshResponse,
-} from '../types';
+import type { ApiClientInterface, LoginResponse, RefreshResponse } from '../types';
 import { AuthService } from '../auth';
 import { STORAGE_KEYS } from '../secure-storage';
-
-/**
- * In-memory implementation of SecureStorageAdapter for testing.
- */
-class InMemorySecureStorage implements SecureStorageAdapter {
-  private storage: Map<string, string> = new Map();
-
-  async setItem(key: string, value: string): Promise<void> {
-    this.storage.set(key, value);
-  }
-
-  async getItem(key: string): Promise<string | null> {
-    return this.storage.get(key) ?? null;
-  }
-
-  async removeItem(key: string): Promise<void> {
-    this.storage.delete(key);
-  }
-
-  async clear(): Promise<void> {
-    const keys = Object.values(STORAGE_KEYS);
-    keys.forEach((key) => this.storage.delete(key));
-  }
-
-  // Helper for testing
-  getAll(): Map<string, string> {
-    return new Map(this.storage);
-  }
-}
+import { InMemorySecureStorage } from './helpers/in-memory-storage';
 
 /**
  * Mock API client for testing.
