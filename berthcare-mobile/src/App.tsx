@@ -3,13 +3,13 @@ import {
   Alert,
   Button,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { palette } from '@ui/palette';
 import type { ApiClientInterface, AuthState } from '@/lib/auth';
@@ -39,7 +39,7 @@ const DEV_DEVICE_IDS: Record<string, string> = {
 const defaultDeviceId =
   process.env.EXPO_PUBLIC_DEVICE_ID && process.env.EXPO_PUBLIC_DEVICE_ID.trim() !== ''
     ? process.env.EXPO_PUBLIC_DEVICE_ID
-    : DEV_DEVICE_IDS[Platform.OS] ?? '00000000-0000-4000-8000-000000000000';
+    : (DEV_DEVICE_IDS[Platform.OS] ?? '00000000-0000-4000-8000-000000000000');
 
 const createAuthApiAdapter = (baseUrl: string): ApiClientInterface => {
   const client = ApiClient.configure(createDefaultConfig({ baseUrl }));
@@ -286,35 +286,37 @@ export default function App() {
   }, [authConfigured]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>BerthCare</Text>
-        <Text style={styles.subtitle} testID="auth-status-subtitle">
-          {authState.isAuthenticated && !authState.requiresReauth
-            ? 'Authenticated'
-            : authState.requiresReauth
-              ? 'Session expired — please log in'
-              : 'Signed out'}
-        </Text>
-        {__DEV__ && (
-          <View style={styles.debugBlock}>
-            <Text style={styles.debugTitle}>Debug</Text>
-            <Button
-              title="Trigger test crash"
-              onPress={() => {
-                Alert.alert('Triggering test crash', 'A test error will be thrown.');
-                triggerTestCrash();
-              }}
-            />
-            <AuthDebugPanel
-              baseUrl={defaultBaseUrl}
-              isAuthConfigured={authConfigured}
-              initialAuthState={authState}
-            />
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.title}>BerthCare</Text>
+          <Text style={styles.subtitle} testID="auth-status-subtitle">
+            {authState.isAuthenticated && !authState.requiresReauth
+              ? 'Authenticated'
+              : authState.requiresReauth
+                ? 'Session expired — please log in'
+                : 'Signed out'}
+          </Text>
+          {__DEV__ && (
+            <View style={styles.debugBlock}>
+              <Text style={styles.debugTitle}>Debug</Text>
+              <Button
+                title="Trigger test crash"
+                onPress={() => {
+                  Alert.alert('Triggering test crash', 'A test error will be thrown.');
+                  triggerTestCrash();
+                }}
+              />
+              <AuthDebugPanel
+                baseUrl={defaultBaseUrl}
+                isAuthConfigured={authConfigured}
+                initialAuthState={authState}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

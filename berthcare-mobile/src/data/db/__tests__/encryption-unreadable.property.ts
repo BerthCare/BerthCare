@@ -39,6 +39,16 @@ jest.mock('../encryption', () => ({
 }));
 
 describe('Feature: sqlite-encryption-setup, Property 5: Encrypted database is unreadable without key', () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   const resetState = () => {
     storedKey = null;
     jest.resetModules();
