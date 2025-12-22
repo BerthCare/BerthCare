@@ -1,4 +1,6 @@
 // Jest setup file for React Native Testing Library
+import React from 'react';
+import { View } from 'react-native';
 import '@testing-library/jest-native/extend-expect';
 
 jest.mock('expo-updates', () => ({
@@ -10,9 +12,21 @@ jest.mock('expo-status-bar', () => ({
   StatusBar: 'StatusBar',
 }));
 
-jest.mock('react-native-safe-area-context', () =>
-  require('react-native-safe-area-context/jest/mock')
-);
+const mockReact = React;
+const mockView = View;
+const mockSafeAreaInset = { top: 0, right: 0, bottom: 0, left: 0 };
+
+jest.mock('react-native-safe-area-context', () => {
+  return {
+    SafeAreaProvider: ({ children }) => mockReact.createElement(mockReact.Fragment, null, children),
+    SafeAreaView: ({ children, ...props }) => mockReact.createElement(mockView, props, children),
+    useSafeAreaInsets: () => mockSafeAreaInset,
+    SafeAreaInsetsContext: {
+      Provider: ({ children }) => mockReact.createElement(mockReact.Fragment, null, children),
+      Consumer: ({ children }) => children(mockSafeAreaInset),
+    },
+  };
+});
 
 jest.mock('react-native-keychain', () => {
   const store = new Map();

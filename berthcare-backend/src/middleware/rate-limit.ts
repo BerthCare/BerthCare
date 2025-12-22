@@ -124,7 +124,7 @@ export const rateLimit =
     } catch (error) {
       // fail-open keeps availability; fail-closed can be opted into
       // Log for observability but don't block request
-      console.error('Rate limiter error:', error);
+      logger.error({ err: error, event: 'rate_limit.store_error' }, 'Rate limiter error');
       if (failOpen) {
         next();
       } else {

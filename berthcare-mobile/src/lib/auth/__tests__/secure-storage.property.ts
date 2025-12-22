@@ -30,11 +30,12 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
         // Use one of the defined storage keys
         fc.constantFrom(...Object.values(STORAGE_KEYS)),
         async (tokenValue, storageKey) => {
+          const freshStorage = new InMemorySecureStorage();
           // Store the token
-          await storage.setItem(storageKey, tokenValue);
+          await freshStorage.setItem(storageKey, tokenValue);
 
           // Retrieve the token
-          const retrievedValue = await storage.getItem(storageKey);
+          const retrievedValue = await freshStorage.getItem(storageKey);
 
           // The retrieved value must exactly match the stored value
           expect(retrievedValue).toBe(tokenValue);

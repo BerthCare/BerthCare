@@ -56,30 +56,34 @@ class MockApiClient implements ApiClientInterface {
 class DeferredRefreshApiClient implements ApiClientInterface {
   private refreshResponse: RefreshResponse | null = null;
   refreshCallCount = 0;
-  private resolveRefresh?: (value: RefreshResponse) => void;
-  private rejectRefresh?: (reason?: unknown) => void;
+  private resolveRefresh: Array<(value: RefreshResponse) => void> = [];
+  private rejectRefresh: Array<(reason?: unknown) => void> = [];
 
   setRefreshResponse(response: RefreshResponse): void {
     this.refreshResponse = response;
   }
 
   resolveRefreshPromise(): void {
-    if (!this.refreshResponse || !this.resolveRefresh) {
+    if (!this.refreshResponse || this.resolveRefresh.length === 0) {
       throw new Error('Refresh response or resolver not set');
     }
-    this.resolveRefresh(this.refreshResponse);
+    this.resolveRefresh.forEach((resolve) => resolve(this.refreshResponse as RefreshResponse));
+    this.resolveRefresh = [];
+    this.rejectRefresh = [];
   }
 
   rejectRefreshPromise(error: unknown): void {
-    this.rejectRefresh?.(error);
+    this.rejectRefresh.forEach((reject) => reject(error));
+    this.resolveRefresh = [];
+    this.rejectRefresh = [];
   }
 
   async post<T>(url: string): Promise<T> {
     if (url.includes('/refresh')) {
       this.refreshCallCount += 1;
       return new Promise<T>((resolve, reject) => {
-        this.resolveRefresh = (value: RefreshResponse) => resolve(value as T);
-        this.rejectRefresh = reject;
+        this.resolveRefresh.push((value: RefreshResponse) => resolve(value as T));
+        this.rejectRefresh.push(reject);
       });
     }
     throw new Error(`No mock for ${url}`);
