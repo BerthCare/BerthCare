@@ -3,18 +3,18 @@ import type { CaregiverRepository } from '../../repositories/caregiver';
 import type { RefreshTokenService } from '../../services/refresh-token';
 import type { RefreshService } from '../../services/refresh';
 
-describe.skip('AuthService.refresh', () => {
+describe('AuthService.refresh', () => {
   const DEVICE_ID = '11111111-1111-4111-8111-111111111111';
 
   it('delegates refresh and returns rotated tokens', async () => {
     const refreshMock = jest.fn().mockResolvedValue({
-        accessToken: 'access-token',
-        accessExpiresAt: new Date(Date.now() + 1000),
-        refreshToken: 'refresh-token',
-        refreshExpiresAt: new Date(Date.now() + 2000),
-        jti: 'jti-1',
-        deviceId: DEVICE_ID,
-        userId: 'user-1',
+      accessToken: 'access-token',
+      accessExpiresAt: new Date(Date.now() + 1000),
+      refreshToken: 'refresh-token',
+      refreshExpiresAt: new Date(Date.now() + 2000),
+      jti: 'jti-1',
+      deviceId: DEVICE_ID,
+      userId: 'user-1',
     });
     const refreshHandler: RefreshService = {
       refresh: refreshMock,
