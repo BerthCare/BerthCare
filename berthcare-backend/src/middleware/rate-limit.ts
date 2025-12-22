@@ -96,6 +96,9 @@ export const createRedisStore = (client: RedisLike): RateLimitStore => ({
   },
 });
 
+const hashIdentifier = (value: string): string =>
+  value ? createHash('sha256').update(value).digest('hex').slice(0, 16) : '';
+
 const defaultKeyBuilder = (req: Request): string => {
   const ip = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -103,9 +106,6 @@ const defaultKeyBuilder = (req: Request): string => {
   const deviceId = typeof body.deviceId === 'string' ? hashIdentifier(body.deviceId) : '';
   return `rl:${ip}:${email}:${deviceId}:${req.path}`;
 };
-
-const hashIdentifier = (value: string): string =>
-  value ? createHash('sha256').update(value).digest('hex').slice(0, 16) : '';
 
 export const rateLimit =
   (options: RateLimitOptions) =>

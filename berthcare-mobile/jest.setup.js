@@ -30,6 +30,7 @@ jest.mock('react-native-safe-area-context', () => {
 
 jest.mock('react-native-keychain', () => {
   const store = new Map();
+  const DEFAULT_SERVICE = 'jest-keychain-default';
   return {
     ACCESSIBLE: {
       AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY',
@@ -42,12 +43,12 @@ jest.mock('react-native-keychain', () => {
       SECURE_SOFTWARE: 'SECURE_SOFTWARE',
     },
     setGenericPassword: jest.fn(async (username, password, options) => {
-      const service = options?.service ?? username;
+      const service = options?.service ?? DEFAULT_SERVICE;
       store.set(service, { username, password });
       return true;
     }),
     getGenericPassword: jest.fn(async (options) => {
-      const service = options?.service ?? '';
+      const service = options?.service ?? DEFAULT_SERVICE;
       const record = store.get(service);
       if (!record) {
         return false;
@@ -55,7 +56,7 @@ jest.mock('react-native-keychain', () => {
       return { username: record.username, password: record.password };
     }),
     resetGenericPassword: jest.fn(async (options) => {
-      const service = options?.service ?? '';
+      const service = options?.service ?? DEFAULT_SERVICE;
       store.delete(service);
       return true;
     }),

@@ -37,6 +37,14 @@ describe('AuthService.refresh', () => {
       deviceId: DEVICE_ID,
       rotate: true,
     });
-    expect(result.refreshToken).toBe('refresh-token');
+    expect(result).toMatchObject({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      jti: 'jti-1',
+      deviceId: DEVICE_ID,
+      userId: 'user-1',
+    });
+    expect(result.accessExpiresAt).toEqual(expect.any(Date));
+    expect(result.refreshExpiresAt).toEqual(expect.any(Date));
   });
 });

@@ -341,8 +341,11 @@ describe('AuthService unit tests', () => {
   });
 
   it('getAccessToken returns existing valid token without refreshing', async () => {
+    const fakeNow = 1_700_000_800_000;
+    jest.spyOn(Date, 'now').mockReturnValue(fakeNow);
+
     const authService = AuthService.getInstance();
-    const expiry = Date.now() + 120_000;
+    const expiry = fakeNow + 120_000;
 
     await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, 'valid-token');
     await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, expiry.toString());

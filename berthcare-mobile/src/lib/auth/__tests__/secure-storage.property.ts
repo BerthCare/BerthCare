@@ -59,11 +59,12 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
 
     await fc.assert(
       fc.asyncProperty(jwtArbitrary, async (jwtToken) => {
+        const freshStorage = new InMemorySecureStorage();
         // Store as access token
-        await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, jwtToken);
+        await freshStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, jwtToken);
 
         // Retrieve
-        const retrieved = await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        const retrieved = await freshStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
         // Must be exactly the same
         expect(retrieved).toBe(jwtToken);
@@ -110,18 +111,19 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
         fc.string({ minLength: 1, maxLength: 100 }),
         fc.string({ minLength: 1, maxLength: 100 }),
         async (value1, value2) => {
+          const freshStorage = new InMemorySecureStorage();
           // Store two different values
-          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, value1);
-          await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, value2);
+          await freshStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, value1);
+          await freshStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, value2);
 
           // Remove only access token
-          await storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+          await freshStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
 
           // Access token should be null
-          expect(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN)).toBeNull();
+          expect(await freshStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)).toBeNull();
 
           // Refresh token should still exist
-          expect(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN)).toBe(value2);
+          expect(await freshStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)).toBe(value2);
         }
       ),
       { numRuns: 100 }
