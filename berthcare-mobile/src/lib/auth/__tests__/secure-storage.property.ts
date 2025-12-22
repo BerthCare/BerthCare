@@ -84,8 +84,9 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
           STORAGE_KEYS.LAST_ONLINE_TIMESTAMP
         ),
         async (timestamp, storageKey) => {
-          await storage.setItem(storageKey, timestamp);
-          const retrieved = await storage.getItem(storageKey);
+          const freshStorage = new InMemorySecureStorage();
+          await freshStorage.setItem(storageKey, timestamp);
+          const retrieved = await freshStorage.getItem(storageKey);
           expect(retrieved).toBe(timestamp);
         }
       ),
@@ -141,25 +142,26 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
           lastOnline: fc.integer({ min: 0 }).map(String),
         }),
         async (tokens) => {
+          const freshStorage = new InMemorySecureStorage();
           // Store all tokens
-          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
-          await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
-          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, tokens.accessExpiry);
-          await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY, tokens.refreshExpiry);
-          await storage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, tokens.lastOnline);
+          await freshStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
+          await freshStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
+          await freshStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, tokens.accessExpiry);
+          await freshStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY, tokens.refreshExpiry);
+          await freshStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, tokens.lastOnline);
 
           // Clear all
-          await storage.clear();
+          await freshStorage.clear();
 
           // All keys should return null
-          expect(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN)).toBeNull();
-          expect(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN)).toBeNull();
-          expect(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY)).toBeNull();
-          expect(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY)).toBeNull();
-          expect(await storage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP)).toBeNull();
+          expect(await freshStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)).toBeNull();
+          expect(await freshStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)).toBeNull();
+          expect(await freshStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY)).toBeNull();
+          expect(await freshStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY)).toBeNull();
+          expect(await freshStorage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP)).toBeNull();
 
           // Storage should be empty
-          expect(storage.getStorageSize()).toBe(0);
+          expect(freshStorage.getStorageSize()).toBe(0);
         }
       ),
       { numRuns: 100 }
@@ -173,13 +175,14 @@ describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-
         fc.string({ minLength: 1, maxLength: 100 }),
         fc.constantFrom(...Object.values(STORAGE_KEYS)),
         async (value1, value2, storageKey) => {
+          const freshStorage = new InMemorySecureStorage();
           // Store first value
-          await storage.setItem(storageKey, value1);
-          expect(await storage.getItem(storageKey)).toBe(value1);
+          await freshStorage.setItem(storageKey, value1);
+          expect(await freshStorage.getItem(storageKey)).toBe(value1);
 
           // Overwrite with second value
-          await storage.setItem(storageKey, value2);
-          expect(await storage.getItem(storageKey)).toBe(value2);
+          await freshStorage.setItem(storageKey, value2);
+          expect(await freshStorage.getItem(storageKey)).toBe(value2);
         }
       ),
       { numRuns: 100 }

@@ -20,12 +20,12 @@ class MockApiClient implements ApiClientInterface {
   }
 
   setNetworkError(): void {
-    const err = new Error('Network error: connection failed') as Error;
+    const err = new Error('Network error: connection failed');
     this.error = err;
   }
 
   setUnauthorized(): void {
-    const err = new Error('Unauthorized') as Error & { status?: number };
+    const err: Error & { status?: number } = new Error('Unauthorized');
     err.status = 401;
     this.error = err;
   }
@@ -64,8 +64,11 @@ class DeferredRefreshApiClient implements ApiClientInterface {
   }
 
   resolveRefreshPromise(): void {
-    if (!this.refreshResponse || this.resolveRefresh.length === 0) {
-      throw new Error('Refresh response or resolver not set');
+    if (!this.refreshResponse) {
+      throw new Error('Refresh response not set');
+    }
+    if (this.resolveRefresh.length === 0) {
+      return;
     }
     this.resolveRefresh.forEach((resolve) => resolve(this.refreshResponse as RefreshResponse));
     this.resolveRefresh = [];
