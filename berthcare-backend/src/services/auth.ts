@@ -38,8 +38,14 @@ export interface AuthHandler {
 }
 
 export class AuthError extends Error {
-  constructor(public readonly code: 'INVALID_CREDENTIALS' | 'INVALID_DEVICE') {
-    super(code);
+  constructor(
+    public readonly code:
+      | 'INVALID_CREDENTIALS'
+      | 'INVALID_DEVICE'
+      | 'REFRESH_ROTATION_FAILED',
+    message: string = code
+  ) {
+    super(message);
     this.name = 'AuthError';
     Object.setPrototypeOf(this, new.target.prototype);
   }
@@ -149,7 +155,7 @@ export class AuthService implements AuthHandler {
       throw new AuthError('INVALID_CREDENTIALS');
     }
 
-    const access = signAccessToken(caregiver.id, input.deviceId, { role: caregiver.role });
+    const access = signAccessToken(caregiver.id, input.deviceId, caregiver.role);
     const refresh = await this.refreshTokens.createRefreshToken(caregiver.id, input.deviceId);
 
     await this.recordAudit(caregiver.id, 'auth.login.success', {
@@ -190,7 +196,10 @@ export class AuthService implements AuthHandler {
     });
 
     if (!result.refreshToken || !result.refreshExpiresAt) {
-      throw new Error('Refresh did not return rotated token');
+      throw new AuthError(
+        'REFRESH_ROTATION_FAILED',
+        'Refresh did not return rotated token'
+      );
     }
 
     await this.recordAudit(result.userId, 'auth.refresh.success', {

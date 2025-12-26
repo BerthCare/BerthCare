@@ -80,7 +80,10 @@ describe('AuthService.refresh', () => {
 
     await expect(
       service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
-    ).rejects.toThrow('Refresh did not return rotated token');
+    ).rejects.toMatchObject({
+      code: 'REFRESH_ROTATION_FAILED',
+      message: 'Refresh did not return rotated token',
+    });
   });
 
   it('propagates errors from refresh handler', async () => {

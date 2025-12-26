@@ -4,7 +4,7 @@ import { config } from './config';
 type AccessClaims = JwtPayload & {
   sub: string;
   deviceId: string;
-  [key: string]: unknown;
+  role?: string;
 };
 
 type RefreshClaims = JwtPayload & {
@@ -38,14 +38,14 @@ const nowSeconds = () => Math.floor(Date.now() / 1000);
 export const signAccessToken = (
   userId: string,
   deviceId: string,
-  extraClaims: Record<string, unknown> = {}
+  role?: string
 ): SignedToken<AccessClaims> => {
   const issuedAt = nowSeconds(); // approximate, actual iat set by jsonwebtoken
   const expiresAt = new Date((issuedAt + config.jwtAccessTtlSeconds) * 1000);
   const claims: AccessClaims = {
     sub: userId,
     deviceId,
-    ...extraClaims,
+    ...(role ? { role } : {}),
   };
 
   const token = jwt.sign(claims, getSecret(), {
