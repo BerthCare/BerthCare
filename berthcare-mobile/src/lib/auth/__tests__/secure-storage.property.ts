@@ -6,18 +6,12 @@ import { STORAGE_KEYS } from '../secure-storage';
 import { InMemorySecureStorage } from './helpers/in-memory-storage';
 
 describe('Feature: mobile-secure-token-storage, Property 1: Token storage round-trip', () => {
-  let storage: InMemorySecureStorage;
-
-  beforeEach(() => {
-    storage = new InMemorySecureStorage();
-  });
-
   it('all STORAGE_KEYS are unique and non-empty', () => {
     const values = Object.values(STORAGE_KEYS);
     const unique = new Set(values);
     expect(unique.size).toBe(values.length);
     values.forEach((value) => {
-      expect(value).toEqual(expect.any(String));
+      expect(typeof value).toBe('string');
       expect(value.trim().length).toBeGreaterThan(0);
     });
   });

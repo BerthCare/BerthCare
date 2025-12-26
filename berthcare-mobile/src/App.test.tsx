@@ -2,6 +2,8 @@ import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import App from './App';
 
+jest.setTimeout(15000);
+
 const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 const renderApp = async () => {

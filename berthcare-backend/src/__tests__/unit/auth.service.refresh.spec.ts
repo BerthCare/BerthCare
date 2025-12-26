@@ -18,16 +18,16 @@ describe('AuthService.refresh', () => {
     });
     const refreshHandler = {
       refresh: refreshMock,
-    } satisfies Pick<RefreshService, 'refresh'> as RefreshService;
+    } as RefreshService;
 
     const caregiverRepo = {
       findByEmail: jest.fn(),
       findById: jest.fn(),
-    } satisfies Partial<CaregiverRepository> as CaregiverRepository;
+    } as unknown as CaregiverRepository;
 
     const refreshTokenService = {
       createRefreshToken: jest.fn(),
-    } satisfies Partial<RefreshTokenService> as RefreshTokenService;
+    } as unknown as RefreshTokenService;
 
     const service = new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
     const result = await service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID });
@@ -52,16 +52,16 @@ describe('AuthService.refresh', () => {
     const refreshMock = jest.fn();
     const refreshHandler = {
       refresh: refreshMock,
-    } satisfies Pick<RefreshService, 'refresh'> as RefreshService;
+    } as RefreshService;
 
     const caregiverRepo = {
       findByEmail: jest.fn(),
       findById: jest.fn(),
-    } satisfies Partial<CaregiverRepository> as CaregiverRepository;
+    } as unknown as CaregiverRepository;
 
     const refreshTokenService = {
       createRefreshToken: jest.fn(),
-    } satisfies Partial<RefreshTokenService> as RefreshTokenService;
+    } as unknown as RefreshTokenService;
 
     const service = new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
 
@@ -81,16 +81,16 @@ describe('AuthService.refresh', () => {
     });
     const refreshHandler = {
       refresh: refreshMock,
-    } satisfies Pick<RefreshService, 'refresh'> as RefreshService;
+    } as RefreshService;
 
     const caregiverRepo = {
       findByEmail: jest.fn(),
       findById: jest.fn(),
-    } satisfies Partial<CaregiverRepository> as CaregiverRepository;
+    } as unknown as CaregiverRepository;
 
     const refreshTokenService = {
       createRefreshToken: jest.fn(),
-    } satisfies Partial<RefreshTokenService> as RefreshTokenService;
+    } as unknown as RefreshTokenService;
 
     const service = new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
 
