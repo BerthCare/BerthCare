@@ -19,11 +19,13 @@ describe('AuthService.refresh', () => {
   };
 
   it('delegates refresh and returns rotated tokens', async () => {
+    const accessExpiresAt = new Date(Date.now() + 1000);
+    const refreshExpiresAt = new Date(Date.now() + 2000);
     const refreshMock = jest.fn().mockResolvedValue({
       accessToken: 'access-token',
-      accessExpiresAt: new Date(Date.now() + 1000),
+      accessExpiresAt,
       refreshToken: 'refresh-token',
-      refreshExpiresAt: new Date(Date.now() + 2000),
+      refreshExpiresAt,
       jti: 'jti-1',
       deviceId: DEVICE_ID,
       userId: 'user-1',
@@ -46,8 +48,8 @@ describe('AuthService.refresh', () => {
       deviceId: DEVICE_ID,
       userId: 'user-1',
     });
-    expect(result.accessExpiresAt).toEqual(expect.any(Date));
-    expect(result.refreshExpiresAt).toEqual(expect.any(Date));
+    expect(result.accessExpiresAt).toEqual(accessExpiresAt);
+    expect(result.refreshExpiresAt).toEqual(refreshExpiresAt);
   });
 
   it('rejects invalid device id before calling refresh handler', async () => {
@@ -79,5 +81,17 @@ describe('AuthService.refresh', () => {
     await expect(
       service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
     ).rejects.toThrow('Refresh did not return rotated token');
+  });
+
+  it('propagates errors from refresh handler', async () => {
+    const refreshMock = jest.fn().mockRejectedValue(new Error('Refresh handler failure'));
+    const refreshHandler = {
+      refresh: refreshMock,
+    } as RefreshService;
+    const service = buildService(refreshHandler);
+
+    await expect(
+      service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
+    ).rejects.toThrow('Refresh handler failure');
   });
 });
