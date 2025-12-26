@@ -2,7 +2,7 @@ import { Prisma } from '../generated/prisma/client';
 import { auditLogRepository } from '../repositories/audit-log';
 import { caregiverRepository, type CaregiverRepository } from '../repositories/caregiver';
 import { signAccessToken } from '../lib/jwt';
-import { verifyPassword } from '../lib/auth/passwords';
+import { DUMMY_PASSWORD_HASH, verifyPassword } from '../lib/auth/passwords';
 import { authLogger } from '../observability/auth-logger';
 import { refreshTokenService, type RefreshTokenService } from './refresh-token';
 import { refreshService, type RefreshService } from './refresh';
@@ -116,6 +116,8 @@ export class AuthService implements AuthHandler {
     const caregiver = await this.caregivers.findByEmail(normalizedEmail);
 
     if (!caregiver || caregiver.isActive === false || !caregiver.passwordHash) {
+      // Always run a bcrypt compare to reduce timing-based account enumeration.
+      await verifyPassword(input.password, DUMMY_PASSWORD_HASH);
       authLogger.warn(
         {
           event: 'auth.login.failure',

@@ -10,6 +10,10 @@ const resolveCost = (): number => {
   return parsed;
 };
 
+// Precomputed bcrypt hash for timing-safe comparisons on invalid accounts.
+export const DUMMY_PASSWORD_HASH =
+  '$2b$10$YLyj7DuHyNMBsM0ORv4/I.7EimAtsvnruTe4hpcizmJS1WfAbf/ia';
+
 export const hashPassword = async (password: string, cost: number = resolveCost()): Promise<string> => {
   return bcrypt.hash(password, cost);
 };
