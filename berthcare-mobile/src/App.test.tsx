@@ -5,6 +5,8 @@ import { palette } from '@ui/palette';
 
 jest.setTimeout(15000);
 
+jest.setTimeout(15000);
+
 const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 const renderApp = async () => {
