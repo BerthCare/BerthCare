@@ -61,7 +61,7 @@ export const signRefreshToken = (
   userId: string,
   deviceId: string,
   jti: string
-): Promise<SignedToken<RefreshClaims>> => {
+): SignedToken<RefreshClaims> => {
   const issuedAt = nowSeconds();
   const expiresAt = new Date((issuedAt + config.jwtRefreshTtlSeconds) * 1000);
   const claims: RefreshClaims = {
@@ -76,7 +76,7 @@ export const signRefreshToken = (
     mutatePayload: false,
   });
 
-  return Promise.resolve({ token, expiresAt, claims });
+  return { token, expiresAt, claims };
 };
 
 const verifyToken = <T extends JwtPayload>(token: string): T => {

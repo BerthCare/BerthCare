@@ -28,7 +28,7 @@ describe('RefreshTokenService', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-02T00:00:00Z'));
     jest.clearAllMocks();
-    mockedSignRefreshToken.mockResolvedValue({
+    mockedSignRefreshToken.mockReturnValue({
       token: 'opaque-refresh-token',
       expiresAt: new Date('2025-02-01T00:00:00Z'),
       claims: { sub: 'user', deviceId: 'device', jti: 'provided-jti' },

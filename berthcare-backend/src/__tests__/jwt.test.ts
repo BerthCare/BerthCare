@@ -54,7 +54,7 @@ describe('JWT helpers', () => {
     const deviceId = randomUUID();
     const jti = randomUUID();
 
-    const { token, expiresAt, claims }: SignedToken<RefreshClaims> = await signRefreshToken(
+    const { token, expiresAt, claims }: SignedToken<RefreshClaims> = signRefreshToken(
       userId,
       deviceId,
       jti

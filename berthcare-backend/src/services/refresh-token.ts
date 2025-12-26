@@ -23,7 +23,7 @@ export class RefreshTokenService {
   async createRefreshToken(userId: string, deviceId: string): Promise<RefreshTokenResult> {
     const jti = randomUUID();
     const issuedAt = new Date();
-    const { token, expiresAt } = await signRefreshToken(userId, deviceId, jti);
+    const { token, expiresAt } = signRefreshToken(userId, deviceId, jti);
 
     const payload: UpsertRefreshTokenInput = {
       jti,
