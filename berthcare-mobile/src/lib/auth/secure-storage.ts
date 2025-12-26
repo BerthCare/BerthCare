@@ -69,18 +69,60 @@ export const STORAGE_KEYS = {
   LAST_ONLINE_TIMESTAMP: 'berthcare_last_online',
 } as const;
 
+export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
+
+const STORAGE_KEY_LIST = Object.values(STORAGE_KEYS) as StorageKey[];
+const STORAGE_KEY_SET = new Set<StorageKey>(STORAGE_KEY_LIST);
+
+const assertStorageKey = (key: string): StorageKey => {
+  const storageKey = key as StorageKey;
+  if (!STORAGE_KEY_SET.has(storageKey)) {
+    throw new Error(`Invalid storage key: ${key}`);
+  }
+  return storageKey;
+};
+
 /**
  * Service name used for Keychain storage.
  * This creates a namespace for BerthCare auth data in the system keychain.
  */
 const SERVICE_NAME = 'com.berthcare.auth';
 
+const KEYCHAIN_ACCESSIBLE = Keychain.ACCESSIBLE.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY;
+const KEYCHAIN_STORAGE = Keychain.STORAGE_TYPE.AES_GCM_NO_AUTH;
+const KEYCHAIN_PRIMARY_SECURITY_LEVEL: Keychain.SECURITY_LEVEL | undefined =
+  Keychain.SECURITY_LEVEL.SECURE_HARDWARE;
+const KEYCHAIN_FALLBACK_SECURITY_LEVEL: Keychain.SECURITY_LEVEL | undefined =
+  Keychain.SECURITY_LEVEL.SECURE_SOFTWARE;
+
+const KEYCHAIN_SET_OPTIONS: Omit<Keychain.SetOptions, 'service' | 'securityLevel'> = {
+  accessible: KEYCHAIN_ACCESSIBLE,
+  storage: KEYCHAIN_STORAGE,
+  cloudSync: false,
+};
+
+const buildServiceName = (key: StorageKey): string => `${SERVICE_NAME}.${key}`;
+
+const buildBaseOptions = (key: StorageKey): Keychain.BaseOptions => ({
+  service: buildServiceName(key),
+  cloudSync: false,
+});
+
+const buildSetOptions = (
+  key: StorageKey,
+  securityLevel?: Keychain.SECURITY_LEVEL
+): Keychain.SetOptions => ({
+  ...KEYCHAIN_SET_OPTIONS,
+  ...(securityLevel ? { securityLevel } : {}),
+  service: buildServiceName(key),
+});
+
 /**
  * Implementation of SecureStorageAdapter using react-native-keychain.
  *
  * Uses platform-native secure storage mechanisms:
- * - **iOS**: Keychain Services with kSecAttrAccessibleWhenUnlocked
- * - **Android**: Keystore with AES-256 encryption
+ * - **iOS**: Keychain Services (after first unlock, this device only)
+ * - **Android**: Keystore with AES-GCM (hardware-backed when available)
  *
  * Each storage key gets its own service namespace to allow independent
  * storage and retrieval of multiple values.
@@ -95,6 +137,21 @@ const SERVICE_NAME = 'com.berthcare.auth';
  * ```
  */
 export class KeychainSecureStorage implements SecureStorageAdapter {
+  private async writeValue(
+    key: StorageKey,
+    value: string,
+    securityLevel?: Keychain.SECURITY_LEVEL
+  ): Promise<void> {
+    const result = await Keychain.setGenericPassword(
+      key,
+      value,
+      buildSetOptions(key, securityLevel)
+    );
+    if (!result) {
+      throw new Error('Secure storage write failed');
+    }
+  }
+
   /**
    * Store a value securely in the platform keychain.
    *
@@ -111,9 +168,16 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async setItem(key: string, value: string): Promise<void> {
-    await Keychain.setGenericPassword(key, value, {
-      service: `${SERVICE_NAME}.${key}`,
-    });
+    const storageKey = assertStorageKey(key);
+    try {
+      await this.writeValue(storageKey, value, KEYCHAIN_PRIMARY_SECURITY_LEVEL);
+    } catch (error) {
+      if (KEYCHAIN_PRIMARY_SECURITY_LEVEL && KEYCHAIN_FALLBACK_SECURITY_LEVEL) {
+        await this.writeValue(storageKey, value, KEYCHAIN_FALLBACK_SECURITY_LEVEL);
+        return;
+      }
+      throw error;
+    }
   }
 
   /**
@@ -134,9 +198,8 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async getItem(key: string): Promise<string | null> {
-    const result = await Keychain.getGenericPassword({
-      service: `${SERVICE_NAME}.${key}`,
-    });
+    const storageKey = assertStorageKey(key);
+    const result = await Keychain.getGenericPassword(buildBaseOptions(storageKey));
 
     if (result && result.password) {
       return result.password;
@@ -159,9 +222,8 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async removeItem(key: string): Promise<void> {
-    await Keychain.resetGenericPassword({
-      service: `${SERVICE_NAME}.${key}`,
-    });
+    const storageKey = assertStorageKey(key);
+    await Keychain.resetGenericPassword(buildBaseOptions(storageKey));
   }
 
   /**
@@ -179,8 +241,7 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
    * ```
    */
   async clear(): Promise<void> {
-    const keys = Object.values(STORAGE_KEYS);
-    await Promise.all(keys.map((key) => this.removeItem(key)));
+    await Promise.all(STORAGE_KEY_LIST.map((key) => this.removeItem(key)));
   }
 }
 

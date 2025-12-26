@@ -63,7 +63,7 @@ export const generateRefreshToken = (): RefreshTokenSecret => {
 };
 
 export const hashRefreshSecret = (secret: string, salt: string): string => {
-  return crypto.createHash('sha256').update(`${salt}:${secret}`).digest('hex');
+  return crypto.createHmac('sha256', salt).update(secret).digest('hex');
 };
 
 export const offlineGraceExceeded = (lastSeenAt: Date | null | undefined): boolean => {

@@ -114,6 +114,10 @@ The auth module (`src/lib/auth/`) provides secure token storage and authenticati
 - **Offline Support**: 7-day grace period for offline operation in rural areas
 - **Token Persistence**: Tokens survive app restarts while remaining encrypted
 
+### Native Setup Notes
+- `react-native-keychain` is a native module, so Expo Go will not work. Use a custom dev client (`npm run ios` / `npm run android`) or an EAS build.
+- After adding/upgrading native modules, rerun `npx pod-install` for iOS and rebuild the dev client.
+
 ### Configuration and Initialization
 
 Configure the auth service during app initialization:

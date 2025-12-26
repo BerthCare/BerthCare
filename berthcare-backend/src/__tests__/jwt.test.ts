@@ -33,9 +33,7 @@ describe('JWT helpers', () => {
     const userId = randomUUID();
     const deviceId = randomUUID();
 
-    const { token, expiresAt, claims } = signAccessToken(userId, deviceId, {
-      role: 'caregiver',
-    });
+    const { token, expiresAt, claims } = signAccessToken(userId, deviceId, 'caregiver');
     expect(token).toBeDefined();
     expect(claims.sub).toBe(userId);
     expect(claims.deviceId).toBe(deviceId);
@@ -56,7 +54,7 @@ describe('JWT helpers', () => {
     const deviceId = randomUUID();
     const jti = randomUUID();
 
-    const { token, expiresAt, claims }: SignedToken<RefreshClaims> = await signRefreshToken(
+    const { token, expiresAt, claims }: SignedToken<RefreshClaims> = signRefreshToken(
       userId,
       deviceId,
       jti

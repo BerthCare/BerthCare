@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authService, AuthError, type AuthHandler } from '../services/auth';
 import { refreshService, RefreshError, RefreshService } from '../services/refresh';
-import type { Request } from 'express';
+import { getBody } from '../lib/http';
 
 const isUuid = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -11,10 +11,6 @@ export const createAuthRouter = (
   refreshSvc: RefreshService = refreshService
 ) => {
   const router = Router();
-
-  const getBody = (req: Request): Record<string, unknown> => {
-    return req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
-  };
 
   router.post('/login', async (req, res, next) => {
     const body = getBody(req);

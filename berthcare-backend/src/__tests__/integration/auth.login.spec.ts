@@ -2,33 +2,8 @@ import request from 'supertest';
 import type { Express } from 'express';
 import { createApp } from '../../index';
 import { createAuthRouter } from '../../routes/auth';
-import type { AuthHandler, LoginResult } from '../../services/auth';
-
-class FakeAuthService {
-  login(): Promise<LoginResult> {
-    return Promise.resolve({
-      accessToken: 'access-token',
-      accessExpiresAt: new Date(Date.now() + 1000),
-      refreshToken: 'refresh-token',
-      refreshExpiresAt: new Date(Date.now() + 2000),
-      userId: 'cg-1',
-      deviceId: '11111111-1111-4111-8111-111111111111',
-      jti: 'jti-1',
-    });
-  }
-
-  refresh(): Promise<LoginResult> {
-    return Promise.resolve({
-      accessToken: 'new-access-token',
-      accessExpiresAt: new Date(Date.now() + 1000),
-      refreshToken: 'new-refresh-token',
-      refreshExpiresAt: new Date(Date.now() + 2000),
-      userId: 'cg-1',
-      deviceId: '11111111-1111-4111-8111-111111111111',
-      jti: 'jti-2',
-    });
-  }
-}
+import type { AuthHandler } from '../../services/auth';
+import { FakeAuthService } from '../helpers/fake-services';
 
 describe('Auth routes', () => {
   let app: Express;
@@ -57,5 +32,37 @@ describe('Auth routes', () => {
 
   it('returns 400 on missing params', async () => {
     await request(app).post('/api/auth/login').send({ email: 'x' }).expect(400);
+  });
+
+  it('returns 400 for invalid email format', async () => {
+    await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'not-an-email',
+        password: 'pass',
+        deviceId: '11111111-1111-4111-8111-111111111111',
+      })
+      .expect(400);
+  });
+
+  it('returns 400 for invalid deviceId format', async () => {
+    await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'user@example.com',
+        password: 'pass',
+        deviceId: 'not-a-uuid',
+      })
+      .expect(400);
+  });
+
+  it('returns 400 for missing email', async () => {
+    await request(app)
+      .post('/api/auth/login')
+      .send({
+        password: 'pass',
+        deviceId: '11111111-1111-4111-8111-111111111111',
+      })
+      .expect(400);
   });
 });

@@ -1,6 +1,6 @@
 import { logger } from './logger';
 
-type AuthLogPayload = {
+export type AuthLogPayload = {
   caregiverId?: string;
   deviceId?: string;
   reason?: string;

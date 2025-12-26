@@ -1,89 +1,100 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
-import { AuthService } from '../../services/auth';
-import { auditLogRepository } from '../../repositories/audit-log';
-import { hashRefreshSecret } from '../../lib/auth/tokens';
+import { AuthError, AuthService } from '../../services/auth';
+import type { CaregiverRepository } from '../../repositories/caregiver';
+import type { RefreshTokenService } from '../../services/refresh-token';
+import type { RefreshService } from '../../services/refresh';
 
-describe.skip('AuthService.refresh', () => {
-  beforeAll(() => {
-    process.env.JWT_SECRET = 'test-secret';
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  const baseCaregiver = {
-    id: 'cg-1',
-    email: 'user@example.com',
-    name: 'User',
-    phone: '123',
-    organizationId: 'org',
-    role: 'caregiver',
-    isActive: true,
-    passwordHash: 'hash',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const buildRefreshRepo = () => {
-    const store = new Map<string, any>();
-    return {
-      create: jest.fn(async (data) => {
-        const id = `rt-${store.size + 1}`;
-        const created = { id, ...data };
-        store.set(id, created);
-        return created;
-      }),
-      findById: jest.fn(async (id: string) => store.get(id) ?? null),
-      revoke: jest.fn(async (id: string, reason: string) => {
-        const existing = store.get(id);
-        if (existing) store.set(id, { ...existing, status: 'revoked', revocationReason: reason });
-      }),
-      markRotated: jest.fn(async (id: string) => {
-        const existing = store.get(id);
-        if (existing) store.set(id, { ...existing, status: 'rotated' });
-      }),
-      touchLastSeen: jest.fn(async (id: string, at: Date) => {
-        const existing = store.get(id);
-        if (existing) store.set(id, { ...existing, lastSeenAt: at });
-      }),
-      _store: store,
-    };
-  };
-
-  it('rotates refresh token and issues new access token', async () => {
-    const refreshRepo = buildRefreshRepo();
-    const caregiverRepo: any = {
-      findById: jest.fn().mockResolvedValue(baseCaregiver),
+describe('AuthService.refresh', () => {
+  const DEVICE_ID = '11111111-1111-4111-8111-111111111111';
+  const buildService = (refreshHandler: RefreshService): AuthService => {
+    const caregiverRepo = {
       findByEmail: jest.fn(),
-    };
-    jest.spyOn(auditLogRepository, 'create').mockResolvedValue({} as any);
+      findById: jest.fn(),
+    } as unknown as CaregiverRepository;
 
-    const service = new AuthService(caregiverRepo, refreshRepo as any);
+    const refreshTokenService = {
+      createRefreshToken: jest.fn(),
+    } as unknown as RefreshTokenService;
 
-    // seed existing refresh token
-    const salt = 'salt';
-    const secret = 'secret';
-    const secretHash = hashRefreshSecret(secret, salt);
-    refreshRepo._store.set('rt-1', {
-      id: 'rt-1',
-      caregiverId: baseCaregiver.id,
-      deviceId: 'device-1',
-      secretHash,
-      salt,
-      status: 'active',
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60),
-      issuedAt: new Date(Date.now() - 1000),
-      lastSeenAt: new Date(),
+    return new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
+  };
+
+  it('delegates refresh and returns rotated tokens', async () => {
+    const accessExpiresAt = new Date(Date.now() + 1000);
+    const refreshExpiresAt = new Date(Date.now() + 2000);
+    const refreshMock = jest.fn().mockResolvedValue({
+      accessToken: 'access-token',
+      accessExpiresAt,
+      refreshToken: 'refresh-token',
+      refreshExpiresAt,
+      jti: 'jti-1',
+      deviceId: DEVICE_ID,
+      userId: 'user-1',
     });
+    const refreshHandler = {
+      refresh: refreshMock,
+    } as RefreshService;
+    const service = buildService(refreshHandler);
+    const result = await service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID });
 
-    const result = await service.refresh({
+    expect(refreshMock).toHaveBeenCalledWith({
       token: 'rt-1.secret',
-      deviceId: 'device-1',
+      deviceId: DEVICE_ID,
       rotate: true,
     });
+    expect(result).toMatchObject({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      jti: 'jti-1',
+      deviceId: DEVICE_ID,
+      userId: 'user-1',
+    });
+    expect(result.accessExpiresAt).toEqual(accessExpiresAt);
+    expect(result.refreshExpiresAt).toEqual(refreshExpiresAt);
+  });
 
-    expect(result.accessToken).toBeTruthy();
-    expect(result.refreshToken).toBeDefined();
+  it('rejects invalid device id before calling refresh handler', async () => {
+    const refreshMock = jest.fn();
+    const refreshHandler = {
+      refresh: refreshMock,
+    } as RefreshService;
+    const service = buildService(refreshHandler);
+
+    await expect(
+      service.refresh({ token: 'rt-1.secret', deviceId: 'not-a-uuid' })
+    ).rejects.toBeInstanceOf(AuthError);
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
+
+  it('throws when refresh handler does not return rotated token', async () => {
+    const refreshMock = jest.fn().mockResolvedValue({
+      accessToken: 'access-token',
+      accessExpiresAt: new Date(Date.now() + 1000),
+      jti: 'jti-1',
+      deviceId: DEVICE_ID,
+      userId: 'user-1',
+    });
+    const refreshHandler = {
+      refresh: refreshMock,
+    } as RefreshService;
+    const service = buildService(refreshHandler);
+
+    await expect(
+      service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
+    ).rejects.toMatchObject({
+      code: 'REFRESH_ROTATION_FAILED',
+      message: 'Refresh did not return rotated token',
+    });
+  });
+
+  it('propagates errors from refresh handler', async () => {
+    const refreshMock = jest.fn().mockRejectedValue(new Error('Refresh handler failure'));
+    const refreshHandler = {
+      refresh: refreshMock,
+    } as RefreshService;
+    const service = buildService(refreshHandler);
+
+    await expect(
+      service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
+    ).rejects.toThrow('Refresh handler failure');
   });
 });

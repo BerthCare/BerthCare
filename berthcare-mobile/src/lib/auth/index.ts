@@ -124,6 +124,7 @@ export { AuthService } from './auth';
 // ============================================
 
 export { KeychainSecureStorage, secureStorage, STORAGE_KEYS } from './secure-storage';
+export type { StorageKey } from './secure-storage';
 
 // ============================================
 // Types

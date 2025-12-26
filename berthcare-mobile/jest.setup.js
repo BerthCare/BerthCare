@@ -1,4 +1,6 @@
 // Jest setup file for React Native Testing Library
+import React from 'react';
+import { View } from 'react-native';
 import '@testing-library/jest-native/extend-expect';
 
 jest.mock('expo-updates', () => ({
@@ -10,15 +12,91 @@ jest.mock('expo-status-bar', () => ({
   StatusBar: 'StatusBar',
 }));
 
+const mockReact = React;
+const mockView = View;
+const mockSafeAreaInset = { top: 0, right: 0, bottom: 0, left: 0 };
+
+jest.mock('react-native-safe-area-context', () => {
+  return {
+    SafeAreaProvider: ({ children }) => mockReact.createElement(mockReact.Fragment, null, children),
+    SafeAreaView: ({ children, ...props }) => mockReact.createElement(mockView, props, children),
+    useSafeAreaInsets: () => mockSafeAreaInset,
+    SafeAreaInsetsContext: {
+      Provider: ({ children }) => mockReact.createElement(mockReact.Fragment, null, children),
+      Consumer: ({ children }) => children(mockSafeAreaInset),
+    },
+  };
+});
+
+jest.mock('react-native-keychain', () => {
+  const store = new Map();
+  const DEFAULT_SERVICE = 'jest-keychain-default';
+  return {
+    ACCESSIBLE: {
+      AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY',
+    },
+    STORAGE_TYPE: {
+      AES_GCM_NO_AUTH: 'AES_GCM_NO_AUTH',
+    },
+    SECURITY_LEVEL: {
+      SECURE_HARDWARE: 'SECURE_HARDWARE',
+      SECURE_SOFTWARE: 'SECURE_SOFTWARE',
+    },
+    setGenericPassword: jest.fn(async (username, password, options) => {
+      const service = options?.service ?? DEFAULT_SERVICE;
+      store.set(service, { username, password });
+      return true;
+    }),
+    getGenericPassword: jest.fn(async (options) => {
+      const service = options?.service ?? DEFAULT_SERVICE;
+      const record = store.get(service);
+      if (!record) {
+        return false;
+      }
+      return { username: record.username, password: record.password };
+    }),
+    resetGenericPassword: jest.fn(async (options) => {
+      const service = options?.service ?? DEFAULT_SERVICE;
+      store.delete(service);
+      return true;
+    }),
+  };
+});
+
 // Mock react-native modules
-jest.mock('react-native/Libraries/Animated/NativeAnimatedModule', () => ({
-  default: {
+jest.mock('react-native/Libraries/Animated/NativeAnimatedModule', () => {
+  const nativeAnimatedModule = {
+    createAnimatedNode: jest.fn(),
+    updateAnimatedNodeConfig: jest.fn(),
+    getValue: jest.fn(),
+    startListeningToAnimatedNodeValue: jest.fn(),
+    stopListeningToAnimatedNodeValue: jest.fn(),
+    connectAnimatedNodes: jest.fn(),
+    disconnectAnimatedNodes: jest.fn(),
+    startAnimatingNode: jest.fn(),
+    stopAnimation: jest.fn(),
+    setAnimatedNodeValue: jest.fn(),
+    setAnimatedNodeOffset: jest.fn(),
+    flattenAnimatedNodeOffset: jest.fn(),
+    extractAnimatedNodeOffset: jest.fn(),
+    connectAnimatedNodeToView: jest.fn(),
+    disconnectAnimatedNodeFromView: jest.fn(),
+    restoreDefaultValues: jest.fn(),
+    dropAnimatedNode: jest.fn(),
+    addAnimatedEventToView: jest.fn(),
+    removeAnimatedEventFromView: jest.fn(),
     addListener: jest.fn(),
+    removeListener: jest.fn(),
     removeListeners: jest.fn(),
     startOperationBatch: jest.fn(),
     finishOperationBatch: jest.fn(),
-  },
-}));
+  };
+
+  return {
+    __esModule: true,
+    default: nativeAnimatedModule,
+  };
+});
 
 jest.mock('@sentry/react-native', () => {
   const Native = {

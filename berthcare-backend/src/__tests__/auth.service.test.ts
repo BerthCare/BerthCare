@@ -86,9 +86,11 @@ describe('AuthService.login', () => {
       deviceId: '11111111-1111-4111-8111-111111111111',
     });
 
-    expect(signAccessToken).toHaveBeenCalledWith('user-1', '11111111-1111-4111-8111-111111111111', {
-      role: 'caregiver',
-    });
+    expect(signAccessToken).toHaveBeenCalledWith(
+      'user-1',
+      '11111111-1111-4111-8111-111111111111',
+      'caregiver'
+    );
     expect(refreshTokenService.createRefreshToken).toHaveBeenCalledWith(
       'user-1',
       '11111111-1111-4111-8111-111111111111'

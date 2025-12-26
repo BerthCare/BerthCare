@@ -3,17 +3,16 @@ import {
   Alert,
   Button,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { palette } from '@ui/palette';
-import type { AuthState } from '@/lib/auth';
-import type { TokenProvider } from '@/lib/auth/types';
+import type { ApiClientInterface, AuthState } from '@/lib/auth';
 import { AuthService, secureStorage, STORAGE_KEYS } from '@/lib/auth';
 import { ApiClient, createDefaultConfig } from '@/lib/api';
 import { triggerTestCrash } from '@/observability/testing';
@@ -32,6 +31,27 @@ const DEFAULT_AUTH_STATE: AuthState = {
 };
 
 const defaultBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? createDefaultConfig().baseUrl;
+const DEV_DEVICE_IDS: Record<string, string> = {
+  ios: '00000000-0000-4000-8000-000000000001',
+  android: '00000000-0000-4000-8000-000000000002',
+};
+
+const defaultDeviceId =
+  process.env.EXPO_PUBLIC_DEVICE_ID && process.env.EXPO_PUBLIC_DEVICE_ID.trim() !== ''
+    ? process.env.EXPO_PUBLIC_DEVICE_ID
+    : (DEV_DEVICE_IDS[Platform.OS] ?? '00000000-0000-4000-8000-000000000000');
+
+const createAuthApiAdapter = (baseUrl: string): ApiClientInterface => {
+  const client = ApiClient.configure(createDefaultConfig({ baseUrl }));
+  return {
+    post<T>(url: string, data?: unknown) {
+      return client.post<T>(url, data).promise.then((response) => response.data as T);
+    },
+    setTokenProvider(provider) {
+      client.setTokenProvider(provider);
+    },
+  };
+};
 
 function formatTimestamp(timestamp: number | null): string {
   if (!timestamp) return '—';
@@ -45,10 +65,18 @@ function previewToken(token: string | null): string {
   return `${display} (${token.length} chars)`;
 }
 
-function AuthDebugPanel({ baseUrl }: { baseUrl: string }) {
+function AuthDebugPanel({
+  baseUrl,
+  isAuthConfigured,
+  initialAuthState,
+}: {
+  baseUrl: string;
+  isAuthConfigured: boolean;
+  initialAuthState: AuthState;
+}) {
   const [email, setEmail] = useState('caregiver@example.com');
   const [password, setPassword] = useState('password123');
-  const [authState, setAuthState] = useState<AuthState>(DEFAULT_AUTH_STATE);
+  const [authState, setAuthState] = useState<AuthState>(initialAuthState);
   const [tokens, setTokens] = useState<TokenSnapshot>({
     accessToken: null,
     refreshToken: null,
@@ -57,6 +85,7 @@ function AuthDebugPanel({ baseUrl }: { baseUrl: string }) {
   });
   const [status, setStatus] = useState<string>('Idle');
   const [loading, setLoading] = useState<boolean>(false);
+  const controlsDisabled = loading || !isAuthConfigured;
 
   const authService = useMemo(() => AuthService.getInstance(), []);
 
@@ -77,33 +106,15 @@ function AuthDebugPanel({ baseUrl }: { baseUrl: string }) {
   }, []);
 
   useEffect(() => {
-    const client = ApiClient.configure(createDefaultConfig({ baseUrl }));
-    const apiAdapter = {
-      post<T>(url: string, data?: unknown) {
-        return client.post<T>(url, data).promise.then((response) => response.data as T);
-      },
-      setTokenProvider(provider: TokenProvider) {
-        client.setTokenProvider(provider);
-      },
-    };
-    AuthService.configure({
-      apiClient: apiAdapter,
-      secureStorage,
-      deviceId: `dev-${Platform.OS}-sim`,
-      offlineGracePeriodDays: 7,
-    });
+    if (!isAuthConfigured) {
+      return;
+    }
 
-    authService
-      .restoreAuthState()
-      .then((state) => {
-        setAuthState(state);
-        return refreshSnapshot();
-      })
-      .catch((error) => {
-        console.error('Auth restore failed', error);
-        setStatus('Auth restore failed');
-      });
-  }, [authService, baseUrl, refreshSnapshot]);
+    setAuthState(initialAuthState);
+    refreshSnapshot().catch((error) => {
+      console.error('Token snapshot refresh failed', error);
+    });
+  }, [initialAuthState, isAuthConfigured, refreshSnapshot]);
 
   const handleLogin = useCallback(async () => {
     setLoading(true);
@@ -187,9 +198,12 @@ function AuthDebugPanel({ baseUrl }: { baseUrl: string }) {
       <Text style={styles.value}>{baseUrl}</Text>
       <Text style={styles.label}>Auth State</Text>
       <Text style={styles.value}>
-        Authenticated: {authState.isAuthenticated ? 'yes' : 'no'} | Offline:{' '}
-        {authState.isOffline ? 'yes' : 'no'} | Requires Reauth:{' '}
-        {authState.requiresReauth ? 'yes' : 'no'}
+        {authState.isAuthenticated && !authState.requiresReauth
+          ? 'Authenticated'
+          : authState.requiresReauth
+            ? 'Requires re-auth'
+            : 'Signed out'}
+        {authState.isOffline ? ' (offline)' : ''}
       </Text>
 
       <Text style={styles.label}>Tokens</Text>
@@ -219,41 +233,90 @@ function AuthDebugPanel({ baseUrl }: { baseUrl: string }) {
       </View>
 
       <View style={styles.buttonRow}>
-        <Button disabled={loading} onPress={handleLogin} title="Login" />
-        <Button disabled={loading} onPress={handleLogout} title="Logout" />
+        <Button disabled={controlsDisabled} onPress={handleLogin} title="Login" />
+        <Button disabled={controlsDisabled} onPress={handleLogout} title="Logout" />
       </View>
       <View style={styles.buttonRow}>
-        <Button disabled={loading} onPress={handleGetAccessToken} title="Get Access Token" />
-        <Button disabled={loading} onPress={handleRefresh} title="Refresh Now" />
+        <Button
+          disabled={controlsDisabled}
+          onPress={handleGetAccessToken}
+          title="Get Access Token"
+        />
+        <Button disabled={controlsDisabled} onPress={handleRefresh} title="Refresh Now" />
       </View>
-      <Button disabled={loading} onPress={forceExpireAccessToken} title="Force Expire Access" />
+      <Button
+        disabled={controlsDisabled}
+        onPress={forceExpireAccessToken}
+        title="Force Expire Access"
+      />
 
-      <Text style={styles.status}>Status: {status}</Text>
+      <Text style={styles.status}>Status: {isAuthConfigured ? status : 'Auth initializing…'}</Text>
     </View>
   );
 }
 
 export default function App() {
+  const [authConfigured, setAuthConfigured] = useState(false);
+  const [authState, setAuthState] = useState<AuthState>(DEFAULT_AUTH_STATE);
+
+  useEffect(() => {
+    const apiAdapter = createAuthApiAdapter(defaultBaseUrl);
+    AuthService.configure({
+      apiClient: apiAdapter,
+      secureStorage,
+      deviceId: defaultDeviceId,
+      offlineGracePeriodDays: 7,
+    });
+    setAuthConfigured(true);
+  }, []);
+
+  useEffect(() => {
+    if (!authConfigured) {
+      return;
+    }
+    // Restore auth state on app start (works in both dev and production)
+    const authService = AuthService.getInstance();
+    authService
+      .restoreAuthState()
+      .then((state) => setAuthState(state))
+      .catch((error) => {
+        console.warn('Auth restore failed at bootstrap', error);
+        setAuthState(authService.getAuthState());
+      });
+  }, [authConfigured]);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>BerthCare</Text>
-        <Text style={styles.subtitle}>Mobile App Initialized</Text>
-        {__DEV__ && (
-          <View style={styles.debugBlock}>
-            <Text style={styles.debugTitle}>Debug</Text>
-            <Button
-              title="Trigger test crash"
-              onPress={() => {
-                Alert.alert('Triggering test crash', 'A test error will be thrown.');
-                triggerTestCrash();
-              }}
-            />
-            <AuthDebugPanel baseUrl={defaultBaseUrl} />
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.title}>BerthCare</Text>
+          <Text style={styles.subtitle} testID="auth-status-subtitle">
+            {authState.isAuthenticated && !authState.requiresReauth
+              ? 'Authenticated'
+              : authState.requiresReauth
+                ? 'Session expired — please log in'
+                : 'Signed out'}
+          </Text>
+          {__DEV__ && (
+            <View style={styles.debugBlock}>
+              <Text style={styles.debugTitle}>Debug</Text>
+              <Button
+                title="Trigger test crash"
+                onPress={() => {
+                  Alert.alert('Triggering test crash', 'A test error will be thrown.');
+                  triggerTestCrash();
+                }}
+              />
+              <AuthDebugPanel
+                baseUrl={defaultBaseUrl}
+                isAuthConfigured={authConfigured}
+                initialAuthState={authState}
+              />
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
