@@ -5,6 +5,18 @@ import type { RefreshService } from '../../services/refresh';
 
 describe('AuthService.refresh', () => {
   const DEVICE_ID = '11111111-1111-4111-8111-111111111111';
+  const buildService = (refreshHandler: RefreshService): AuthService => {
+    const caregiverRepo = {
+      findByEmail: jest.fn(),
+      findById: jest.fn(),
+    } as unknown as CaregiverRepository;
+
+    const refreshTokenService = {
+      createRefreshToken: jest.fn(),
+    } as unknown as RefreshTokenService;
+
+    return new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
+  };
 
   it('delegates refresh and returns rotated tokens', async () => {
     const refreshMock = jest.fn().mockResolvedValue({
@@ -19,17 +31,7 @@ describe('AuthService.refresh', () => {
     const refreshHandler = {
       refresh: refreshMock,
     } as RefreshService;
-
-    const caregiverRepo = {
-      findByEmail: jest.fn(),
-      findById: jest.fn(),
-    } as unknown as CaregiverRepository;
-
-    const refreshTokenService = {
-      createRefreshToken: jest.fn(),
-    } as unknown as RefreshTokenService;
-
-    const service = new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
+    const service = buildService(refreshHandler);
     const result = await service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID });
 
     expect(refreshMock).toHaveBeenCalledWith({
@@ -53,17 +55,7 @@ describe('AuthService.refresh', () => {
     const refreshHandler = {
       refresh: refreshMock,
     } as RefreshService;
-
-    const caregiverRepo = {
-      findByEmail: jest.fn(),
-      findById: jest.fn(),
-    } as unknown as CaregiverRepository;
-
-    const refreshTokenService = {
-      createRefreshToken: jest.fn(),
-    } as unknown as RefreshTokenService;
-
-    const service = new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
+    const service = buildService(refreshHandler);
 
     await expect(
       service.refresh({ token: 'rt-1.secret', deviceId: 'not-a-uuid' })
@@ -82,17 +74,7 @@ describe('AuthService.refresh', () => {
     const refreshHandler = {
       refresh: refreshMock,
     } as RefreshService;
-
-    const caregiverRepo = {
-      findByEmail: jest.fn(),
-      findById: jest.fn(),
-    } as unknown as CaregiverRepository;
-
-    const refreshTokenService = {
-      createRefreshToken: jest.fn(),
-    } as unknown as RefreshTokenService;
-
-    const service = new AuthService(caregiverRepo, refreshTokenService, refreshHandler);
+    const service = buildService(refreshHandler);
 
     await expect(
       service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
