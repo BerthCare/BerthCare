@@ -97,4 +97,16 @@ describe('AuthService.refresh', () => {
       service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
     ).rejects.toThrow('Refresh handler failure');
   });
+
+  it('propagates errors from refresh handler', async () => {
+    const refreshMock = jest.fn().mockRejectedValue(new Error('Refresh handler failure'));
+    const refreshHandler = {
+      refresh: refreshMock,
+    } as RefreshService;
+    const service = buildService(refreshHandler);
+
+    await expect(
+      service.refresh({ token: 'rt-1.secret', deviceId: DEVICE_ID })
+    ).rejects.toThrow('Refresh handler failure');
+  });
 });
