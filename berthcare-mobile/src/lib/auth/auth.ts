@@ -266,7 +266,7 @@ export class AuthService implements TokenProvider {
 
     try {
       // Send login request to backend
-      const response = await config.apiClient.post<LoginResponse>('/api/auth/login', {
+      const response = await config.apiClient.post<LoginResponse>('/auth/login', {
         email,
         password,
         deviceId: config.deviceId,
@@ -289,19 +289,36 @@ export class AuthService implements TokenProvider {
       }
 
       // Store tokens in secure storage
-      await Promise.all([
-        config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken),
-        config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken),
-        config.secureStorage.setItem(
-          STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
-          normalizedResponse.accessTokenExpiresAt.toString()
-        ),
-        config.secureStorage.setItem(
-          STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
-          normalizedResponse.refreshTokenExpiresAt.toString()
-        ),
-        config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString()),
-      ]);
+      try {
+        await Promise.all([
+          config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken),
+          config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken),
+          config.secureStorage.setItem(
+            STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
+            normalizedResponse.accessTokenExpiresAt.toString()
+          ),
+          config.secureStorage.setItem(
+            STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
+            normalizedResponse.refreshTokenExpiresAt.toString()
+          ),
+          config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString()),
+        ]);
+      } catch (storageError) {
+        await this.clearAllTokens();
+        this.authState = {
+          isAuthenticated: false,
+          isOffline: false,
+          requiresReauth: true,
+        };
+        return {
+          success: false,
+          error: new AuthError(
+            'StorageError',
+            'Failed to store authentication tokens',
+            storageError instanceof Error ? storageError : undefined
+          ),
+        };
+      }
 
       // Update auth state
       this.authState = {
@@ -772,9 +789,10 @@ export class AuthService implements TokenProvider {
 
     if (!refreshToken) {
       // No refresh token available
+      await this.clearAllTokens();
       this.authState = {
-        ...this.authState,
         isAuthenticated: false,
+        isOffline: false,
         requiresReauth: true,
       };
       return null;
@@ -782,7 +800,7 @@ export class AuthService implements TokenProvider {
 
     try {
       // Send refresh request to backend
-      const response = await config.apiClient.post<RefreshResponse>('/api/auth/refresh', {
+      const response = await config.apiClient.post<RefreshResponse>('/auth/refresh', {
         refreshToken,
         deviceId: config.deviceId,
       });
@@ -860,8 +878,8 @@ export class AuthService implements TokenProvider {
   }
 
   /**
-   * Clear all tokens from secure storage.
-   * Used when refresh fails due to expired/revoked token.
+   * Clear all tokens and auth metadata from secure storage.
+   * Used when refresh fails due to expired/revoked token or storage errors.
    */
   private async clearAllTokens(): Promise<void> {
     const config = this.ensureConfigured();
@@ -870,6 +888,7 @@ export class AuthService implements TokenProvider {
       config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
       config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY),
       config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY),
+      config.secureStorage.removeItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP),
     ]);
   }
 

@@ -1,20 +1,24 @@
-/**
- * Navigation type definitions
- *
- * This file contains TypeScript type definitions for React Navigation
- * including screen parameters, navigation props, and route types.
- */
+import type { RouteProp } from '@react-navigation/native';
+import type {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 
-// Placeholder for navigation types - to be implemented during navigation setup
 export type RootStackParamList = {
-  // TODO: Define navigation stack parameters
+  Login: undefined;
   Today: undefined;
-  Visit: { visitId?: string };
+  Visit: { visitId?: string } | undefined;
   Alert: undefined;
 };
 
-export type ScreenNavigationProp<T extends keyof RootStackParamList> = {
-  // TODO: Define navigation prop types
-  navigate: (screen: T, params?: RootStackParamList[T]) => void;
-  goBack: () => void;
-};
+export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
+  T
+>;
+
+export type ScreenNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
+  RootStackParamList,
+  T
+>;
+
+export type ScreenRouteProp<T extends keyof RootStackParamList> = RouteProp<RootStackParamList, T>;

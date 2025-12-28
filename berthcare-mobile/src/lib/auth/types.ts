@@ -192,6 +192,8 @@ export interface TokenProvider {
   refreshToken(): Promise<string | null>;
   /** Clear all stored tokens (logout) */
   clearTokens(): Promise<void>;
+  /** Optional hook for API clients to inspect auth state */
+  getAuthState?(): AuthState;
 }
 
 /**
@@ -269,7 +271,7 @@ export interface StoredTokenData {
 }
 
 /**
- * Request payload for the login endpoint (POST /api/auth/login).
+ * Request payload for the login endpoint (POST /auth/login).
  */
 export interface LoginRequest {
   /** User's email address */
@@ -281,7 +283,7 @@ export interface LoginRequest {
 }
 
 /**
- * Response from the login endpoint (POST /api/auth/login).
+ * Response from the login endpoint (POST /auth/login).
  */
 export interface LoginResponseSeconds {
   /** JWT access token */
@@ -309,14 +311,14 @@ export interface LoginResponseTimestamps {
 }
 
 /**
- * Response from the login endpoint (POST /api/auth/login).
+ * Response from the login endpoint (POST /auth/login).
  *
  * Supports either expiry seconds or absolute expiry timestamps.
  */
 export type LoginResponse = LoginResponseSeconds | LoginResponseTimestamps;
 
 /**
- * Request payload for the refresh endpoint (POST /api/auth/refresh).
+ * Request payload for the refresh endpoint (POST /auth/refresh).
  */
 export interface RefreshRequest {
   /** Current refresh token */
@@ -326,7 +328,7 @@ export interface RefreshRequest {
 }
 
 /**
- * Response from the refresh endpoint (POST /api/auth/refresh).
+ * Response from the refresh endpoint (POST /auth/refresh).
  */
 export interface RefreshResponseSeconds {
   /** New JWT access token */
@@ -354,7 +356,7 @@ export interface RefreshResponseTimestamps {
 }
 
 /**
- * Response from the refresh endpoint (POST /api/auth/refresh).
+ * Response from the refresh endpoint (POST /auth/refresh).
  *
  * Supports either expiry seconds or absolute expiry timestamps.
  */

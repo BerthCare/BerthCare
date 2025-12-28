@@ -48,6 +48,11 @@ export interface TokenProvider {
   getAccessToken(): Promise<string | null>;
   refreshToken(): Promise<string | null>;
   clearTokens(): Promise<void>;
+  getAuthState?(): {
+    isAuthenticated: boolean;
+    isOffline: boolean;
+    requiresReauth: boolean;
+  };
 }
 
 export interface ApiRequestHandle<T> {

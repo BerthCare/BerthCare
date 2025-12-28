@@ -113,6 +113,15 @@ async function refreshAccessToken(tokenProvider: TokenProvider): Promise<string 
   }
 }
 
+const isTokenProviderOffline = (tokenProvider: TokenProvider): boolean => {
+  try {
+    const state = tokenProvider.getAuthState?.();
+    return state?.isOffline === true;
+  } catch {
+    return false;
+  }
+};
+
 function drainQueueWithError(error: ApiError): void {
   const pending = [...refreshState.queue];
   refreshState.queue = [];
@@ -142,6 +151,7 @@ export async function handle401Response<T>(
   }
 
   let tokensCleared = false;
+  let shouldClearTokensOnFailure = true;
 
   if (refreshState.refreshing) {
     return new Promise<T>((resolve, reject) => {
@@ -156,9 +166,16 @@ export async function handle401Response<T>(
   try {
     const refreshed = await refreshAccessToken(tokenProvider);
     if (!refreshed) {
-      await tokenProvider.clearTokens();
-      tokensCleared = true;
-      const error = new ApiError('AuthenticationError', 'Token refresh failed: missing token');
+      const isOffline = isTokenProviderOffline(tokenProvider);
+      shouldClearTokensOnFailure = !isOffline;
+      if (shouldClearTokensOnFailure) {
+        await tokenProvider.clearTokens();
+        tokensCleared = true;
+      }
+      const error = new ApiError(
+        isOffline ? 'NetworkError' : 'AuthenticationError',
+        isOffline ? 'Token refresh failed due to network error' : 'Token refresh failed'
+      );
       drainQueueWithError(error);
       throw error;
     }
@@ -167,7 +184,7 @@ export async function handle401Response<T>(
     await flushQueue();
     return result;
   } catch (error) {
-    if (!tokensCleared) {
+    if (!tokensCleared && shouldClearTokensOnFailure && !isTokenProviderOffline(tokenProvider)) {
       await tokenProvider.clearTokens();
       tokensCleared = true;
     }

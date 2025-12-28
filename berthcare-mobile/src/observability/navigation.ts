@@ -2,7 +2,7 @@ import { addBreadcrumb } from './logging';
 
 type RouteInfo = {
   name?: string | null;
-  params?: Record<string, unknown>;
+  params?: Record<string, unknown> | undefined;
 };
 
 type RouteGetter = () => RouteInfo | undefined;

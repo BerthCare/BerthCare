@@ -50,8 +50,15 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Auth module lives in `src/lib/auth` and integrates with the API client in `src/lib/api`.
 - Access/refresh tokens and expiry metadata are stored in `react-native-keychain` (iOS Keychain, Android Keystore).
 - App launch restores auth state via `AuthService.restoreAuthState`, and 401 responses trigger a single-flight refresh queue.
+- Login UI lives in `src/screens/login` and calls `AuthService.login`, while the app shell listens for `onLoginSuccess` to refresh auth state.
 - Technical Blueprint alignment: [Section 5 (Flow 1)](../project-documentation/technical-blueprint.md#flow-1-app-launch-and-schedule-retrieval) and [Section 6 (Security)](../project-documentation/technical-blueprint.md#security-your-data-is-safe).
 - Deviations: none noted for this feature.
+
+## Navigation Flow & Auth Gating
+- Root navigation is defined in `src/navigation/RootNavigator.tsx` using a single stack navigator.
+- Guest stack renders `Login`; authenticated stack renders `Today`, `Visit`, and `Alert`.
+- `RootNavigator` swaps stacks by changing the navigator `key` (`guest`/`auth`) and sets `initialRouteName` from auth state.
+- `src/App.tsx` calls `resetRoot` to `Today` on first successful authentication to prevent back navigation to `Login`.
 
 ## Build Performance Analysis
 
@@ -156,6 +163,7 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 berthcare-mobile/
 ├── src/                     # Source code
 │   ├── screens/            # Screen-level components
+│   │   ├── login/          # Login screen
 │   │   ├── today/          # Today's schedule
 │   │   ├── visit/          # Visit documentation
 │   │   └── alert/          # Emergency alerts

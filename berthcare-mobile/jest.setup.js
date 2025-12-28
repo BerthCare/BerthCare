@@ -28,6 +28,46 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+jest.mock('react-native-screens', () => {
+  return {
+    Screen: mockView,
+    ScreenContainer: mockView,
+    ScreenStack: mockView,
+    ScreenStackItem: mockView,
+    ScreenStackHeaderConfig: mockView,
+    ScreenStackHeaderSubview: mockView,
+    ScreenStackHeaderLeftView: mockView,
+    ScreenStackHeaderCenterView: mockView,
+    ScreenStackHeaderRightView: mockView,
+    ScreenStackHeaderBackButtonImage: mockView,
+    ScreenStackHeaderSearchBarView: mockView,
+    ScreenFooter: mockView,
+    FullWindowOverlay: mockView,
+    SearchBar: mockView,
+    enableScreens: jest.fn(),
+    enableFreeze: jest.fn(),
+    screensEnabled: jest.fn(),
+    freezeEnabled: jest.fn(),
+  };
+});
+
+jest.mock('@react-navigation/native-stack', () => {
+  return {
+    createNativeStackNavigator: () => ({
+      Navigator: ({ children }) => mockReact.createElement(mockView, null, children),
+      Screen: ({ children, component: Component }) => {
+        if (children) {
+          return typeof children === 'function' ? children({}) : children;
+        }
+        if (Component) {
+          return mockReact.createElement(Component, {});
+        }
+        return null;
+      },
+    }),
+  };
+});
+
 jest.mock('react-native-keychain', () => {
   const store = new Map();
   const DEFAULT_SERVICE = 'jest-keychain-default';

@@ -1,5 +1,12 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 
 import { palette } from '@ui/palette';
 
@@ -8,6 +15,8 @@ export interface ButtonProps {
   onPress: () => void;
   variant?: 'primary' | 'secondary';
   disabled?: boolean;
+  loading?: boolean;
+  testID?: string;
 }
 
 /**
@@ -19,63 +28,69 @@ export default function Button({
   onPress,
   variant = 'primary',
   disabled = false,
+  loading = false,
+  testID,
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+  const showDisabledStyle = disabled && !loading;
+  const indicatorColor = variant === 'primary' ? palette.textInverse : palette.brandBlue;
+
   return (
     <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
+      testID={testID}
       style={[
         styles.button,
         variant === 'primary' ? styles.primaryButton : styles.secondaryButton,
-        disabled && styles.disabledButton,
+        showDisabledStyle && styles.disabledButton,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={isDisabled}
       activeOpacity={0.7}
     >
-      <Text
-        style={[
-          styles.text,
-          variant === 'primary' ? styles.primaryText : styles.secondaryText,
-          disabled && styles.disabledText,
-        ]}
-      >
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={indicatorColor} size={20} />
+      ) : (
+        <Text
+          style={[styles.text, variant === 'primary' ? styles.primaryText : styles.secondaryText]}
+        >
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
   } as ViewStyle,
   disabledButton: {
-    backgroundColor: palette.disabledBgIOS,
-    borderColor: palette.disabledBgIOS,
+    opacity: 0.4,
   } as ViewStyle,
-  disabledText: {
-    color: palette.disabledTextIOS,
-  } as TextStyle,
   primaryButton: {
     backgroundColor: palette.brandBlue,
   } as ViewStyle,
   primaryText: {
-    color: palette.white,
+    color: palette.textInverse,
   } as TextStyle,
   secondaryButton: {
-    backgroundColor: palette.white,
-    borderWidth: 1,
+    backgroundColor: palette.transparent,
+    borderWidth: 2,
     borderColor: palette.brandBlue,
   } as ViewStyle,
   secondaryText: {
     color: palette.brandBlue,
   } as TextStyle,
   text: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
+    lineHeight: 22,
   } as TextStyle,
 });
