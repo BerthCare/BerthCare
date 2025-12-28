@@ -40,10 +40,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   const clearErrorIfNeeded = useCallback(() => {
-    if (errorMessage) {
-      setErrorMessage('');
-    }
-  }, [errorMessage]);
+    setErrorMessage((prev) => (prev ? '' : prev));
+  }, []);
 
   const handleEmailChange = useCallback(
     (value: string) => {

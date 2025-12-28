@@ -424,6 +424,24 @@ const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-
 const isIsoDateString = (value: unknown): value is string =>
   isNonEmptyString(value) && ISO_DATE_REGEX.test(value) && !Number.isNaN(Date.parse(value));
 
+const parseIsoExpiry = (value: string, errorMessage: string): number => {
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) {
+    throw new Error(errorMessage);
+  }
+  return timestamp;
+};
+
+const parseOptionalIsoExpiry = (
+  value: string | undefined,
+  errorMessage: string
+): number | undefined => {
+  if (value == null) {
+    return undefined;
+  }
+  return parseIsoExpiry(value, errorMessage);
+};
+
 export const isLoginResponseSeconds = (value: unknown): value is LoginResponseSeconds => {
   if (!isRecord(value)) {
     return false;
@@ -526,12 +544,14 @@ export function normalizeLoginResponse(value: unknown, now = Date.now()): Normal
   }
 
   if (isLoginResponseTimestamps(value)) {
-    const accessTokenExpiresAt = Date.parse(value.accessTokenExpiresAt);
-    const refreshTokenExpiresAt = Date.parse(value.refreshTokenExpiresAt);
-
-    if (Number.isNaN(accessTokenExpiresAt) || Number.isNaN(refreshTokenExpiresAt)) {
-      throw new Error('Invalid login response expiry timestamps');
-    }
+    const accessTokenExpiresAt = parseIsoExpiry(
+      value.accessTokenExpiresAt,
+      'Invalid login response expiry timestamps'
+    );
+    const refreshTokenExpiresAt = parseIsoExpiry(
+      value.refreshTokenExpiresAt,
+      'Invalid login response expiry timestamps'
+    );
 
     return {
       accessToken: value.accessToken,
@@ -542,12 +562,14 @@ export function normalizeLoginResponse(value: unknown, now = Date.now()): Normal
   }
 
   if (isLoginResponseLegacyTimestamps(value)) {
-    const accessTokenExpiresAt = Date.parse(value.accessExpiresAt);
-    const refreshTokenExpiresAt = Date.parse(value.refreshExpiresAt);
-
-    if (Number.isNaN(accessTokenExpiresAt) || Number.isNaN(refreshTokenExpiresAt)) {
-      throw new Error('Invalid login response expiry timestamps');
-    }
+    const accessTokenExpiresAt = parseIsoExpiry(
+      value.accessExpiresAt,
+      'Invalid login response expiry timestamps'
+    );
+    const refreshTokenExpiresAt = parseIsoExpiry(
+      value.refreshExpiresAt,
+      'Invalid login response expiry timestamps'
+    );
 
     return {
       accessToken: value.accessToken,
@@ -587,17 +609,14 @@ export function normalizeRefreshResponse(
   }
 
   if (isRefreshResponseTimestamps(value)) {
-    const accessTokenExpiresAt = Date.parse(value.accessTokenExpiresAt);
-    if (Number.isNaN(accessTokenExpiresAt)) {
-      throw new Error('Invalid refresh response access expiry');
-    }
-
-    const refreshTokenExpiresAt =
-      value.refreshTokenExpiresAt != null ? Date.parse(value.refreshTokenExpiresAt) : undefined;
-
-    if (value.refreshTokenExpiresAt != null && Number.isNaN(refreshTokenExpiresAt)) {
-      throw new Error('Invalid refresh response refresh expiry');
-    }
+    const accessTokenExpiresAt = parseIsoExpiry(
+      value.accessTokenExpiresAt,
+      'Invalid refresh response access expiry'
+    );
+    const refreshTokenExpiresAt = parseOptionalIsoExpiry(
+      value.refreshTokenExpiresAt,
+      'Invalid refresh response refresh expiry'
+    );
 
     const baseResponse = {
       accessToken: value.accessToken,
@@ -616,17 +635,14 @@ export function normalizeRefreshResponse(
   }
 
   if (isRefreshResponseLegacyTimestamps(value)) {
-    const accessTokenExpiresAt = Date.parse(value.accessExpiresAt);
-    if (Number.isNaN(accessTokenExpiresAt)) {
-      throw new Error('Invalid refresh response access expiry');
-    }
-
-    const refreshTokenExpiresAt =
-      value.refreshExpiresAt != null ? Date.parse(value.refreshExpiresAt) : undefined;
-
-    if (value.refreshExpiresAt != null && Number.isNaN(refreshTokenExpiresAt)) {
-      throw new Error('Invalid refresh response refresh expiry');
-    }
+    const accessTokenExpiresAt = parseIsoExpiry(
+      value.accessExpiresAt,
+      'Invalid refresh response access expiry'
+    );
+    const refreshTokenExpiresAt = parseOptionalIsoExpiry(
+      value.refreshExpiresAt,
+      'Invalid refresh response refresh expiry'
+    );
 
     const baseResponse = {
       accessToken: value.accessToken,

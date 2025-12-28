@@ -234,7 +234,6 @@ export class AuthService implements TokenProvider {
 
   private setAuthState(nextState: AuthState): void {
     const prev = this.authState;
-    this.authState = { ...nextState };
     if (
       prev.isAuthenticated === nextState.isAuthenticated &&
       prev.isOffline === nextState.isOffline &&
@@ -242,6 +241,7 @@ export class AuthService implements TokenProvider {
     ) {
       return;
     }
+    this.authState = { ...nextState };
     this.notifyAuthState();
   }
 
