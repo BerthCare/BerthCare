@@ -170,6 +170,34 @@ describe('AuthService unit tests', () => {
     expect(await storage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP)).toBe(fakeNow.toString());
   });
 
+  it('login stores expiry timestamps when backend returns legacy ISO expiries', async () => {
+    const fakeNow = 1_700_000_150_000;
+    const accessExpiry = new Date('2030-02-01T00:00:00.000Z');
+    const refreshExpiry = new Date('2030-02-15T12:00:00.000Z');
+    jest.spyOn(Date, 'now').mockReturnValue(fakeNow);
+
+    apiClient.setLoginResponse({
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      accessExpiresAt: accessExpiry.toISOString(),
+      refreshExpiresAt: refreshExpiry.toISOString(),
+    });
+
+    const authService = AuthService.getInstance();
+    const result = await authService.login('user@example.com', 'password123');
+
+    expect(result.success).toBe(true);
+    expect(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN)).toBe('access-token');
+    expect(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN)).toBe('refresh-token');
+    expect(Number(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY))).toBe(
+      accessExpiry.getTime()
+    );
+    expect(Number(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY))).toBe(
+      refreshExpiry.getTime()
+    );
+    expect(await storage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP)).toBe(fakeNow.toString());
+  });
+
   it('login returns InvalidCredentials error on 401', async () => {
     await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, 'existing-access');
     await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, 'existing-refresh');
@@ -462,6 +490,37 @@ describe('AuthService unit tests', () => {
     const authState = authService.getAuthState();
     expect(authState.isAuthenticated).toBe(true);
     expect(authState.requiresReauth).toBe(false);
+  });
+
+  it('refreshAccessToken accepts legacy ISO expiry fields', async () => {
+    const fakeNow = 1_700_000_650_000;
+    const accessExpiry = new Date('2031-01-01T00:00:00.000Z');
+    const refreshExpiry = new Date('2031-01-02T00:00:00.000Z');
+    jest.spyOn(Date, 'now').mockReturnValue(fakeNow);
+
+    await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, 'old-token');
+    await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, 'old-refresh-token');
+
+    apiClient.setRefreshResponse({
+      accessToken: 'refreshed-token',
+      accessExpiresAt: accessExpiry.toISOString(),
+      refreshToken: 'new-refresh-token',
+      refreshExpiresAt: refreshExpiry.toISOString(),
+    });
+
+    const authService = AuthService.getInstance();
+    const token = await authService.refreshAccessToken();
+
+    expect(token).toBe('refreshed-token');
+    expect(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN)).toBe('refreshed-token');
+    expect(Number(await storage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY))).toBe(
+      accessExpiry.getTime()
+    );
+    expect(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN)).toBe('new-refresh-token');
+    expect(Number(await storage.getItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY))).toBe(
+      refreshExpiry.getTime()
+    );
+    expect(await storage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP)).toBe(fakeNow.toString());
   });
 
   it('refreshAccessToken clears tokens and signals re-auth on failure', async () => {

@@ -311,11 +311,28 @@ export interface LoginResponseTimestamps {
 }
 
 /**
+ * Legacy login response timestamps from backend routes.
+ */
+export interface LoginResponseLegacyTimestamps {
+  /** JWT access token */
+  accessToken: string;
+  /** Refresh token for obtaining new access tokens */
+  refreshToken: string;
+  /** Access token expiry as ISO timestamp */
+  accessExpiresAt: string;
+  /** Refresh token expiry as ISO timestamp */
+  refreshExpiresAt: string;
+}
+
+/**
  * Response from the login endpoint (POST /auth/login).
  *
  * Supports either expiry seconds or absolute expiry timestamps.
  */
-export type LoginResponse = LoginResponseSeconds | LoginResponseTimestamps;
+export type LoginResponse =
+  | LoginResponseSeconds
+  | LoginResponseTimestamps
+  | LoginResponseLegacyTimestamps;
 
 /**
  * Request payload for the refresh endpoint (POST /auth/refresh).
@@ -356,11 +373,28 @@ export interface RefreshResponseTimestamps {
 }
 
 /**
+ * Legacy refresh response timestamps from backend routes.
+ */
+export interface RefreshResponseLegacyTimestamps {
+  /** New JWT access token */
+  accessToken: string;
+  /** New refresh token (only present if token rotation is enabled) */
+  refreshToken?: string;
+  /** Access token expiry as ISO timestamp */
+  accessExpiresAt: string;
+  /** Refresh token expiry as ISO timestamp (only present if rotated) */
+  refreshExpiresAt?: string;
+}
+
+/**
  * Response from the refresh endpoint (POST /auth/refresh).
  *
  * Supports either expiry seconds or absolute expiry timestamps.
  */
-export type RefreshResponse = RefreshResponseSeconds | RefreshResponseTimestamps;
+export type RefreshResponse =
+  | RefreshResponseSeconds
+  | RefreshResponseTimestamps
+  | RefreshResponseLegacyTimestamps;
 
 export interface NormalizedLoginResponse {
   accessToken: string;
@@ -416,6 +450,21 @@ export const isLoginResponseTimestamps = (value: unknown): value is LoginRespons
   );
 };
 
+export const isLoginResponseLegacyTimestamps = (
+  value: unknown
+): value is LoginResponseLegacyTimestamps => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isNonEmptyString(value.accessToken) &&
+    isNonEmptyString(value.refreshToken) &&
+    isIsoDateString(value.accessExpiresAt) &&
+    isIsoDateString(value.refreshExpiresAt)
+  );
+};
+
 export const isRefreshResponseSeconds = (value: unknown): value is RefreshResponseSeconds => {
   if (!isRecord(value)) {
     return false;
@@ -448,6 +497,24 @@ export const isRefreshResponseTimestamps = (value: unknown): value is RefreshRes
   return value.refreshTokenExpiresAt == null;
 };
 
+export const isRefreshResponseLegacyTimestamps = (
+  value: unknown
+): value is RefreshResponseLegacyTimestamps => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (!isNonEmptyString(value.accessToken) || !isIsoDateString(value.accessExpiresAt)) {
+    return false;
+  }
+
+  if (value.refreshToken != null) {
+    return isNonEmptyString(value.refreshToken) && isIsoDateString(value.refreshExpiresAt);
+  }
+
+  return value.refreshExpiresAt == null;
+};
+
 export function normalizeLoginResponse(value: unknown, now = Date.now()): NormalizedLoginResponse {
   if (isLoginResponseSeconds(value)) {
     return {
@@ -461,6 +528,22 @@ export function normalizeLoginResponse(value: unknown, now = Date.now()): Normal
   if (isLoginResponseTimestamps(value)) {
     const accessTokenExpiresAt = Date.parse(value.accessTokenExpiresAt);
     const refreshTokenExpiresAt = Date.parse(value.refreshTokenExpiresAt);
+
+    if (Number.isNaN(accessTokenExpiresAt) || Number.isNaN(refreshTokenExpiresAt)) {
+      throw new Error('Invalid login response expiry timestamps');
+    }
+
+    return {
+      accessToken: value.accessToken,
+      refreshToken: value.refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    };
+  }
+
+  if (isLoginResponseLegacyTimestamps(value)) {
+    const accessTokenExpiresAt = Date.parse(value.accessExpiresAt);
+    const refreshTokenExpiresAt = Date.parse(value.refreshExpiresAt);
 
     if (Number.isNaN(accessTokenExpiresAt) || Number.isNaN(refreshTokenExpiresAt)) {
       throw new Error('Invalid login response expiry timestamps');
@@ -513,6 +596,35 @@ export function normalizeRefreshResponse(
       value.refreshTokenExpiresAt != null ? Date.parse(value.refreshTokenExpiresAt) : undefined;
 
     if (value.refreshTokenExpiresAt != null && Number.isNaN(refreshTokenExpiresAt)) {
+      throw new Error('Invalid refresh response refresh expiry');
+    }
+
+    const baseResponse = {
+      accessToken: value.accessToken,
+      accessTokenExpiresAt,
+    };
+
+    if (value.refreshToken != null && refreshTokenExpiresAt != null) {
+      return {
+        ...baseResponse,
+        refreshToken: value.refreshToken,
+        refreshTokenExpiresAt,
+      };
+    }
+
+    return baseResponse;
+  }
+
+  if (isRefreshResponseLegacyTimestamps(value)) {
+    const accessTokenExpiresAt = Date.parse(value.accessExpiresAt);
+    if (Number.isNaN(accessTokenExpiresAt)) {
+      throw new Error('Invalid refresh response access expiry');
+    }
+
+    const refreshTokenExpiresAt =
+      value.refreshExpiresAt != null ? Date.parse(value.refreshExpiresAt) : undefined;
+
+    if (value.refreshExpiresAt != null && Number.isNaN(refreshTokenExpiresAt)) {
       throw new Error('Invalid refresh response refresh expiry');
     }
 
