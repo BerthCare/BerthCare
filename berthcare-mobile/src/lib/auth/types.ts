@@ -579,6 +579,22 @@ export function normalizeLoginResponse(value: unknown, now = Date.now()): Normal
     };
   }
 
+  if (isLoginResponseLegacyTimestamps(value)) {
+    const accessTokenExpiresAt = Date.parse(value.accessExpiresAt);
+    const refreshTokenExpiresAt = Date.parse(value.refreshExpiresAt);
+
+    if (Number.isNaN(accessTokenExpiresAt) || Number.isNaN(refreshTokenExpiresAt)) {
+      throw new Error('Invalid login response expiry timestamps');
+    }
+
+    return {
+      accessToken: value.accessToken,
+      refreshToken: value.refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    };
+  }
+
   throw new Error('Invalid login response');
 }
 
@@ -643,6 +659,35 @@ export function normalizeRefreshResponse(
       value.refreshExpiresAt,
       'Invalid refresh response refresh expiry'
     );
+
+    const baseResponse = {
+      accessToken: value.accessToken,
+      accessTokenExpiresAt,
+    };
+
+    if (value.refreshToken != null && refreshTokenExpiresAt != null) {
+      return {
+        ...baseResponse,
+        refreshToken: value.refreshToken,
+        refreshTokenExpiresAt,
+      };
+    }
+
+    return baseResponse;
+  }
+
+  if (isRefreshResponseLegacyTimestamps(value)) {
+    const accessTokenExpiresAt = Date.parse(value.accessExpiresAt);
+    if (Number.isNaN(accessTokenExpiresAt)) {
+      throw new Error('Invalid refresh response access expiry');
+    }
+
+    const refreshTokenExpiresAt =
+      value.refreshExpiresAt != null ? Date.parse(value.refreshExpiresAt) : undefined;
+
+    if (value.refreshExpiresAt != null && Number.isNaN(refreshTokenExpiresAt)) {
+      throw new Error('Invalid refresh response refresh expiry');
+    }
 
     const baseResponse = {
       accessToken: value.accessToken,
