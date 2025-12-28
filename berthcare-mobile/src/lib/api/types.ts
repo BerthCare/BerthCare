@@ -1,3 +1,5 @@
+import type { AuthState } from '@/lib/auth/types';
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export type ApiErrorType =
@@ -48,6 +50,7 @@ export interface TokenProvider {
   getAccessToken(): Promise<string | null>;
   refreshToken(): Promise<string | null>;
   clearTokens(): Promise<void>;
+  getAuthState?(): AuthState;
 }
 
 export interface ApiRequestHandle<T> {

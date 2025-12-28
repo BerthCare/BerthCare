@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import App from './App';
+import { palette } from '@ui/palette';
 
 jest.setTimeout(15000);
 
@@ -16,31 +17,31 @@ const renderApp = async () => {
 
 describe('App', () => {
   it('renders correctly', async () => {
-    const { getByText, getByTestId } = await renderApp();
+    const { getByPlaceholderText } = await renderApp();
 
-    expect(getByText('BerthCare')).toBeTruthy();
-    expect(getByTestId('auth-status-subtitle')).toHaveTextContent('Signed out');
+    expect(getByPlaceholderText('you@example.com')).toBeTruthy();
+    expect(getByPlaceholderText('Password')).toBeTruthy();
   });
 
   it('has correct title styling', async () => {
-    const { getByText } = await renderApp();
+    const { getByTestId } = await renderApp();
 
-    const title = getByText('BerthCare');
+    const title = getByTestId('login-title');
     expect(title.props.style).toMatchObject({
-      fontSize: 32,
-      fontWeight: 'bold',
-      color: '#1A1A1A',
+      fontSize: 28,
+      fontWeight: '700',
+      color: palette.textPrimary,
     });
   });
 
-  it('has correct subtitle styling', async () => {
-    const { getByTestId } = await renderApp();
+  it('has correct label styling', async () => {
+    const { getByText } = await renderApp();
 
-    const subtitle = getByTestId('auth-status-subtitle');
+    const subtitle = getByText('Email');
     expect(subtitle.props.style).toMatchObject({
-      fontSize: 16,
-      color: '#666666',
-      marginTop: 8,
+      fontSize: 15,
+      color: palette.textSecondary,
+      marginBottom: 4,
     });
   });
 });

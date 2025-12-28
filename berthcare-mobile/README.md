@@ -93,6 +93,7 @@ Naming stays simple (folder implies context), and path aliases are provided via 
 - Entry point: `src/theme/tokens.ts` (`colors`, `spacing`, `typography`, `animations`)
 - CI guard: token build runs in CI with `git diff --exit-code src/theme/generated` to catch drift
 - Rerun when: upstream design tokens change or parity/type tests fail locally/CI
+- Design system references: `../design-documentation/design-system/README.md`, `../design-documentation/design-system/tokens/README.md`, `../design-documentation/design-system/style-guide.md`
 
 ## API Client (in progress)
 - Location: `src/lib/api/` (scaffolded) with planned `ApiClient`, `config`, `interceptors`, `retry`, and typed `ApiError`.
@@ -163,6 +164,32 @@ async function handleLogin(email: string, password: string) {
   }
 }
 ```
+
+### Login Screen
+
+Location: `src/screens/login/screen.tsx`. Render this screen for unauthenticated users and pass `onLoginSuccess` to transition into the authenticated stack (see `src/App.tsx` and `src/navigation/RootNavigator.tsx`).
+
+```tsx
+<RootStack.Screen name="Login">
+  {(props) => (
+    <LoginScreen
+      {...props}
+      onLoginSuccess={() => setAuthState({ isAuthenticated: true })}
+    />
+  )}
+</RootStack.Screen>
+```
+
+Error copy mapping (inline, retryable):
+- Invalid credentials → "Invalid email or password"
+- Network error → "Check your connection and try again"
+- Fallback → "Something went wrong. Please try again."
+
+References:
+- Technical Blueprint flow sequencing: `../project-documentation/technical-blueprint.md#5-key-flows--sequencing`
+- Security/auth context: `../project-documentation/technical-blueprint.md#security-your-data-is-safe`
+- Design system form patterns: `../design-documentation/design-system/components/forms.md`
+- Design system button patterns: `../design-documentation/design-system/components/buttons.md`
 
 ### Logout
 

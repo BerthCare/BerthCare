@@ -34,6 +34,7 @@
  * ```
  */
 
+import { NativeModules } from 'react-native';
 import * as Keychain from 'react-native-keychain';
 import type { SecureStorageAdapter } from './types';
 
@@ -116,6 +117,75 @@ const buildSetOptions = (
   ...(securityLevel ? { securityLevel } : {}),
   service: buildServiceName(key),
 });
+
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+const isTestEnv = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
+const isKeychainModuleAvailable = (): boolean =>
+  typeof NativeModules.RNKeychainManager?.getGenericPasswordForOptions === 'function';
+let keychainAvailable = isKeychainModuleAvailable();
+let didWarnUnavailable = false;
+
+const warnKeychainUnavailable = (error?: unknown) => {
+  if (!isDev || isTestEnv || didWarnUnavailable) {
+    return;
+  }
+  didWarnUnavailable = true;
+  const detail = error instanceof Error ? ` (${error.message})` : '';
+  console.warn(
+    `[auth] Keychain native module unavailable${detail}. Using in-memory storage for this session. Rebuild the dev client to enable secure storage.`
+  );
+};
+
+class InMemorySecureStorage implements SecureStorageAdapter {
+  private readonly storage = new Map<StorageKey, string>();
+
+  async setItem(key: string, value: string): Promise<void> {
+    const storageKey = assertStorageKey(key);
+    this.storage.set(storageKey, value);
+  }
+
+  async getItem(key: string): Promise<string | null> {
+    const storageKey = assertStorageKey(key);
+    return this.storage.get(storageKey) ?? null;
+  }
+
+  async removeItem(key: string): Promise<void> {
+    const storageKey = assertStorageKey(key);
+    this.storage.delete(storageKey);
+  }
+
+  async clear(): Promise<void> {
+    this.storage.clear();
+  }
+}
+
+const inMemoryStorage = new InMemorySecureStorage();
+
+const runWithFallback = async <T>(
+  operation: () => Promise<T>,
+  fallback: () => Promise<T>
+): Promise<T> => {
+  if (!keychainAvailable) {
+    if (isDev) {
+      warnKeychainUnavailable();
+      return fallback();
+    }
+    throw new Error(
+      'Keychain native module unavailable. Rebuild the native app to enable secure storage.'
+    );
+  }
+
+  try {
+    return await operation();
+  } catch (error) {
+    if (isDev) {
+      keychainAvailable = false;
+      warnKeychainUnavailable(error);
+      return fallback();
+    }
+    throw error;
+  }
+};
 
 /**
  * Implementation of SecureStorageAdapter using react-native-keychain.
@@ -245,6 +315,8 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
   }
 }
 
+const keychainStorage = new KeychainSecureStorage();
+
 /**
  * Default secure storage instance.
  *
@@ -263,4 +335,29 @@ export class KeychainSecureStorage implements SecureStorageAdapter {
  * });
  * ```
  */
-export const secureStorage = new KeychainSecureStorage();
+export const secureStorage: SecureStorageAdapter = {
+  async setItem(key: string, value: string): Promise<void> {
+    await runWithFallback(
+      () => keychainStorage.setItem(key, value),
+      () => inMemoryStorage.setItem(key, value)
+    );
+  },
+  async getItem(key: string): Promise<string | null> {
+    return runWithFallback(
+      () => keychainStorage.getItem(key),
+      () => inMemoryStorage.getItem(key)
+    );
+  },
+  async removeItem(key: string): Promise<void> {
+    await runWithFallback(
+      () => keychainStorage.removeItem(key),
+      () => inMemoryStorage.removeItem(key)
+    );
+  },
+  async clear(): Promise<void> {
+    await runWithFallback(
+      () => keychainStorage.clear(),
+      () => inMemoryStorage.clear()
+    );
+  },
+};

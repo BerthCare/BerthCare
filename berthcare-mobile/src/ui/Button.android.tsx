@@ -1,6 +1,14 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 
+import { getButtonState } from '@ui/button-utils';
 import { palette } from '@ui/palette';
 
 export interface ButtonProps {
@@ -8,78 +16,85 @@ export interface ButtonProps {
   onPress: () => void;
   variant?: 'primary' | 'secondary';
   disabled?: boolean;
+  loading?: boolean;
+  testID?: string;
 }
 
 /**
  * Android-specific Button component
- * Uses Material Design patterns: Roboto font, Material blue, elevation
+ * Uses BerthCare tokens with Android interaction defaults
  */
 export default function Button({
   title,
   onPress,
   variant = 'primary',
   disabled = false,
+  loading = false,
+  testID,
 }: ButtonProps) {
+  const { isDisabled, showDisabledStyle, indicatorColor } = getButtonState({
+    variant,
+    disabled,
+    loading,
+    brandColor: palette.brandBlueAndroid,
+  });
+
   return (
     <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
+      testID={testID}
       style={[
         styles.button,
         variant === 'primary' ? styles.primaryButton : styles.secondaryButton,
-        disabled && styles.disabledButton,
+        showDisabledStyle && styles.disabledButton,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={isDisabled}
       activeOpacity={0.8}
     >
-      <Text
-        style={[
-          styles.text,
-          variant === 'primary' ? styles.primaryText : styles.secondaryText,
-          disabled && styles.disabledText,
-        ]}
-      >
-        {title.toUpperCase()}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={indicatorColor} size={20} />
+      ) : (
+        <Text
+          style={[styles.text, variant === 'primary' ? styles.primaryText : styles.secondaryText]}
+        >
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 4, // Material Design uses less rounded corners
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-    elevation: 2, // Android elevation for shadow
   } as ViewStyle,
   disabledButton: {
-    backgroundColor: palette.disabledBgAndroid,
-    borderColor: palette.disabledBgAndroid,
-    elevation: 0,
+    opacity: 0.4,
   } as ViewStyle,
-  disabledText: {
-    color: palette.disabledTextAndroid,
-  } as TextStyle,
   primaryButton: {
-    backgroundColor: palette.brandBlueAndroid, // Material blue
+    backgroundColor: palette.brandBlueAndroid,
   } as ViewStyle,
   primaryText: {
-    color: palette.white,
+    color: palette.textInverse,
   } as TextStyle,
   secondaryButton: {
-    backgroundColor: palette.white,
-    borderWidth: 1,
+    backgroundColor: palette.transparent,
+    borderWidth: 2,
     borderColor: palette.brandBlueAndroid,
-    elevation: 0,
   } as ViewStyle,
   secondaryText: {
     color: palette.brandBlueAndroid,
   } as TextStyle,
   text: {
-    fontSize: 14, // Material Design button text size
-    fontWeight: '500',
-    letterSpacing: 1.25, // Material Design letter spacing
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 22,
   } as TextStyle,
 });

@@ -117,6 +117,7 @@ export class AuthService implements TokenProvider {
     isOffline: false,
     requiresReauth: false,
   };
+  private authStateListeners = new Set<(state: AuthState) => void>();
 
   // Refresh queue state for handling concurrent 401s
   private isRefreshing = false;
@@ -191,6 +192,7 @@ export class AuthService implements TokenProvider {
         isOffline: false,
         requiresReauth: false,
       };
+      instance.authStateListeners.clear();
     }
     AuthService.instance = null;
   }
@@ -216,6 +218,46 @@ export class AuthService implements TokenProvider {
    */
   getAuthState(): AuthState {
     return { ...this.authState };
+  }
+
+  subscribeAuthState(listener: (state: AuthState) => void): () => void {
+    this.authStateListeners.add(listener);
+    try {
+      listener(this.getAuthState());
+    } catch {
+      // Ignore listener errors to avoid breaking auth flow.
+    }
+    return () => {
+      this.authStateListeners.delete(listener);
+    };
+  }
+
+  private setAuthState(nextState: AuthState): void {
+    const prev = this.authState;
+    if (
+      prev.isAuthenticated === nextState.isAuthenticated &&
+      prev.isOffline === nextState.isOffline &&
+      prev.requiresReauth === nextState.requiresReauth
+    ) {
+      return;
+    }
+    this.authState = { ...nextState };
+    this.notifyAuthState();
+  }
+
+  private notifyAuthState(): void {
+    if (this.authStateListeners.size === 0) {
+      return;
+    }
+    const snapshot = this.getAuthState();
+    const listeners = Array.from(this.authStateListeners);
+    listeners.forEach((listener) => {
+      try {
+        listener(snapshot);
+      } catch {
+        // Ignore listener errors to avoid breaking auth flow.
+      }
+    });
   }
 
   /**
@@ -266,7 +308,7 @@ export class AuthService implements TokenProvider {
 
     try {
       // Send login request to backend
-      const response = await config.apiClient.post<LoginResponse>('/api/auth/login', {
+      const response = await config.apiClient.post<LoginResponse>('/auth/login', {
         email,
         password,
         deviceId: config.deviceId,
@@ -289,26 +331,43 @@ export class AuthService implements TokenProvider {
       }
 
       // Store tokens in secure storage
-      await Promise.all([
-        config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken),
-        config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken),
-        config.secureStorage.setItem(
-          STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
-          normalizedResponse.accessTokenExpiresAt.toString()
-        ),
-        config.secureStorage.setItem(
-          STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
-          normalizedResponse.refreshTokenExpiresAt.toString()
-        ),
-        config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString()),
-      ]);
+      try {
+        await Promise.all([
+          config.secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, normalizedResponse.accessToken),
+          config.secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, normalizedResponse.refreshToken),
+          config.secureStorage.setItem(
+            STORAGE_KEYS.ACCESS_TOKEN_EXPIRY,
+            normalizedResponse.accessTokenExpiresAt.toString()
+          ),
+          config.secureStorage.setItem(
+            STORAGE_KEYS.REFRESH_TOKEN_EXPIRY,
+            normalizedResponse.refreshTokenExpiresAt.toString()
+          ),
+          config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString()),
+        ]);
+      } catch (storageError) {
+        await this.clearAllTokens();
+        this.setAuthState({
+          isAuthenticated: false,
+          isOffline: false,
+          requiresReauth: true,
+        });
+        return {
+          success: false,
+          error: new AuthError(
+            'StorageError',
+            'Failed to store authentication tokens',
+            storageError instanceof Error ? storageError : undefined
+          ),
+        };
+      }
 
       // Update auth state
-      this.authState = {
+      this.setAuthState({
         isAuthenticated: true,
         isOffline: false,
         requiresReauth: false,
-      };
+      });
 
       return { success: true };
     } catch (error) {
@@ -368,11 +427,11 @@ export class AuthService implements TokenProvider {
     ]);
 
     // Clear in-memory auth state
-    this.authState = {
+    this.setAuthState({
       isAuthenticated: false,
       isOffline: false,
       requiresReauth: true,
-    };
+    });
 
     // Clear any pending refresh state
     this.rejectPendingRequests(new AuthError('Unknown', 'User logged out'));
@@ -404,11 +463,11 @@ export class AuthService implements TokenProvider {
 
     // No tokens at all - unauthenticated
     if (!accessToken && !refreshToken) {
-      this.authState = {
+      this.setAuthState({
         isAuthenticated: false,
         isOffline: false,
         requiresReauth: false,
-      };
+      });
       return false;
     }
 
@@ -422,31 +481,31 @@ export class AuthService implements TokenProvider {
 
     // If access token is valid (not expired), user is authenticated
     if (accessToken && !isTokenExpired(accessExpiry, now)) {
-      this.authState = {
+      this.setAuthState({
         isAuthenticated: true,
         isOffline: false,
         requiresReauth: false,
-      };
+      });
       return true;
     }
 
     // Access token expired, check if refresh token is valid
     if (refreshToken && !isTokenExpired(refreshExpiry, now)) {
       // Refresh token is valid - user is authenticated but may need refresh on first API call
-      this.authState = {
+      this.setAuthState({
         isAuthenticated: true,
         isOffline: false,
         requiresReauth: false,
-      };
+      });
       return true;
     }
 
     // Both tokens expired - requires re-authentication
-    this.authState = {
+    this.setAuthState({
       isAuthenticated: false,
       isOffline: false,
       requiresReauth: true,
-    };
+    });
     return false;
   }
 
@@ -489,10 +548,10 @@ export class AuthService implements TokenProvider {
     const config = this.ensureConfigured();
     const now = Date.now();
     await config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString());
-    this.authState = {
+    this.setAuthState({
       ...this.authState,
       isOffline: false,
-    };
+    });
   }
 
   /**
@@ -565,20 +624,20 @@ export class AuthService implements TokenProvider {
 
     if (!withinGracePeriod) {
       // Grace period expired - signal that network is required
-      this.authState = {
+      this.setAuthState({
         ...this.authState,
         isOffline: true,
         requiresReauth: true,
-      };
+      });
       return { canContinue: false, reason: 'OfflineGracePeriodExpired' };
     }
 
     // Within grace period - can continue using cached token
-    this.authState = {
+    this.setAuthState({
       ...this.authState,
       isAuthenticated: true,
       isOffline: true,
-    };
+    });
     return { canContinue: true };
   }
 
@@ -661,10 +720,10 @@ export class AuthService implements TokenProvider {
             return newToken;
           }
           // Refresh failed - signal re-authentication required
-          this.authState = {
+          this.setAuthState({
             ...this.authState,
             requiresReauth: true,
-          };
+          });
           return null;
         }
       }
@@ -673,10 +732,10 @@ export class AuthService implements TokenProvider {
       return accessToken;
     } catch (error) {
       // On any failure during refresh, mark reauth required and fail closed
-      this.authState = {
+      this.setAuthState({
         ...this.authState,
         requiresReauth: true,
-      };
+      });
       console.error('Failed to refresh access token:', error);
       return null;
     }
@@ -706,10 +765,10 @@ export class AuthService implements TokenProvider {
     } catch (error) {
       // Avoid throwing to honor contract; mark reauth if it's an auth failure
       if (error instanceof AuthError) {
-        this.authState = {
+        this.setAuthState({
           ...this.authState,
           requiresReauth: true,
-        };
+        });
       }
       console.error('Failed to refresh token:', error);
       return null;
@@ -772,17 +831,18 @@ export class AuthService implements TokenProvider {
 
     if (!refreshToken) {
       // No refresh token available
-      this.authState = {
-        ...this.authState,
+      await this.clearAllTokens();
+      this.setAuthState({
         isAuthenticated: false,
+        isOffline: false,
         requiresReauth: true,
-      };
+      });
       return null;
     }
 
     try {
       // Send refresh request to backend
-      const response = await config.apiClient.post<RefreshResponse>('/api/auth/refresh', {
+      const response = await config.apiClient.post<RefreshResponse>('/auth/refresh', {
         refreshToken,
         deviceId: config.deviceId,
       });
@@ -813,30 +873,30 @@ export class AuthService implements TokenProvider {
       await config.secureStorage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, now.toString());
 
       // Update auth state
-      this.authState = {
+      this.setAuthState({
         isAuthenticated: true,
         isOffline: false,
         requiresReauth: false,
-      };
+      });
 
       return normalizedResponse.accessToken;
     } catch (error) {
       // Check if it's a network error - preserve tokens
       if (this.isNetworkError(error)) {
-        this.authState = {
+        this.setAuthState({
           ...this.authState,
           isOffline: true,
-        };
+        });
         return null;
       }
 
       // Refresh failed due to expired/revoked token - clear all tokens
       await this.clearAllTokens();
-      this.authState = {
+      this.setAuthState({
         isAuthenticated: false,
         isOffline: false,
         requiresReauth: true,
-      };
+      });
       return null;
     }
   }
@@ -860,8 +920,8 @@ export class AuthService implements TokenProvider {
   }
 
   /**
-   * Clear all tokens from secure storage.
-   * Used when refresh fails due to expired/revoked token.
+   * Clear all tokens and auth metadata from secure storage.
+   * Used when refresh fails due to expired/revoked token or storage errors.
    */
   private async clearAllTokens(): Promise<void> {
     const config = this.ensureConfigured();
@@ -870,6 +930,7 @@ export class AuthService implements TokenProvider {
       config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
       config.secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY),
       config.secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY),
+      config.secureStorage.removeItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP),
     ]);
   }
 

@@ -21,14 +21,6 @@ config.transformer.minifierConfig = {
   },
 };
 
-// Enable caching for faster subsequent builds
-config.cacheStores = [
-  {
-    name: 'filesystem',
-    type: 'FileStore',
-  },
-];
-
 // Optimize resolver for faster module resolution
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
