@@ -105,7 +105,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              accessibilityState={{ disabled: isSubmitting, invalid: showError }}
+              accessibilityState={{ disabled: isSubmitting }}
               autoCapitalize="none"
               autoCorrect={false}
               editable={!isSubmitting}
@@ -120,7 +120,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
             <TextInput
-              accessibilityState={{ disabled: isSubmitting, invalid: showError }}
+              accessibilityState={{ disabled: isSubmitting }}
               autoCapitalize="none"
               autoCorrect={false}
               editable={!isSubmitting}

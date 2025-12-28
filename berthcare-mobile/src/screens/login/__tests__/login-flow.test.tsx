@@ -80,9 +80,9 @@ describe('Login flow', () => {
   });
 
   it('shows loading state while login is in progress', async () => {
-    let resolveLogin: ((value: { success: boolean }) => void) | null = null;
+    let resolveLogin: ((value: { success: boolean }) => void) | undefined;
     const loginPromise = new Promise<{ success: boolean }>((resolve) => {
-      resolveLogin = resolve;
+      resolveLogin = (value) => resolve(value);
     });
 
     mockAuthService.login.mockReturnValue(loginPromise);
