@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import App from './App';
+import { palette } from '@ui/palette';
 
 jest.setTimeout(15000);
 
@@ -23,15 +24,13 @@ describe('App', () => {
   });
 
   it('has correct title styling', async () => {
-    const { getAllByText } = await renderApp();
+    const { getByTestId } = await renderApp();
 
-    const title =
-      getAllByText('Log In').find((node) => node.props?.style?.fontSize === 28) ??
-      getAllByText('Log In')[0];
+    const title = getByTestId('login-title');
     expect(title.props.style).toMatchObject({
       fontSize: 28,
       fontWeight: '700',
-      color: '#1F2937',
+      color: palette.textPrimary,
     });
   });
 
@@ -41,7 +40,7 @@ describe('App', () => {
     const subtitle = getByText('Email');
     expect(subtitle.props.style).toMatchObject({
       fontSize: 15,
-      color: '#6B7280',
+      color: palette.textSecondary,
       marginBottom: 4,
     });
   });

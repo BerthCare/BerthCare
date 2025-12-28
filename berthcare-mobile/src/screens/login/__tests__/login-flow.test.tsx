@@ -30,7 +30,7 @@ jest.mock('@/lib/auth', () => {
   };
 });
 
-const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
+const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 const createLoginScreenProps = (): RootStackScreenProps<'Login'> => ({
   navigation: {} as RootStackScreenProps<'Login'>['navigation'],
@@ -46,6 +46,7 @@ describe('Login flow', () => {
     login: jest.Mock;
     restoreAuthState: jest.Mock;
     getAuthState: jest.Mock;
+    subscribeAuthState: jest.Mock;
   };
 
   beforeEach(() => {
@@ -54,6 +55,10 @@ describe('Login flow', () => {
       login: jest.fn(),
       restoreAuthState: jest.fn(async () => authState),
       getAuthState: jest.fn(() => authState),
+      subscribeAuthState: jest.fn((listener: (state: typeof authState) => void) => {
+        listener(authState);
+        return () => undefined;
+      }),
     };
 
     (AuthService.getInstance as jest.Mock).mockReturnValue(mockAuthService);

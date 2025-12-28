@@ -8,6 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 
+import { getButtonState } from '@ui/button-utils';
 import { palette } from '@ui/palette';
 
 export interface ButtonProps {
@@ -31,9 +32,12 @@ export default function Button({
   loading = false,
   testID,
 }: ButtonProps) {
-  const isDisabled = disabled || loading;
-  const showDisabledStyle = disabled && !loading;
-  const indicatorColor = variant === 'primary' ? palette.textInverse : palette.brandBlueAndroid;
+  const { isDisabled, showDisabledStyle, indicatorColor } = getButtonState({
+    variant,
+    disabled,
+    loading,
+    brandColor: palette.brandBlueAndroid,
+  });
 
   return (
     <TouchableOpacity

@@ -85,7 +85,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       } else {
         onLoginSuccess?.();
       }
-    } catch {
+    } catch (error) {
+      console.error('[LoginScreen] Login failed with unexpected error:', error);
       setErrorMessage(resolveErrorMessage());
     } finally {
       isSubmittingRef.current = false;
@@ -100,7 +101,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         style={styles.content}
       >
         <View>
-          <Text style={styles.title}>Log In</Text>
+          <Text style={styles.title} testID="login-title">
+            Log In
+          </Text>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
