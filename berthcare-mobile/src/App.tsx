@@ -75,6 +75,14 @@ export default function App() {
       });
   }, [authConfigured]);
 
+  useEffect(() => {
+    if (!authConfigured) {
+      return;
+    }
+    const authService = AuthService.getInstance();
+    return authService.subscribeAuthState((state) => setAuthState(state));
+  }, [authConfigured]);
+
   const handleLoginSuccess = useCallback(() => {
     const authService = AuthService.getInstance();
     setAuthState(authService.getAuthState());
