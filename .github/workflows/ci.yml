@@ -78,6 +78,7 @@ jobs:
     steps:
       - name: Skip if Sentry secrets missing
         if: env.SENTRY_ORG == '' || env.SENTRY_PROJECT == '' || env.SENTRY_AUTH_TOKEN == ''
+        working-directory: ${{ github.workspace }}
         run: 'echo "Skipping Sentry upload: missing secrets" && exit 0'
 
       - uses: actions/checkout@v4
