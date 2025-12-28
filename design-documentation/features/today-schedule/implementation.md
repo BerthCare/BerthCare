@@ -3,7 +3,8 @@
 ## Component Mapping
 
 **Screen:** `TodayScreen.tsx`
-**Components:**
+Components:
+
 - `ScheduleCard` (from `cards.md`)
 - `SyncIndicator` (from `navigation.md`)
 - `EmergencyButton` (from `emergency-trigger.md`)
@@ -11,13 +12,15 @@
 
 ## Data Flow
 
-**On app launch:**
+On app launch:
+
 1. Query local SQLite for today's schedule
 2. Render cards from cache (instant, <100ms)
 3. Background sync triggers (if online)
 4. Update UI if schedule changed (rare)
 
-**Query:**
+Query:
+
 ```sql
 SELECT s.*, c.name, c.photoUrl, c.address
 FROM schedules s
@@ -28,7 +31,8 @@ AND s.status != 'cancelled'
 ORDER BY s.scheduledTime ASC
 ```
 
-**Code example:**
+Code example:
+
 ```typescript
 const TodayScreen = () => {
   const [schedule, setSchedule] = useState<Schedule[]>([]);
@@ -72,17 +76,20 @@ const TodayScreen = () => {
 
 ## Performance Optimization
 
-**Virtual list rendering:**
+Virtual list rendering:
+
 - Use `FlatList` (React Native) or `RecyclerView` (Android native)
 - Only render visible cards + 2 above/below
 - Typical: 6-8 cards, all fit on screen (no virtualization needed)
 
-**Image caching:**
+Image caching:
+
 - Pre-load client photos on app launch
 - Cache photos for 30 days
 - Use `react-native-fast-image` or similar
 
-**Background sync:**
+Background sync:
+
 - Debounce sync requests (max 1 per 30 seconds)
 - Use exponential backoff on failure
 - Queue sync requests in SQLite
@@ -91,27 +98,32 @@ const TodayScreen = () => {
 
 ## Edge Cases to Test
 
-**No visits today:**
+No visits today:
+
 - Show empty state
 - Sync indicator still works
 - Emergency button still accessible
 
-**All visits completed:**
+All visits completed:
+
 - All cards show green checkmarks
 - Sync status shows "Synced"
 - No action required
 
-**Offline for 7+ days:**
+Offline for 7+ days:
+
 - Show "Connect to internet" message
 - Block new visits (auth token expired)
 - Allow viewing cached visits (read-only)
 
-**Schedule changes while app open:**
+Schedule changes while app open:
+
 - Background sync detects changes
 - Update UI smoothly (no jarring refresh)
 - Preserve scroll position
 
-**Very long client names or addresses:**
+Very long client names or addresses:
+
 - Truncate with ellipsis (...)
 - Full text visible on tap (visit screen)
 - Card height expands if needed (dynamic type)
@@ -120,7 +132,8 @@ const TodayScreen = () => {
 
 ## Testing Checklist
 
-**Functional:**
+Functional:
+
 - [ ] App opens to Today screen (<1 second)
 - [ ] Schedule loads from cache (instant)
 - [ ] Background sync updates schedule (if changes)
@@ -129,26 +142,30 @@ const TodayScreen = () => {
 - [ ] Emergency button opens alert modal
 - [ ] Sync indicator shows correct status
 
-**Performance:**
+Performance:
+
 - [ ] Cold start <1 second
 - [ ] Screen transition <300ms
 - [ ] Scroll at 60fps (no jank)
 - [ ] Background sync doesn't block UI
 
-**Accessibility:**
+Accessibility:
+
 - [ ] VoiceOver/TalkBack announces all elements
 - [ ] Dynamic type scales correctly (100%, 150%, 200%)
 - [ ] Touch targets ≥44pt/48dp
 - [ ] Color contrast ≥4.5:1 (text)
 - [ ] Reduced motion alternatives work
 
-**Offline:**
+Offline:
+
 - [ ] Works offline (cached data)
 - [ ] Sync queues changes
 - [ ] Syncs when online
 - [ ] No data loss
 
-**Edge cases:**
+Edge cases:
+
 - [ ] Empty state (no visits)
 - [ ] Error state (sync failed)
 - [ ] Dark mode

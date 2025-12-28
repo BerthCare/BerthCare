@@ -6,7 +6,8 @@ The Today screen is the heart of BerthCare. It's the first thing Sarah sees when
 
 **Purpose:** Show today's visits in a scannable list. Let Sarah start her next visit in one tap.
 
-**Success criteria:**
+Success criteria:
+
 - Sarah can find her next visit in <3 seconds
 - Tapping a client opens the visit screen in <300ms
 - Schedule updates automatically when online

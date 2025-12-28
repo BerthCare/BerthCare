@@ -4,7 +4,8 @@
 
 **Storage:** Local preferences (AsyncStorage or SharedPreferences)
 
-**Code example:**
+Code example:
+
 ```typescript
 const showHintOnce = async (hintKey: string, message: string) => {
   const hasShown = await AsyncStorage.getItem(`hint_${hintKey}`);
@@ -25,7 +26,8 @@ useEffect(() => {
 
 ## Empty State Components
 
-**EmptyState.tsx:**
+EmptyState.tsx:
+
 ```typescript
 interface EmptyStateProps {
   icon: string; // SF Symbol or Material Icon
@@ -55,4 +57,4 @@ const EmptyState = ({ icon, title, message }: EmptyStateProps) => (
 
 ---
 
-**This completes the feature documentation. See accessibility folder for complete accessibility guidelines.**
+This completes the feature documentation. See accessibility folder for complete accessibility guidelines.

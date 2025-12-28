@@ -4,7 +4,8 @@
 
 **Trigger:** Network connection detected
 
-**Behavior:**
+Behavior:
+
 1. Sync queue processes (FIFO with priority)
 2. Visits sync first (high priority)
 3. Photos sync second (lower priority)
@@ -17,7 +18,8 @@
 
 **Trigger:** Tap "Retry" in error banner
 
-**Behavior:**
+Behavior:
+
 1. Immediate sync attempt
 2. Sync indicator shows "Syncing..."
 3. Success or failure feedback
@@ -28,7 +30,8 @@
 
 **Trigger:** Tap sync status indicator
 
-**Behavior:**
+Behavior:
+
 1. Sync details modal appears
 2. Shows sync queue status
 3. Shows last sync time
@@ -36,4 +39,4 @@
 
 ---
 
-**See implementation.md for sync queue architecture.**
+See implementation.md for sync queue architecture.

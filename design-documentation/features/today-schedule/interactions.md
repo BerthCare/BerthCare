@@ -4,7 +4,8 @@
 
 **Trigger:** User taps anywhere on a schedule card
 
-**Behavior:**
+Behavior:
+
 1. Card scales to 98% (150ms, haptic light)
 2. Card scales back to 100% (150ms)
 3. Navigate to Visit screen (300ms slide transition)
@@ -12,7 +13,8 @@
 
 **Animation:** Horizontal slide (iOS) or fade (Android), 300ms, ease-out
 
-**Code example:**
+Code example:
+
 ```javascript
 <TouchableOpacity
   onPress={() => navigation.navigate('Visit', { clientId, scheduleId })}
@@ -28,7 +30,8 @@
 
 **Trigger:** User pulls down from top of screen
 
-**Behavior:**
+Behavior:
+
 1. Spinner appears below navigation bar
 2. Background sync triggers
 3. Schedule updates if changes detected
@@ -36,7 +39,8 @@
 
 **Visual:** Blue spinner, rotates continuously
 
-**Code example:**
+Code example:
+
 ```javascript
 <ScrollView
   refreshControl={
@@ -57,7 +61,8 @@
 
 **Trigger:** User taps red ⚠ button (top-right)
 
-**Behavior:**
+Behavior:
+
 1. Button scales to 95% (150ms, haptic heavy)
 2. Emergency modal slides up (300ms)
 3. Backdrop fades in (50% black)
@@ -71,13 +76,15 @@
 
 **Trigger:** User taps sync status indicator (center of navigation bar)
 
-**Behavior:**
+Behavior:
+
 1. Sync details modal appears
 2. Shows sync queue status
 3. Shows last sync time
 4. Shows retry button (if sync failed)
 
-**Content:**
+Content:
+
 ```
 ┌─────────────────────────────────────┐
 │ Sync Status                         │
@@ -98,14 +105,16 @@
 
 ## Scroll Behavior
 
-**Behavior:**
+Behavior:
+
 - Vertical scroll only
 - Bounce effect at top/bottom (iOS)
 - Overscroll glow (Android)
 - Navigation bar stays fixed (doesn't scroll)
 - Pull-to-refresh available at top
 
-**Performance:**
+Performance:
+
 - Virtual list rendering (only visible cards rendered)
 - Smooth 60fps scrolling
 - No jank on low-end devices

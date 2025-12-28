@@ -18,4 +18,4 @@ Alert syncing to server. Coordinator receives email notification.
 
 ---
 
-**See implementation.md for complete state management.**
+See implementation.md for complete state management.

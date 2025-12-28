@@ -8,7 +8,8 @@ This folder contains reference images and mockups for the BerthCare design syste
 
 **Format:** `[screen]-[state]@[scale].png`
 
-**Examples:**
+Examples:
+
 - `today-default@2x.png` – Today screen, default state, 2x resolution
 - `today-empty@2x.png` – Today screen, empty state, 2x resolution
 - `visit-editing@2x.png` – Visit screen, editing state, 2x resolution
@@ -24,6 +25,7 @@ This folder contains reference images and mockups for the BerthCare design syste
 ## Screens to Document
 
 ### Today Screen
+
 - `today-default@2x.png` – Default state with visits
 - `today-empty@2x.png` – Empty state (no visits)
 - `today-offline@2x.png` – Offline state
@@ -31,6 +33,7 @@ This folder contains reference images and mockups for the BerthCare design syste
 - `today-dark@2x.png` – Dark mode
 
 ### Visit Screen
+
 - `visit-default@2x.png` – Default state (pre-filled)
 - `visit-editing@2x.png` – Editing a field
 - `visit-empty@2x.png` – First visit (empty fields)
@@ -38,11 +41,13 @@ This folder contains reference images and mockups for the BerthCare design syste
 - `visit-dark@2x.png` – Dark mode
 
 ### Emergency Alert
+
 - `alert-modal@2x.png` – Emergency modal
 - `alert-call@2x.png` – Call coordinator button
 - `alert-note@2x.png` – Optional note after call
 
 ### Components
+
 - `button-primary@2x.png` – Primary button
 - `button-secondary@2x.png` – Secondary button
 - `button-destructive@2x.png` – Destructive button
@@ -52,31 +57,36 @@ This folder contains reference images and mockups for the BerthCare design syste
 
 ## How to Use
 
-**For designers:**
+For designers:
+
 - Export mockups from Figma/Sketch
 - Use naming convention above
 - Include 2x and 3x versions
 - Update this README with new images
 
-**For developers:**
+For developers:
+
 - Reference images for implementation
 - Compare implementation to mockups
 - Use for visual regression testing
 
-**For stakeholders:**
+For stakeholders:
+
 - Review design direction
 - Provide feedback on mockups
 - Understand user flows
 
 ## Tools
 
-**Export from Figma:**
+Export from Figma:
+
 1. Select frame
 2. Export settings: PNG, 2x
 3. Name according to convention
 4. Save to this folder
 
-**Export from Sketch:**
+Export from Sketch:
+
 1. Select artboard
 2. Export: PNG, 2x
 3. Name according to convention
@@ -91,4 +101,4 @@ This folder contains reference images and mockups for the BerthCare design syste
 
 ---
 
-**This completes the design system documentation.**
+This completes the design system documentation.

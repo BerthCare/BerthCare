@@ -24,6 +24,7 @@ Accessibility is not optional. It's not a checklist. It's a fundamental requirem
 ## Success Criteria
 
 Accessibility succeeds if:
+
 - All caregivers can use the app, regardless of ability
 - Screen readers work perfectly (no missing labels)
 - Text scales without breaking layout

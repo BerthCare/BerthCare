@@ -6,7 +6,8 @@ Onboarding is minimal. The app should be so obvious that tutorials are unnecessa
 
 **Purpose:** Get Sarah using the app in <10 minutes, with minimal explanation.
 
-**Success criteria:**
+Success criteria:
+
 - First visit documented in <10 minutes
 - No tutorial screens (app is self-evident)
 - Empty states are helpful, not confusing
@@ -28,4 +29,4 @@ Onboarding is minimal. The app should be so obvious that tutorials are unnecessa
 
 ---
 
-**See individual files for detailed specifications.**
+See individual files for detailed specifications.

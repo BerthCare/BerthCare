@@ -2,7 +2,8 @@
 
 ## Screen Reader
 
-**Sync status announcements:**
+Sync status announcements:
+
 - "Saved locally" (when offline)
 - "Syncing" (when syncing)
 - "Synced" (when complete)
@@ -22,4 +23,4 @@ Sync indicator: 44pt × 44pt (tappable for details).
 
 ---
 
-**See accessibility/guidelines.md for complete requirements.**
+See accessibility/guidelines.md for complete requirements.

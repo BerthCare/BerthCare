@@ -4,7 +4,8 @@
 
 Web version is for coordinators (Linda), not caregivers (Sarah). Different use case, different adaptations.
 
-**Coordinator needs:**
+Coordinator needs:
+
 - View all caregivers and visits
 - Export reports (PDF, FHIR)
 - Monitor sync status
@@ -18,24 +19,28 @@ Web version is for coordinators (Linda), not caregivers (Sarah). Different use c
 
 ## Navigation
 
-**Desktop:**
+Desktop:
+
 - Sidebar navigation (persistent)
 - Breadcrumbs for deep navigation
 - Keyboard shortcuts (Cmd+K for search)
 
-**Mobile:**
+Mobile:
+
 - Hamburger menu (acceptable for coordinator portal)
 - Bottom navigation bar
 - Swipe gestures
 
 ## Keyboard Navigation
 
-**Tab order:**
+Tab order:
+
 - Logical, top-to-bottom, left-to-right
 - Skip links for screen readers
 - Focus indicators (2pt blue outline)
 
-**Shortcuts:**
+Shortcuts:
+
 - Tab / Shift+Tab: Navigate
 - Enter / Space: Activate
 - Escape: Close modal / Cancel
@@ -43,24 +48,28 @@ Web version is for coordinators (Linda), not caregivers (Sarah). Different use c
 
 ## Mouse Interactions
 
-**Hover states:**
+Hover states:
+
 - Buttons: Slight darkening
 - Cards: Elevation increase
 - Links: Underline appears
 
-**Cursor:**
+Cursor:
+
 - Pointer for interactive elements
 - Text cursor for inputs
 - Not-allowed for disabled elements
 
 ## Typography
 
-**System fonts:**
+System fonts:
+
 - macOS: -apple-system, SF Pro
 - Windows: Segoe UI
 - Linux: Roboto, Ubuntu
 
-**Scaling:**
+Scaling:
+
 - Base: 16px (browser default)
 - Respect browser zoom (Cmd +/-)
 - Test at 100%, 150%, 200%

@@ -26,4 +26,4 @@ Heavy impact (urgent, unmistakable).
 
 ---
 
-**See accessibility/guidelines.md for complete requirements.**
+See accessibility/guidelines.md for complete requirements.

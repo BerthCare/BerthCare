@@ -8,12 +8,14 @@ Modals interrupt the user. Use them rarely—only for critical confirmations or 
 
 ## When to Use Modals
 
-**Use for:**
+Use for:
+
 - Destructive confirmations ("Delete Visit?")
 - Emergency alerts ("Something's Wrong")
 - Critical errors that block workflow
 
-**Don't use for:**
+Don't use for:
+
 - Information that can be inline
 - Non-critical messages
 - Multi-step workflows
@@ -39,14 +41,16 @@ Modals interrupt the user. Use them rarely—only for critical confirmations or 
 └─────────────────────────────────────┘
 ```
 
-**Visual Specs:**
+Visual Specs:
+
 - Background: `color.bg.surface` (white)
 - Padding: 24pt all sides
 - Corner radius: 16pt
 - Max width: 320pt (centered)
 - Backdrop: 50% black, tappable to dismiss (non-destructive modals only)
 
-**Animation:**
+Animation:
+
 - Backdrop fades in (300ms)
 - Modal slides up from bottom (iOS) or scales in (Android)
 - Duration: 300ms, `motion.ease.decelerate`
@@ -59,13 +63,15 @@ Modals interrupt the user. Use them rarely—only for critical confirmations or 
 
 **Example:** "Delete Visit?"
 
-**Content:**
+Content:
+
 - Title: Action being confirmed
 - Body: Consequences ("This cannot be undone")
 - Primary button: Destructive action ("Delete Visit")
 - Secondary button: Cancel
 
-**Behavior:**
+Behavior:
+
 - Backdrop tap → Dismiss (cancel)
 - Cancel button → Dismiss
 - Destructive button → Execute action, dismiss
@@ -75,13 +81,15 @@ Modals interrupt the user. Use them rarely—only for critical confirmations or 
 
 **Purpose:** Emergency alert screen.
 
-**Content:**
+Content:
+
 - Title: "Something's Wrong"
 - Body: Brief context
 - Primary button: "Call Coordinator"
 - No cancel button (can swipe down to dismiss)
 
-**Behavior:**
+Behavior:
+
 - Backdrop tap → Dismiss
 - Swipe down → Dismiss
 - Call button → Open phone dialer

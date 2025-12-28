@@ -20,4 +20,4 @@ All interactive elements: 44pt/48dp minimum.
 
 ---
 
-**See accessibility/guidelines.md for complete requirements.**
+See accessibility/guidelines.md for complete requirements.

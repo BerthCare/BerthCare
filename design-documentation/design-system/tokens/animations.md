@@ -9,18 +9,23 @@ Sarah doesn't have time for delight animations. She needs instant feedback that 
 ## Core Principles
 
 ### 1. Fast and Decisive
+
 Animations are quick and confident. No lingering, no hesitation. Tap → feedback → done.
 
 ### 2. Functional, Not Decorative
+
 Every animation answers a question:
+
 - "Did my tap register?" (button press)
 - "Is the app working?" (loading spinner)
 - "Did my action complete?" (success checkmark)
 
 ### 3. Reduced Motion Support
+
 All animations have reduced-motion alternatives. Users who experience motion sickness must be able to use the app.
 
 ### 4. Performance First
+
 Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel broken.
 
 ---
@@ -28,9 +33,10 @@ Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel
 ## Duration Tokens
 
 ### `motion.fast`
+
 - **Value:** 150ms
 - **Usage:** Quick feedback, button presses, toggles
-- **Examples:**
+- Examples:
   - Button press (scale down)
   - Toggle switch flip
   - Checkbox check
@@ -38,7 +44,8 @@ Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel
 
 **When to use:** Immediate feedback for user actions. User should feel instant response.
 
-**Code example:**
+Code example:
+
 ```css
 .button:active {
   transform: scale(0.95);
@@ -49,9 +56,10 @@ Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel
 ---
 
 ### `motion.default`
+
 - **Value:** 300ms
 - **Usage:** Screen transitions, modal appearances, most animations
-- **Examples:**
+- Examples:
   - Screen slide transition (Today → Visit)
   - Modal fade in/out
   - Card expand/collapse
@@ -59,7 +67,8 @@ Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel
 
 **When to use:** Default choice for most animations. Feels responsive without being jarring.
 
-**Code example:**
+Code example:
+
 ```css
 .screen-transition {
   transition: transform 300ms ease-out;
@@ -69,9 +78,10 @@ Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel
 ---
 
 ### `motion.slow`
+
 - **Value:** 500ms
 - **Usage:** Rare, only for complex state changes
-- **Examples:**
+- Examples:
   - Empty state illustration fade in
   - Complex layout transitions
   - Multi-step animations
@@ -87,6 +97,7 @@ Animations run at 60fps (or 120fps on ProMotion displays). Janky animations feel
 Easing curves control the acceleration and deceleration of animations.
 
 ### `motion.ease.standard`
+
 - **Value:** `cubic-bezier(0.4, 0.0, 0.2, 1)` (Material Design standard)
 - **Usage:** Default easing for most animations
 - **Behavior:** Starts quickly, decelerates at end
@@ -94,7 +105,8 @@ Easing curves control the acceleration and deceleration of animations.
 
 **When to use:** Default choice. Works for 90% of animations.
 
-**Code example:**
+Code example:
+
 ```css
 transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 ```
@@ -102,6 +114,7 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 ---
 
 ### `motion.ease.decelerate`
+
 - **Value:** `cubic-bezier(0.0, 0.0, 0.2, 1)` (Material Design decelerate)
 - **Usage:** Elements entering the screen
 - **Behavior:** Starts fast, decelerates smoothly
@@ -109,7 +122,8 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 
 **When to use:** Modals appearing, screens sliding in, elements entering.
 
-**Code example:**
+Code example:
+
 ```css
 .modal-enter {
   transition: opacity 300ms cubic-bezier(0.0, 0.0, 0.2, 1);
@@ -119,6 +133,7 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 ---
 
 ### `motion.ease.accelerate`
+
 - **Value:** `cubic-bezier(0.4, 0.0, 1, 1)` (Material Design accelerate)
 - **Usage:** Elements leaving the screen
 - **Behavior:** Starts slow, accelerates away
@@ -126,7 +141,8 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 
 **When to use:** Modals disappearing, screens sliding out, elements exiting.
 
-**Code example:**
+Code example:
+
 ```css
 .modal-exit {
   transition: opacity 300ms cubic-bezier(0.4, 0.0, 1, 1);
@@ -136,6 +152,7 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 ---
 
 ### `motion.ease.linear`
+
 - **Value:** `linear`
 - **Usage:** Rare, only for continuous animations
 - **Behavior:** Constant speed, no acceleration
@@ -151,13 +168,15 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 
 ### Button Press
 
-**Animation:**
+Animation:
+
 - Scale down to 95% on press
 - Scale back to 100% on release
 - Duration: `motion.fast` (150ms)
 - Easing: `motion.ease.standard`
 
-**Code example:**
+Code example:
+
 ```css
 .button:active {
   transform: scale(0.95);
@@ -165,7 +184,8 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Opacity change (100% → 80% → 100%)
 - No scale transformation
 
@@ -173,13 +193,15 @@ transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
 
 ### Screen Transition
 
-**Animation:**
+Animation:
+
 - New screen slides in from right (iOS) or fades in (Android)
 - Old screen slides out to left (iOS) or fades out (Android)
 - Duration: `motion.default` (300ms)
 - Easing: `motion.ease.standard`
 
-**Code example (React Navigation):**
+Code example (React Navigation):
+
 ```javascript
 const screenOptions = {
   cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
@@ -202,7 +224,8 @@ const screenOptions = {
 };
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Instant transition (no animation)
 - Screen appears immediately
 
@@ -210,13 +233,15 @@ const screenOptions = {
 
 ### Modal Appearance
 
-**Animation:**
+Animation:
+
 - Backdrop fades in (0% → 50% opacity)
 - Modal slides up from bottom (iOS) or fades in (Android)
 - Duration: `motion.default` (300ms)
 - Easing: `motion.ease.decelerate`
 
-**Code example:**
+Code example:
+
 ```css
 .modal-backdrop {
   animation: fadeIn 300ms cubic-bezier(0.0, 0.0, 0.2, 1);
@@ -237,7 +262,8 @@ const screenOptions = {
 }
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Instant appearance (no animation)
 - Modal appears immediately with backdrop
 
@@ -245,12 +271,14 @@ const screenOptions = {
 
 ### Loading Spinner
 
-**Animation:**
+Animation:
+
 - Continuous rotation (360° per second)
 - Duration: 1000ms per rotation
 - Easing: `motion.ease.linear`
 
-**Code example:**
+Code example:
+
 ```css
 .spinner {
   animation: rotate 1000ms linear infinite;
@@ -262,7 +290,8 @@ const screenOptions = {
 }
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Static icon (no rotation)
 - Pulsing opacity (100% → 50% → 100%)
 
@@ -270,14 +299,16 @@ const screenOptions = {
 
 ### Sync Status Change
 
-**Animation:**
+Animation:
+
 - Icon cross-fade (old icon fades out, new icon fades in)
 - Duration: `motion.fast` (150ms)
 - Easing: `motion.ease.standard`
 
 **Example:** "Saved locally" (gray cloud) → "Syncing" (blue spinner) → "Synced" (green checkmark)
 
-**Code example:**
+Code example:
+
 ```css
 .sync-icon {
   transition: opacity 150ms cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -292,7 +323,8 @@ const screenOptions = {
 }
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Instant icon change (no fade)
 - Icon changes immediately
 
@@ -300,13 +332,15 @@ const screenOptions = {
 
 ### Swipe to Complete
 
-**Animation:**
+Animation:
+
 - Card slides up and fades out
 - Duration: `motion.default` (300ms)
 - Easing: `motion.ease.accelerate`
 - Haptic feedback: Medium impact (iOS)
 
-**Code example:**
+Code example:
+
 ```javascript
 Animated.parallel([
   Animated.timing(translateY, {
@@ -324,7 +358,8 @@ Animated.parallel([
 ]).start();
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Instant removal (no animation)
 - Card disappears immediately
 
@@ -332,13 +367,15 @@ Animated.parallel([
 
 ### Success Confirmation
 
-**Animation:**
+Animation:
+
 - Green checkmark scales in (0% → 120% → 100%)
 - Duration: `motion.default` (300ms)
 - Easing: `motion.ease.decelerate`
 - Haptic feedback: Success notification (iOS)
 
-**Code example:**
+Code example:
+
 ```css
 .success-checkmark {
   animation: scaleIn 300ms cubic-bezier(0.0, 0.0, 0.2, 1);
@@ -351,7 +388,8 @@ Animated.parallel([
 }
 ```
 
-**Reduced motion alternative:**
+Reduced motion alternative:
+
 - Instant appearance (no scale)
 - Checkmark appears immediately
 
@@ -363,31 +401,38 @@ Haptic feedback is part of the animation system. It provides tactile confirmatio
 
 ### iOS Haptic Patterns
 
-**`haptic.light`**
+`haptic.light`
+
 - **Usage:** Subtle feedback, toggles, selections
 - **Example:** Toggle switch flip
 
-**`haptic.medium`**
+`haptic.medium`
+
 - **Usage:** Standard feedback, button presses
 - **Example:** Primary button tap
 
-**`haptic.heavy`**
+`haptic.heavy`
+
 - **Usage:** Strong feedback, important actions
 - **Example:** Complete visit swipe
 
-**`haptic.success`**
+`haptic.success`
+
 - **Usage:** Success confirmation
 - **Example:** Visit synced successfully
 
-**`haptic.warning`**
+`haptic.warning`
+
 - **Usage:** Warning or caution
 - **Example:** Sync failed
 
-**`haptic.error`**
+`haptic.error`
+
 - **Usage:** Error or failure
 - **Example:** Invalid input
 
-**Code example (React Native):**
+Code example (React Native):
+
 ```javascript
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
@@ -403,19 +448,23 @@ ReactNativeHapticFeedback.trigger('notificationError');
 
 ### Android Haptic Patterns
 
-**`haptic.click`**
+`haptic.click`
+
 - **Usage:** Standard feedback, button presses
 - **Example:** Primary button tap
 
-**`haptic.longPress`**
+`haptic.longPress`
+
 - **Usage:** Long press confirmation
 - **Example:** Hold to delete
 
-**`haptic.reject`**
+`haptic.reject`
+
 - **Usage:** Error or invalid action
 - **Example:** Invalid input
 
-**Code example (React Native):**
+Code example (React Native):
+
 ```javascript
 import { Vibration } from 'react-native';
 
@@ -434,12 +483,14 @@ All animations must have reduced-motion alternatives for users who experience mo
 
 ### Detecting Reduced Motion
 
-**iOS:**
+iOS:
+
 ```swift
 let isReduceMotionEnabled = UIAccessibility.isReduceMotionEnabled
 ```
 
-**Android:**
+Android:
+
 ```kotlin
 val isReduceMotionEnabled = Settings.Global.getFloat(
     contentResolver,
@@ -448,7 +499,8 @@ val isReduceMotionEnabled = Settings.Global.getFloat(
 ) == 0f
 ```
 
-**React Native:**
+React Native:
+
 ```javascript
 import { AccessibilityInfo } from 'react-native';
 
@@ -458,7 +510,7 @@ const isReduceMotionEnabled = await AccessibilityInfo.isReduceMotionEnabled();
 ### Reduced Motion Alternatives
 
 | Animation         | Standard     | Reduced Motion |
-|-------------------|--------------|----------------|
+| ----------------- | ------------ | -------------- |
 | Button press      | Scale down   | Opacity change |
 | Screen transition | Slide        | Instant        |
 | Modal appearance  | Slide up     | Instant        |
@@ -467,7 +519,8 @@ const isReduceMotionEnabled = await AccessibilityInfo.isReduceMotionEnabled();
 | Swipe complete    | Slide + fade | Instant        |
 | Success checkmark | Scale in     | Instant        |
 
-**Code example:**
+Code example:
+
 ```javascript
 const animationDuration = isReduceMotionEnabled ? 0 : 300;
 
@@ -486,13 +539,15 @@ Animated.timing(value, {
 
 All animations must run at 60fps (16.67ms per frame) or 120fps on ProMotion displays (8.33ms per frame).
 
-**How to achieve:**
+How to achieve:
+
 - Use native driver (`useNativeDriver: true` in React Native)
 - Animate only transform and opacity (GPU-accelerated)
 - Avoid animating layout properties (width, height, padding)
 - Avoid animating shadows (expensive)
 
-**Code example:**
+Code example:
+
 ```javascript
 // Good: GPU-accelerated
 Animated.timing(translateY, {
@@ -510,12 +565,14 @@ Animated.timing(height, {
 ### Animation Profiling
 
 Test animations on real devices (not simulators):
+
 - iPhone SE (slowest iOS device)
 - Low-end Android (e.g., Samsung Galaxy A series)
 - Enable "Show FPS" in developer settings
 - Ensure animations stay at 60fps
 
-**If animations drop below 60fps:**
+If animations drop below 60fps:
+
 - Simplify animation (fewer properties)
 - Reduce duration (faster = less noticeable jank)
 - Remove animation entirely (instant is better than janky)
@@ -525,18 +582,21 @@ Test animations on real devices (not simulators):
 ## Platform-Specific Adaptations
 
 ### iOS
+
 - **Navigation:** Horizontal slide (right to left)
 - **Modals:** Slide up from bottom
 - **Haptics:** Rich haptic feedback (Taptic Engine)
 - **Easing:** iOS-style curves (slightly different from Material)
 
 ### Android
+
 - **Navigation:** Fade or vertical slide (depends on Material version)
 - **Modals:** Fade in with scale
 - **Haptics:** Basic vibration patterns
 - **Easing:** Material Design curves
 
-**Code example (React Navigation):**
+Code example (React Navigation):
+
 ```javascript
 const screenOptions = Platform.select({
   ios: {
@@ -553,6 +613,7 @@ const screenOptions = Platform.select({
 ## Do's and Don'ts
 
 ### Do:
+
 - Use animation tokens (not hard-coded durations)
 - Provide reduced-motion alternatives
 - Test on real devices (not simulators)
@@ -560,6 +621,7 @@ const screenOptions = Platform.select({
 - Combine animations with haptic feedback
 
 ### Don't:
+
 - Animate for decoration (only for function)
 - Use slow animations (>500ms)
 - Animate layout properties (width, height, padding)

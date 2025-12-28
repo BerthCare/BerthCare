@@ -6,7 +6,8 @@ Offline sync is not a feature—it's the foundation. BerthCare works offline by 
 
 **Purpose:** Let Sarah work anywhere, anytime. Never lose data.
 
-**Success criteria:**
+Success criteria:
+
 - Works offline for 7 days (auth grace period)
 - Sync success rate ≥99.5%
 - Data loss incidents: 0
@@ -29,4 +30,4 @@ Offline sync is not a feature—it's the foundation. BerthCare works offline by 
 
 ---
 
-**See individual files for detailed specifications.**
+See individual files for detailed specifications.

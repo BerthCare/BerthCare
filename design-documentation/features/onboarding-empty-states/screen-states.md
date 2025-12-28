@@ -22,11 +22,12 @@ Calendar icon + "No visits today. Enjoy your day off!"
 
 Brief tooltips that appear once, fade after 3 seconds. Never shown again.
 
-**Examples:**
+Examples:
+
 - "Tap a client to start documenting"
 - "Fields auto-save as you type"
 - "Swipe up to complete visit"
 
 ---
 
-**See implementation.md for hint management (shown once, never again).**
+See implementation.md for hint management (shown once, never again).

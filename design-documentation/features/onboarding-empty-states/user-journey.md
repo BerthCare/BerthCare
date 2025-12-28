@@ -2,22 +2,24 @@
 
 ## Sarah's First Day
 
-**Day 1, 7:00 AM – Sarah receives invitation**
+Day 1, 7:00 AM – Sarah receives invitation
 
 Linda (coordinator) sends Sarah an email invitation to BerthCare.
 
-**Email contains:**
+Email contains:
+
 - Download link (App Store / Google Play)
 - Invitation code
 - Brief message: "Download BerthCare to simplify your documentation. No training needed."
 
 ---
 
-**7:05 AM – Sarah downloads and opens app**
+7:05 AM – Sarah downloads and opens app
 
 Sarah downloads BerthCare and opens it for the first time.
 
-**What she sees:**
+What she sees:
+
 1. Login screen (email + invitation code)
 2. She enters her email and code
 3. App opens to Today screen
@@ -28,11 +30,12 @@ Sarah downloads BerthCare and opens it for the first time.
 
 ---
 
-**8:00 AM – Sarah documents her first visit**
+8:00 AM – Sarah documents her first visit
 
 Sarah taps Margaret's card. Visit screen appears.
 
-**What she sees:**
+What she sees:
+
 1. Empty fields (no previous visit)
 2. Placeholders show format: "120/80", "36.5°C"
 3. Brief hint: "Fields auto-save as you type" (fades after 3 seconds)
@@ -47,11 +50,12 @@ Sarah taps Margaret's card. Visit screen appears.
 
 ---
 
-**8:30 AM – Sarah documents her second visit**
+8:30 AM – Sarah documents her second visit
 
 Sarah taps John's card. This time, last visit's notes are pre-filled (gray text).
 
-**What she sees:**
+What she sees:
+
 1. All fields pre-filled (gray)
 2. She only edits what changed (wound assessment)
 3. Text turns black (edited)
@@ -63,7 +67,7 @@ Sarah taps John's card. This time, last visit's notes are pre-filled (gray text)
 
 ---
 
-**5:00 PM – Sarah finishes her day**
+5:00 PM – Sarah finishes her day
 
 Sarah has completed all 6 visits. No paperwork at night.
 
@@ -80,4 +84,4 @@ Sarah has completed all 6 visits. No paperwork at night.
 
 ---
 
-**See other files for empty states, interactions, accessibility, and implementation.**
+See other files for empty states, interactions, accessibility, and implementation.

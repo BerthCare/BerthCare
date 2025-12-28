@@ -9,12 +9,14 @@ We use system fonts (SF Pro on iOS, Roboto on Android) because they're optimized
 ## Font Families
 
 ### `type.font.system`
+
 - **iOS:** SF Pro (system default)
 - **Android:** Roboto (system default)
 - **Web:** -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
 - **Why:** Instant loading, optimal legibility, accessibility support
 
 ### `type.font.mono`
+
 - **iOS:** SF Mono
 - **Android:** Roboto Mono
 - **Web:** "SF Mono", Monaco, "Courier New", monospace
@@ -40,11 +42,13 @@ Typography scale is based on comfortable reading sizes for mobile devices.
 - **Usage:** Screen titles, used once per screen
 - **Example:** "Today" screen title
 
-**Accessibility:**
+Accessibility:
+
 - Scales with Dynamic Type (iOS) and Font Size (Android)
 - At 200% scale: 56pt (still readable, layout adapts)
 
-**Code example:**
+Code example:
+
 ```css
 font-family: var(--type-font-system);
 font-size: 28pt;
@@ -66,7 +70,8 @@ letter-spacing: -0.5pt;
 - **Usage:** Major sections within a screen
 - **Example:** "Morning Visits" section header on Today screen
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - At 200% scale: 44pt
 
@@ -83,7 +88,8 @@ letter-spacing: -0.5pt;
 - **Usage:** Client names, visit titles, card headers
 - **Example:** "Margaret Chen" on schedule card
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - At 200% scale: 34pt
 - Minimum contrast: 4.5:1 (WCAG AA)
@@ -103,7 +109,8 @@ letter-spacing: -0.5pt;
 
 **Why 17pt:** Apple's recommended body text size. Comfortable for extended reading. Large enough for outdoor visibility.
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - At 200% scale: 34pt
 - Minimum contrast: 4.5:1 (WCAG AA)
@@ -121,7 +128,8 @@ letter-spacing: -0.5pt;
 - **Usage:** Secondary content, metadata, helper text
 - **Example:** Address on schedule card
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - At 200% scale: 30pt
 - Minimum contrast: 4.5:1 (WCAG AA)
@@ -139,7 +147,8 @@ letter-spacing: -0.5pt;
 - **Usage:** Form labels, button labels, navigation labels
 - **Example:** "Blood Pressure" field label
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - Minimum contrast: 4.5:1 (WCAG AA)
 
@@ -156,7 +165,8 @@ letter-spacing: -0.5pt;
 - **Usage:** Timestamps, footnotes, tertiary information
 - **Example:** "Last updated 2 hours ago"
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - At 200% scale: 26pt
 - Minimum contrast: 4.5:1 (WCAG AA, must use high contrast color)
@@ -176,7 +186,8 @@ letter-spacing: -0.5pt;
 - **Usage:** Button labels, call-to-action text
 - **Example:** "Complete Visit" button
 
-**Accessibility:**
+Accessibility:
+
 - Scales with system settings
 - Minimum touch target: 44pt height (iOS) / 48dp (Android)
 
@@ -214,19 +225,19 @@ All text must scale with iOS Dynamic Type and Android Font Size settings.
 
 ### iOS Dynamic Type Categories
 
-| Category | Default Size | 200% Size | Usage |
-|----------|--------------|-----------|-------|
-| Large Title | 34pt | 68pt | Not used in BerthCare |
-| Title 1 | 28pt | 56pt | Page headings |
-| Title 2 | 22pt | 44pt | Section headings |
-| Title 3 | 20pt | 40pt | Not used |
-| Headline | 17pt | 34pt | Card titles |
-| Body | 17pt | 34pt | Body text |
-| Callout | 16pt | 32pt | Not used |
-| Subheadline | 15pt | 30pt | Labels |
-| Footnote | 13pt | 26pt | Captions |
-| Caption 1 | 12pt | 24pt | Not used |
-| Caption 2 | 11pt | 22pt | Not used |
+| Category    | Default Size | 200% Size | Usage                 |
+| ----------- | ------------ | --------- | --------------------- |
+| Large Title | 34pt         | 68pt      | Not used in BerthCare |
+| Title 1     | 28pt         | 56pt      | Page headings         |
+| Title 2     | 22pt         | 44pt      | Section headings      |
+| Title 3     | 20pt         | 40pt      | Not used              |
+| Headline    | 17pt         | 34pt      | Card titles           |
+| Body        | 17pt         | 34pt      | Body text             |
+| Callout     | 16pt         | 32pt      | Not used              |
+| Subheadline | 15pt         | 30pt      | Labels                |
+| Footnote    | 13pt         | 26pt      | Captions              |
+| Caption 1   | 12pt         | 24pt      | Not used              |
+| Caption 2   | 11pt         | 22pt      | Not used              |
 
 **BerthCare uses:** Title 1, Title 2, Headline, Body, Subheadline, Footnote
 
@@ -235,28 +246,31 @@ All text must scale with iOS Dynamic Type and Android Font Size settings.
 ### Android Font Size Settings
 
 | Setting | Scale | Example (17sp base) |
-|---------|-------|---------------------|
-| Small | 85% | 14.5sp |
-| Default | 100% | 17sp |
-| Large | 115% | 19.5sp |
-| Largest | 130% | 22sp |
-| Huge | 200% | 34sp |
+| ------- | ----- | ------------------- |
+| Small   | 85%   | 14.5sp              |
+| Default | 100%  | 17sp                |
+| Large   | 115%  | 19.5sp              |
+| Largest | 130%  | 22sp                |
+| Huge    | 200%  | 34sp                |
 
 ### Layout Adaptation
 
 When text scales, layout must adapt:
 
-**At 100% (default):**
+At 100% (default):
+
 - Schedule card: 80pt height
 - Client name: 17pt, single line
 - Address: 15pt, single line
 
-**At 200% (maximum):**
+At 200% (maximum):
+
 - Schedule card: 120pt height (expands)
 - Client name: 34pt, may wrap to two lines
 - Address: 30pt, may wrap to two lines
 
-**Rules:**
+Rules:
+
 - Cards expand vertically (never truncate text)
 - Minimum touch targets maintained (44pt/48dp)
 - Horizontal scrolling is never required
@@ -267,14 +281,17 @@ When text scales, layout must adapt:
 ## Text Styles and Emphasis
 
 ### Regular (400)
+
 - **Usage:** Body text, labels, captions
 - **Example:** Visit notes, field labels
 
 ### Semibold (600)
+
 - **Usage:** Headings, titles, button labels, emphasis
 - **Example:** Client names, section headers, "Complete Visit"
 
 ### Bold (700)
+
 - **Usage:** Page headings, high emphasis
 - **Example:** "Today" screen title
 
@@ -287,24 +304,28 @@ When text scales, layout must adapt:
 Typography tokens are always paired with color tokens:
 
 ### Primary Text
+
 - **Style:** `type.body.default`
 - **Color:** `color.text.default`
 - **Contrast:** 12.63:1 (WCAG AAA ✓)
 - **Usage:** Visit notes, documentation
 
 ### Secondary Text
+
 - **Style:** `type.body.small` or `type.caption.default`
 - **Color:** `color.text.muted`
 - **Contrast:** 4.69:1 (WCAG AA ✓)
 - **Usage:** Timestamps, metadata
 
 ### Inverse Text
+
 - **Style:** `type.button.default`
 - **Color:** `color.text.inverse`
 - **Contrast:** 4.52:1 on `color.brand.primary` (WCAG AA ✓)
 - **Usage:** Button labels on colored backgrounds
 
 ### Placeholder Text
+
 - **Style:** `type.body.default`
 - **Color:** `color.text.placeholder`
 - **Contrast:** 3.12:1 (intentionally lower, indicates placeholder)
@@ -318,12 +339,14 @@ Typography tokens are always paired with color tokens:
 
 In visit documentation, text color indicates edit state:
 
-**Unchanged (copied from last visit):**
+Unchanged (copied from last visit):
+
 - **Color:** `color.text.muted` (gray)
 - **Style:** `type.body.default`
 - **Example:** "120/80" (blood pressure from last visit)
 
-**Edited (user changed value):**
+Edited (user changed value):
+
 - **Color:** `color.text.default` (black)
 - **Style:** `type.body.default`
 - **Example:** "118/78" (user edited blood pressure)
@@ -347,16 +370,17 @@ Error messages appear below fields:
 
 All text meets WCAG 2.1 AA contrast requirements:
 
-| Text Size | Minimum Contrast | BerthCare |
-|-----------|------------------|-----------|
-| <18pt regular | 4.5:1 | ✓ 4.69:1+ |
-| ≥18pt regular | 3:1 | ✓ 3.04:1+ |
-| <14pt bold | 4.5:1 | ✓ 4.69:1+ |
-| ≥14pt bold | 3:1 | ✓ 3.04:1+ |
+| Text Size     | Minimum Contrast | BerthCare |
+| ------------- | ---------------- | --------- |
+| <18pt regular | 4.5:1            | ✓ 4.69:1+ |
+| ≥18pt regular | 3:1              | ✓ 3.04:1+ |
+| <14pt bold    | 4.5:1            | ✓ 4.69:1+ |
+| ≥14pt bold    | 3:1              | ✓ 3.04:1+ |
 
 ### Screen Reader Support
 
 All text has semantic meaning:
+
 - Headings use proper heading levels (H1, H2)
 - Labels are associated with form fields
 - Button labels describe actions clearly
@@ -365,11 +389,13 @@ All text has semantic meaning:
 ### Dynamic Type Testing
 
 Test all screens at:
+
 - **100%:** Default size (most users)
 - **150%:** Large size (common for 40+ users)
 - **200%:** Maximum size (accessibility requirement)
 
-**Pass criteria:**
+Pass criteria:
+
 - No text truncation
 - No horizontal scrolling
 - Touch targets ≥44pt/48dp
@@ -380,12 +406,14 @@ Test all screens at:
 ## Platform-Specific Adaptations
 
 ### iOS
+
 - **Font:** SF Pro (system default)
 - **Dynamic Type:** Full support for all categories
 - **Rendering:** Subpixel antialiasing
 - **Weights:** Regular (400), Semibold (600), Bold (700)
 
 ### Android
+
 - **Font:** Roboto (system default)
 - **Font Size:** Full support for system settings
 - **Rendering:** Grayscale antialiasing
@@ -398,6 +426,7 @@ Test all screens at:
 ## Do's and Don'ts
 
 ### Do:
+
 - Use system fonts (SF Pro, Roboto)
 - Test at 100%, 150%, 200% scale
 - Ensure text meets contrast requirements
@@ -405,6 +434,7 @@ Test all screens at:
 - Support dynamic type scaling
 
 ### Don't:
+
 - Use custom fonts (adds load time, reduces legibility)
 - Hard-code font sizes (use tokens)
 - Truncate text with ellipsis (let it wrap)

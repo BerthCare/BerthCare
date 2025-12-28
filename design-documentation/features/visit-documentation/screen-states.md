@@ -4,7 +4,8 @@
 
 Last visit's notes are pre-filled (gray text). Sarah only edits what changed.
 
-**Layout:**
+Layout:
+
 ```
 ┌─────────────────────────────────────┐
 │ < Today    [Saved locally]     ⚠    │
@@ -54,4 +55,4 @@ Sync failed. Error banner shows "Sync failed. Will retry."
 
 ---
 
-**See implementation.md for complete state management details.**
+See implementation.md for complete state management details.

@@ -23,9 +23,11 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
 ## How to Run Locally
 
 1. Install dependencies:
+   
    ```bash
    npm install
    ```
+   
 2. Copy environment file and set variables:
 
    ```bash
@@ -48,30 +50,40 @@ See the end-to-end system diagram in the Technical Blueprint: [Architecture Over
 
 3. Start PostgreSQL and ensure it is reachable via `DATABASE_URL`.
 4. Generate the Prisma client:
+   
    ```bash
    npx prisma generate
    ```
+   
 5. Apply local migrations:
+   
    ```bash
    npx prisma migrate dev --name init
    ```
+   
 6. Start the dev server (ts-node-dev):
+   
    ```bash
    npm run dev
    ```
+   
    The API listens on `PORT` (defaults 3000) and exposes `GET /health`.
 
 ## How to Run Tests
 
 - Full suite (unit + property tests):
+  
   ```bash
   npm test
   ```
+  
   Uses ts-jest with fast-check properties; run `npx prisma generate` first so generated types are present.
 - Unit only (no integration DB dependency):
+  
   ```bash
   npm run test:unit
   ```
+  
 - Integration tests (need PostgreSQL reachable at `DATABASE_URL` and migrations applied):
 
   ```bash
@@ -114,7 +126,8 @@ Changing `JWT_SECRET` immediately invalidates all existing access and refresh to
 5. **Verify** – confirm `/health` is healthy, new logins succeed, and old tokens return 401.
 6. **Communicate** – if not using a maintenance window, push in-app or email notification so users know to log in again.
 
-**Operational notes:**
+Operational notes:
+
 - Roll out to all backend instances simultaneously; mixed secrets cause intermittent auth failures.
 - If using blue/green or rolling deployments, ensure the new secret is available before any instance restarts.
 - Monitor 401 rates post-rotation; a spike is expected but should stabilize as users re-authenticate.
@@ -122,16 +135,21 @@ Changing `JWT_SECRET` immediately invalidates all existing access and refresh to
 ### Prisma workflow
 
 1. Generate Prisma client (after `DATABASE_URL` is set):
+   
    ```bash
    npx prisma generate
    ```
+   
 2. Create and apply migrations locally:
+   
    ```bash
    npx prisma migrate dev --name <descriptive-name>
    # e.g., first migration: npx prisma migrate dev --name create-initial-schema
    ```
+   
    Use a descriptive name per change (e.g., `add-alerts-table`).
 3. Deploy migrations to another environment:
+   
    ```bash
    npx prisma migrate deploy
    ```

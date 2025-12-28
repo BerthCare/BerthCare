@@ -4,7 +4,8 @@
 
 **When:** Sarah has visits scheduled for today
 
-**Layout:**
+Layout:
+
 ```
 ┌─────────────────────────────────────┐
 │ < Back    [Synced ✓]           ⚠    │ ← Navigation bar
@@ -29,7 +30,8 @@
 └─────────────────────────────────────┘
 ```
 
-**Components:**
+Components:
+
 - Navigation bar with sync indicator and emergency button
 - Page heading: "Today"
 - List of schedule cards (6-8 typical)
@@ -41,7 +43,8 @@
 
 **When:** App is loading schedule for the first time
 
-**Layout:**
+Layout:
+
 ```
 ┌─────────────────────────────────────┐
 │         [Syncing...]           ⚠    │ ← Navigation bar
@@ -58,7 +61,8 @@
 
 **Duration:** <1 second (cached data loads instantly after first launch)
 
-**Components:**
+Components:
+
 - Spinner (20pt × 20pt, blue)
 - Loading message
 
@@ -68,7 +72,8 @@
 
 **When:** Sarah has no visits scheduled for today
 
-**Layout:**
+Layout:
+
 ```
 ┌─────────────────────────────────────┐
 │         [Synced ✓]             ⚠    │
@@ -84,7 +89,8 @@
 └─────────────────────────────────────┘
 ```
 
-**Components:**
+Components:
+
 - Empty state illustration (calendar icon)
 - Empty state message
 - No action required (just informational)
@@ -95,13 +101,15 @@
 
 **When:** Sarah has no internet, but schedule is cached
 
-**Layout:**
+Layout:
+
 - Same as default state
 - Sync indicator shows "Saved locally" (gray cloud)
 - All functionality works normally
 - Background sync attempts every 30 seconds
 
-**Visual difference:**
+Visual difference:
+
 - Sync indicator: Gray cloud + "Saved locally"
 - Subtle banner (optional): "Working offline" (dismissible)
 
@@ -111,7 +119,8 @@
 
 **When:** Sync has failed multiple times
 
-**Layout:**
+Layout:
+
 ```
 ┌─────────────────────────────────────┐
 │      [Sync failed ⚠]           ⚠    │ ← Red sync indicator
@@ -127,13 +136,15 @@
 └─────────────────────────────────────┘
 ```
 
-**Components:**
+Components:
+
 - Error banner (dismissible)
 - Red sync indicator
 - Retry button (in banner)
 - Schedule cards (still visible, using cached data)
 
-**Behavior:**
+Behavior:
+
 - Auto-retry every 30 seconds (exponential backoff)
 - Manual retry on tap
 - Error banner dismisses after successful sync
@@ -144,7 +155,8 @@
 
 **When:** Sarah pulls down to refresh schedule
 
-**Layout:**
+Layout:
+
 ```
 ┌─────────────────────────────────────┐
 │         [Syncing...]           ⚠    │
@@ -156,7 +168,8 @@
 └─────────────────────────────────────┘
 ```
 
-**Behavior:**
+Behavior:
+
 1. User pulls down from top
 2. Spinner appears (blue, rotating)
 3. Background sync triggers
@@ -169,13 +182,15 @@
 
 **When:** Sarah just completed a visit and returned to Today
 
-**Layout:**
+Layout:
+
 - Same as default state
 - Completed visit card shows green checkmark
 - Sync indicator shows "Syncing..." then "Synced"
 - Optional: Brief toast "Visit completed" (3 seconds, auto-dismiss)
 
-**Animation:**
+Animation:
+
 - Visit screen slides out (300ms)
 - Today screen slides in (300ms)
 - Completed card updates (checkmark fades in, 150ms)
@@ -186,7 +201,8 @@
 
 **When:** System is in dark mode
 
-**Visual changes:**
+Visual changes:
+
 - Background: `color.bg.canvas` (dark gray, not pure black)
 - Cards: `color.bg.surface` (slightly lighter gray)
 - Text: `color.text.default` (off-white)
@@ -200,7 +216,8 @@
 
 **When:** User has set text size to maximum (200%)
 
-**Visual changes:**
+Visual changes:
+
 - Page heading: 56pt (from 28pt)
 - Card title: 34pt (from 17pt)
 - Card metadata: 30pt (from 15pt)
@@ -215,11 +232,13 @@
 
 **When:** User is navigating with VoiceOver/TalkBack
 
-**Visual changes:**
+Visual changes:
+
 - Focused card has 2pt blue border
 - Screen reader announces: "Margaret Chen, 8:00 AM to 9:00 AM, 123 Oak Street Edmonton, Completed. Button."
 
-**Behavior:**
+Behavior:
+
 - Swipe right: Next card
 - Swipe left: Previous card
 - Double-tap: Open visit

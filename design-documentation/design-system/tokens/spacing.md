@@ -8,7 +8,8 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ## Base Grid
 
-**`space.base`**
+`space.base`
+
 - **Value:** 8pt / 8dp
 - **Usage:** Foundation for all spacing calculations
 - **Why 8pt:** Divisible by 2 and 4, works at 1x, 2x, 3x screen densities
@@ -18,9 +19,10 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 ## Spacing Scale
 
 ### `space.xs` (Extra Small)
+
 - **Value:** 4pt / 4dp (0.5 × base)
 - **Usage:** Tight spacing, rare
-- **Examples:**
+- Examples:
   - Gap between icon and label in a button
   - Padding inside small badges
   - Spacing between status icon and status text
@@ -30,9 +32,10 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 ---
 
 ### `space.sm` (Small)
+
 - **Value:** 8pt / 8dp (1 × base)
 - **Usage:** Compact spacing, common
-- **Examples:**
+- Examples:
   - Vertical spacing between form fields in a dense layout
   - Padding inside compact buttons
   - Gap between label and value in a key-value pair
@@ -43,9 +46,10 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 ---
 
 ### `space.md` (Medium)
+
 - **Value:** 16pt / 16dp (2 × base)
 - **Usage:** Default spacing, most common
-- **Examples:**
+- Examples:
   - Screen edge padding (horizontal)
   - Padding inside cards
   - Vertical spacing between form fields
@@ -57,9 +61,10 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 ---
 
 ### `space.lg` (Large)
+
 - **Value:** 24pt / 24dp (3 × base)
 - **Usage:** Generous spacing, section breaks
-- **Examples:**
+- Examples:
   - Vertical spacing between major sections
   - Padding around modals
   - Space above primary action buttons
@@ -70,9 +75,10 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 ---
 
 ### `space.xl` (Extra Large)
+
 - **Value:** 32pt / 32dp (4 × base)
 - **Usage:** Maximum spacing, rare
-- **Examples:**
+- Examples:
   - Top padding on empty states
   - Vertical spacing in sparse layouts
   - Padding around full-screen modals
@@ -85,22 +91,26 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ### Screen Padding
 
-**Horizontal padding:**
+Horizontal padding:
+
 - **Value:** `space.md` (16pt)
 - **Usage:** All screens, prevents content from touching edges
 - **Example:** Today screen, Visit screen, Alert screen
 
-**Top padding (below navigation):**
+Top padding (below navigation):
+
 - **Value:** `space.sm` (8pt)
 - **Usage:** Below navigation bar or safe area
 - **Why:** Navigation bar already provides visual separation
 
-**Bottom padding:**
+Bottom padding:
+
 - **Value:** `space.md` (16pt)
 - **Usage:** Above bottom safe area
 - **Why:** Prevents content from being cut off by home indicator
 
-**Code example:**
+Code example:
+
 ```css
 .screen {
   padding: 8pt 16pt 16pt 16pt; /* top right bottom left */
@@ -111,22 +121,26 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ### Card Spacing
 
-**Card internal padding:**
+Card internal padding:
+
 - **Value:** `space.md` (16pt)
 - **Usage:** All sides of card content
 - **Example:** Schedule card, visit summary card
 
-**Card vertical spacing (between cards):**
+Card vertical spacing (between cards):
+
 - **Value:** 12pt (1.5 × base, custom value)
 - **Usage:** Gap between cards in a list
 - **Why:** Tight enough for scanning, loose enough for separation
 
-**Card corner radius:**
+Card corner radius:
+
 - **Value:** 12pt (1.5 × base, custom value)
 - **Usage:** All cards
 - **Why:** Soft, approachable, not too round
 
-**Code example:**
+Code example:
+
 ```css
 .card {
   padding: 16pt;
@@ -139,22 +153,26 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ### Form Field Spacing
 
-**Vertical spacing between fields:**
+Vertical spacing between fields:
+
 - **Value:** `space.md` (16pt)
 - **Usage:** Gap between form fields
 - **Why:** Comfortable for input, clear separation
 
-**Label to input spacing:**
+Label to input spacing:
+
 - **Value:** `space.xs` (4pt)
 - **Usage:** Gap between label and input field
 - **Why:** Tight association, label belongs to field
 
-**Input internal padding:**
+Input internal padding:
+
 - **Value:** 12pt horizontal, 10pt vertical (custom values)
 - **Usage:** Padding inside text inputs
 - **Why:** Comfortable tap target, readable text
 
-**Code example:**
+Code example:
+
 ```css
 .form-field {
   margin-bottom: 16pt;
@@ -173,22 +191,26 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ### Button Spacing
 
-**Button internal padding:**
+Button internal padding:
+
 - **Primary/Secondary:** 12pt horizontal, 14pt vertical
 - **Tertiary:** 8pt horizontal, 8pt vertical
 - **Why:** Minimum 44pt/48dp touch target height
 
-**Button to content spacing:**
+Button to content spacing:
+
 - **Value:** `space.lg` (24pt)
 - **Usage:** Gap between content and primary action button
 - **Why:** Clear visual separation, prevents accidental taps
 
-**Button bottom spacing:**
+Button bottom spacing:
+
 - **Value:** `space.md` (16pt)
 - **Usage:** Distance from bottom of screen
 - **Why:** Above safe area, comfortable thumb reach
 
-**Code example:**
+Code example:
+
 ```css
 .primary-button {
   padding: 14pt 12pt;
@@ -201,17 +223,20 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ### List Item Spacing
 
-**List item internal padding:**
+List item internal padding:
+
 - **Value:** `space.md` (16pt) vertical, `space.md` (16pt) horizontal
 - **Usage:** Padding inside tappable list items
 - **Why:** Comfortable touch target (minimum 44pt/48dp height)
 
-**List item separator:**
+List item separator:
+
 - **Value:** 1pt line with `space.md` (16pt) horizontal inset
 - **Usage:** Divider between list items
 - **Why:** Subtle separation, doesn't compete with content
 
-**Code example:**
+Code example:
+
 ```css
 .list-item {
   padding: 16pt;
@@ -248,7 +273,8 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
   ↑ 16pt horizontal padding (both sides)
 ```
 
-**Spacing breakdown:**
+Spacing breakdown:
+
 - Screen horizontal padding: 16pt (`space.md`)
 - Top padding: 8pt (`space.sm`)
 - Title to first card: 16pt (`space.md`)
@@ -292,7 +318,8 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 └─────────────────────────────────────┘
 ```
 
-**Spacing breakdown:**
+Spacing breakdown:
+
 - Screen horizontal padding: 16pt (`space.md`)
 - Top padding: 8pt (`space.sm`)
 - Title to section: 24pt (`space.lg`)
@@ -309,12 +336,14 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 ### Minimum Touch Targets
 
-**iOS:**
+iOS:
+
 - **Minimum:** 44 × 44pt
 - **Comfortable:** 48 × 48pt
 - **Usage:** All tappable elements
 
-**Android:**
+Android:
+
 - **Minimum:** 48 × 48dp
 - **Comfortable:** 56 × 56dp
 - **Usage:** All tappable elements
@@ -325,7 +354,8 @@ Spacing is never arbitrary. Every gap, padding, and margin uses a token from the
 
 If visual element is smaller than minimum touch target, add transparent padding:
 
-**Example: 24pt icon button**
+Example: 24pt icon button
+
 ```css
 .icon-button {
   width: 24pt; /* Visual size */
@@ -334,7 +364,8 @@ If visual element is smaller than minimum touch target, add transparent padding:
 }
 ```
 
-**Example: Text link**
+Example: Text link
+
 ```css
 .text-link {
   padding: 12pt 8pt; /* Ensures 44pt height */
@@ -348,16 +379,19 @@ If visual element is smaller than minimum touch target, add transparent padding:
 Spacing adapts to screen size and orientation:
 
 ### Small Screens (iPhone SE, small Android)
+
 - Use `space.sm` (8pt) for screen padding (instead of 16pt)
 - Reduce card padding to 12pt (instead of 16pt)
 - Maintain minimum touch targets (44pt/48dp)
 
 ### Large Screens (iPad, tablets)
+
 - Increase screen padding to `space.lg` (24pt)
 - Increase card padding to `space.lg` (24pt)
 - Maintain same vertical rhythm
 
 ### Landscape Orientation
+
 - Increase horizontal padding to `space.lg` (24pt)
 - Reduce vertical spacing slightly (more horizontal space available)
 
@@ -371,11 +405,13 @@ Spacing adapts to screen size and orientation:
 
 When text scales, spacing must adapt:
 
-**At 100% (default):**
+At 100% (default):
+
 - Card height: 80pt
 - Between fields: 16pt
 
-**At 200% (maximum):**
+At 200% (maximum):
+
 - Card height: 120pt (expands for larger text)
 - Between fields: 20pt (slightly more space)
 
@@ -394,17 +430,20 @@ Spacing is not affected by reduced motion settings.
 ## Platform-Specific Adaptations
 
 ### iOS
+
 - **Safe area insets:** Respect top and bottom safe areas
 - **Navigation bar:** 44pt height (standard)
 - **Tab bar:** 49pt height (standard)
 - **Home indicator:** 34pt bottom safe area (iPhone X+)
 
 ### Android
+
 - **Status bar:** 24dp height (standard)
 - **Navigation bar:** 48dp height (standard)
 - **System gestures:** 16dp bottom inset (gesture navigation)
 
-**Code example (React Native):**
+Code example (React Native):
+
 ```javascript
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -424,6 +463,7 @@ const insets = useSafeAreaInsets();
 ## Do's and Don'ts
 
 ### Do:
+
 - Use spacing tokens (not hard-coded values)
 - Maintain consistent vertical rhythm
 - Respect minimum touch targets (44pt/48dp)
@@ -431,6 +471,7 @@ const insets = useSafeAreaInsets();
 - Respect safe area insets (iOS notch, Android gestures)
 
 ### Don't:
+
 - Hard-code spacing values (use tokens)
 - Use spacing smaller than `space.xs` (4pt)
 - Create touch targets smaller than 44pt/48dp

@@ -4,14 +4,16 @@
 
 Design tokens are the atomic design decisions that cascade through the entire system. They are named, semantic values that replace hard-coded numbers and hex codes.
 
-**Instead of:**
+Instead of:
+
 ```css
 background-color: #0066CC;
 padding: 16px;
 font-size: 17px;
 ```
 
-**We use:**
+We use:
+
 ```css
 background-color: var(--color-brand-primary);
 padding: var(--space-md);
@@ -21,28 +23,36 @@ font-size: var(--type-body-default-size);
 ## Why Tokens Matter
 
 ### 1. Consistency
+
 Tokens ensure that "primary blue" is the same blue everywhere. No more #0066CC in one file and #0065CB in another.
 
 ### 2. Maintainability
+
 Changing `color.brand.primary` updates all primary buttons, links, and accents. One change, hundreds of updates.
 
 ### 3. Semantic Meaning
+
 `color.state.error` is more meaningful than `#DC3545`. The name explains the purpose.
 
 ### 4. Platform Translation
+
 Tokens can be transformed into platform-specific formats:
+
 - iOS: Swift constants or JSON
 - Android: XML resources
 - Web: CSS custom properties
 - React Native: JavaScript constants
 
 ### 5. Design-Dev Handoff
+
 Designers and developers speak the same language. "Use `space.md` for padding" is clearer than "use 16 pixels."
 
 ## Token Categories
 
 ### Colors (`colors.md`)
+
 Semantic color system organized by role:
+
 - **Brand:** Primary, accent, secondary
 - **Neutral:** Grayscale from 50 (lightest) to 900 (darkest)
 - **Background:** Canvas, surface, overlay
@@ -52,7 +62,9 @@ Semantic color system organized by role:
 - **Emergency:** Primary, background
 
 ### Typography (`typography.md`)
+
 Type scale and roles:
+
 - **Headings:** Page, section
 - **Titles:** Card, list row
 - **Body:** Default, small
@@ -60,13 +72,17 @@ Type scale and roles:
 - Font families, sizes, weights, line heights, letter spacing
 
 ### Spacing (`spacing.md`)
+
 Layout grid and spacing scale:
+
 - **Base grid:** 8pt
 - **Scale:** xs (4pt), sm (8pt), md (16pt), lg (24pt), xl (32pt)
 - **Layout recipes:** Screen padding, card spacing, form rhythm
 
 ### Animations (`animations.md`)
+
 Motion tokens:
+
 - **Durations:** Fast (150ms), default (300ms), slow (500ms)
 - **Easing:** Standard, decelerate, accelerate
 - **Reduced motion:** Alternatives for accessibility
@@ -79,7 +95,8 @@ Tokens follow a consistent naming pattern:
 [category].[role].[variant].[state]
 ```
 
-**Examples:**
+Examples:
+
 - `color.brand.primary` (category: color, role: brand, variant: primary)
 - `color.text.default` (category: color, role: text, variant: default)
 - `color.state.error` (category: color, role: state, variant: error)
@@ -87,7 +104,8 @@ Tokens follow a consistent naming pattern:
 - `type.body.default.size` (category: type, role: body, variant: default, property: size)
 - `motion.fast` (category: motion, variant: fast)
 
-**Why this convention:**
+Why this convention:
+
 - Predictable: Easy to guess token names
 - Hierarchical: Related tokens are grouped
 - Semantic: Names explain purpose
@@ -96,22 +114,27 @@ Tokens follow a consistent naming pattern:
 ## Token Files
 
 ### `colors.md`
+
 Complete color palette with hex values, contrast ratios, and usage examples.
 
 ### `typography.md`
+
 Type scale with font families, sizes, weights, line heights, and roles.
 
 ### `spacing.md`
+
 Spacing scale with layout recipes and usage examples.
 
 ### `animations.md`
+
 Motion tokens with durations, easing curves, and reduced motion alternatives.
 
 ## How Tokens Map to Code
 
 Tokens are defined in `/assets/design-tokens.json` and transformed into platform-specific formats using Style Dictionary.
 
-**Example token definition:**
+Example token definition:
+
 ```json
 {
   "color": {
@@ -126,28 +149,32 @@ Tokens are defined in `/assets/design-tokens.json` and transformed into platform
 }
 ```
 
-**Transforms to:**
+Transforms to:
 
-**iOS (Swift):**
+iOS (Swift):
+
 ```swift
 public enum Color {
     public static let brandPrimary = UIColor(hex: "#0066CC")
 }
 ```
 
-**Android (XML):**
+Android (XML):
+
 ```xml
 <color name="color_brand_primary">#0066CC</color>
 ```
 
-**Web (CSS):**
+Web (CSS):
+
 ```css
 :root {
   --color-brand-primary: #0066CC;
 }
 ```
 
-**React Native (JavaScript):**
+React Native (JavaScript):
+
 ```javascript
 export const colors = {
   brand: {
@@ -181,6 +208,7 @@ export const colors = {
 ### Adding New Tokens
 
 New tokens require:
+
 1. Clear use case (where will it be used?)
 2. Semantic name (follows naming convention)
 3. Distinct from existing tokens (not a duplicate)
@@ -189,6 +217,7 @@ New tokens require:
 ### Changing Existing Tokens
 
 Token changes require:
+
 1. Impact analysis (what will change?)
 2. Visual regression testing (screenshots before/after)
 3. Approval from design and engineering leads
@@ -196,6 +225,7 @@ Token changes require:
 ### Removing Tokens
 
 Tokens can be removed when:
+
 1. No longer used anywhere (verified by code search)
 2. Replaced by a better token
 3. Deprecated for at least one release cycle
@@ -204,7 +234,8 @@ Tokens can be removed when:
 
 Some tokens have platform-specific values:
 
-**Example: Touch targets**
+Example: Touch targets
+
 ```json
 {
   "size": {
@@ -252,6 +283,7 @@ These ensure the app works for all users.
 ## Token Documentation
 
 Each token file includes:
+
 - **Value:** The actual value (hex, pt, ms)
 - **Usage:** Where and how to use it
 - **Examples:** Visual examples or code snippets
@@ -261,6 +293,7 @@ Each token file includes:
 ## Success Criteria
 
 Tokens succeed if:
+
 1. Designers and developers use the same names
 2. Changes propagate cleanly through the system
 3. New screens feel consistent without manual coordination

@@ -6,7 +6,8 @@ The Visit screen is where Sarah documents care. It's the core innovation of Bert
 
 **Purpose:** Let Sarah document a visit by tapping what changed from last time.
 
-**Success criteria:**
+Success criteria:
+
 - Sarah completes documentation in ≤60 seconds
 - Pre-filled fields are obvious (gray text)
 - Edited fields are obvious (black text)
@@ -39,4 +40,4 @@ The Visit screen is where Sarah documents care. It's the core innovation of Bert
 
 ---
 
-**See individual files for detailed specifications.**
+See individual files for detailed specifications.

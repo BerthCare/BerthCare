@@ -2,11 +2,12 @@
 
 ## Sarah Works in a Rural Area
 
-**8:00 AM – Sarah enters dead zone**
+8:00 AM – Sarah enters dead zone
 
 Sarah drives to a rural area with no cell service. She has 3 visits scheduled.
 
-**What happens:**
+What happens:
+
 - App continues working normally
 - All visits save to local SQLite
 - Sync status shows "Saved locally" (gray cloud)
@@ -16,11 +17,12 @@ Sarah drives to a rural area with no cell service. She has 3 visits scheduled.
 
 ---
 
-**11:30 AM – Sarah returns to town**
+11:30 AM – Sarah returns to town
 
 Sarah finishes her rural visits and drives back to town. Her phone reconnects to WiFi.
 
-**What happens:**
+What happens:
+
 1. App detects network connection
 2. Background sync triggers automatically
 3. Sync status shows "Syncing..." (blue spinner)
@@ -36,7 +38,8 @@ Sarah finishes her rural visits and drives back to town. Her phone reconnects to
 
 **Scenario:** Server is down, sync fails.
 
-**What happens:**
+What happens:
+
 1. Sync attempt fails
 2. Sync status shows "Sync failed" (red exclamation)
 3. Error banner appears: "Sync failed. Will retry in 30 seconds."
@@ -57,4 +60,4 @@ Sarah finishes her rural visits and drives back to town. Her phone reconnects to
 
 ---
 
-**See other files for screen states, interactions, accessibility, and implementation.**
+See other files for screen states, interactions, accessibility, and implementation.

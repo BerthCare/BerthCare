@@ -4,7 +4,8 @@
 
 **Trigger:** First time user sees a screen
 
-**Behavior:**
+Behavior:
+
 1. Hint appears (fade in, 300ms)
 2. Stays visible for 3 seconds
 3. Fades out (300ms)
@@ -20,4 +21,4 @@
 
 ---
 
-**See implementation.md for hint storage and management.**
+See implementation.md for hint storage and management.

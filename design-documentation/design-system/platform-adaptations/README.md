@@ -4,14 +4,16 @@
 
 BerthCare respects platform conventions while maintaining a consistent identity. The experience should feel native but recognizable as BerthCare.
 
-**What stays the same:**
+What stays the same:
+
 - Three-screen structure (Today, Visit, Alert)
 - Color palette and typography scale
 - Component behavior and interactions
 - Copy-and-edit pattern
 - Offline-first architecture
 
-**What adapts:**
+What adapts:
+
 - Navigation patterns (swipe vs back button)
 - System fonts (SF Pro vs Roboto)
 - Icons (SF Symbols vs Material Icons)

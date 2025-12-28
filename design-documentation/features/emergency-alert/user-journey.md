@@ -2,11 +2,12 @@
 
 ## Sarah Needs Help
 
-**8:15 AM – Margaret is unusually confused**
+8:15 AM – Margaret is unusually confused
 
 Sarah notices Margaret is disoriented and confused. This is unusual. Sarah needs advice.
 
-**What Sarah does:**
+What Sarah does:
+
 1. Taps red ⚠ button (top-right, always visible)
 2. Emergency modal appears (300ms)
 3. Sees large red button: "📞 Call Linda Chen +1-780-555-1234"
@@ -18,11 +19,12 @@ Sarah notices Margaret is disoriented and confused. This is unusual. Sarah needs
 
 ---
 
-**8:17 AM – Sarah talks to Linda**
+8:17 AM – Sarah talks to Linda
 
 Sarah explains the situation. Linda advises Sarah to check Margaret's blood sugar and call back if it's low.
 
-**What happens:**
+What happens:
+
 - Call duration: 2 minutes
 - Sarah follows Linda's advice
 - Margaret's blood sugar is normal
@@ -30,11 +32,12 @@ Sarah explains the situation. Linda advises Sarah to check Margaret's blood suga
 
 ---
 
-**8:19 AM – Sarah adds a note (optional)**
+8:19 AM – Sarah adds a note (optional)
 
 After the call, Sarah returns to BerthCare. The app shows an optional note field.
 
-**What Sarah does:**
+What Sarah does:
+
 1. Taps note field
 2. Types: "Client confused, coordinator advised check blood sugar. Normal. Client improved after snack."
 3. Taps "Done"
@@ -55,4 +58,4 @@ After the call, Sarah returns to BerthCare. The app shows an optional note field
 
 ---
 
-**See other files for screen states, interactions, accessibility, and implementation.**
+See other files for screen states, interactions, accessibility, and implementation.

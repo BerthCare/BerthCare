@@ -24,4 +24,4 @@ Sync indicator: Red exclamation + "Sync failed". Error banner with retry button.
 
 ---
 
-**See implementation.md for sync queue management and conflict resolution.**
+See implementation.md for sync queue management and conflict resolution.

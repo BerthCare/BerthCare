@@ -6,7 +6,7 @@ This is the complete UX-UI design system for BerthCare, a mobile application tha
 
 ## The One Ruthless Goal
 
-**Document a visit in ≤60 seconds, with zero training required.**
+Document a visit in ≤60 seconds, with zero training required.
 
 If caregivers need a manual, we've failed. If the app adds friction instead of removing it, we've failed. Every design decision in this system exists to serve this single goal.
 
@@ -14,36 +14,42 @@ If caregivers need a manual, we've failed. If the app adds friction instead of r
 
 BerthCare is built on Steve Jobs' design principles, adapted for healthcare:
 
-**Simplicity is the ultimate sophistication**
+Simplicity is the ultimate sophistication
+
 - Three screens. No more. Today, Visit, Alert.
 - No navigation menus, no hamburger icons, no settings screens.
 - If users need to think, the design is wrong.
 
-**Start with the experience, work backwards**
+Start with the experience, work backwards
+
 - We don't design from EMR tables or compliance checklists.
 - We start from Sarah's reality: open app → see visits → tap client → edit what changed → done.
 - Technology exists to serve this experience, not the other way around.
 
-**The best interface is no interface**
+The best interface is no interface
+
 - No "Save" buttons (auto-save is invisible).
 - No "Copy from last visit" buttons (it's already copied).
 - No "Check in / Check out" steps (EVV happens passively).
 - The app opens to action, not options.
 
-**Say no to 1,000 things**
+Say no to 1,000 things
+
 - We will reject good ideas to protect the great one.
 - Every button, field, and screen is guilty until proven essential.
 - Complexity is the enemy. We fight it ruthlessly.
 
 ## Who This Serves
 
-**Sarah – The Frontline Caregiver**
+Sarah – The Frontline Caregiver
+
 - 42 years old, Personal Support Worker
 - 6-8 visits per day
 - Currently spends 3-5 hours per week on unpaid paperwork
 - Needs to document visits in under a minute, without thinking
 
-**Linda – The Care Coordinator**
+Linda – The Care Coordinator
+
 - Manages 20-30 caregivers and 100+ clients
 - Needs real-time confidence that visits happened
 - Wants immediate alerts when something is wrong
@@ -52,21 +58,25 @@ BerthCare is built on Steve Jobs' design principles, adapted for healthcare:
 ## Directory Structure
 
 ### `/design-system/`
+
 The foundational design language: tokens (colors, typography, spacing, motion), components (buttons, forms, cards), and platform adaptations (iOS, Android, Web).
 
 **Start here** if you're implementing UI components or need to understand the visual language.
 
 ### `/features/`
+
 Complete specifications for each feature: user journeys, screen states, interactions, accessibility, and implementation notes.
 
 **Start here** if you're building a specific feature or need to understand user flows.
 
 ### `/accessibility/`
+
 Accessibility guidelines, testing procedures, and compliance documentation.
 
 **Start here** if you're ensuring the app works for all users, including those with disabilities.
 
 ### `/assets/`
+
 Design tokens (JSON), Style Dictionary configuration, and reference images.
 
 **Start here** if you're setting up the design system in code or need exportable assets.
@@ -100,7 +110,8 @@ Design tokens (JSON), Style Dictionary configuration, and reference images.
 
 ### Consume Design Tokens (examples)
 
-**React Native**
+React Native
+
 ```js
 // path: design-documentation/assets/style-dictionary/build/react-native/tokens.js
 import * as Tokens from '../design-documentation/assets/style-dictionary/build/react-native/tokens';
@@ -112,7 +123,8 @@ const styles = StyleSheet.create({
 });
 ```
 
-**iOS Swift**
+iOS Swift
+
 ```swift
 // path: design-documentation/assets/style-dictionary/build/ios/DesignTokens.swift
 import UIKit
@@ -121,7 +133,8 @@ let primary = DesignTokens.ColorBrandPrimary
 button.backgroundColor = primary
 ```
 
-**Android XML**
+Android XML
+
 ```xml
 <!-- path: design-documentation/assets/style-dictionary/build/android/colors.xml -->
 <TextView
@@ -188,48 +201,58 @@ flowchart LR
   ALB --> Clients[Mobile clients via API]
 ```
 
-**Triggers**
+Triggers
+
 - Push to `main` touching `berthcare-backend/**` or `.github/workflows/backend-deploy-dev.yml`
 - Manual `workflow_dispatch` for re-deploy or rollback
 
-**Inputs (secrets/env)**
+Inputs (secrets/env)
+
 - GitHub Actions secrets: `AWS_ACCOUNT_ID`, `SLACK_WEBHOOK_URL`
 - App runtime: `DATABASE_URL` (required), `PORT` (optional; defaults 3000)
 - Auth: AWS assumed via GitHub OIDC (no static keys)
 
-**Deviations from Technical Blueprint**
+Deviations from Technical Blueprint
+
 - Blueprint §9 called for a “basic deploy script” to staging; we use a two-job GitHub Actions workflow (CI → deploy) targeting the dev ECS service, with buildx caching and Slack notification.
 - Health-check injection during task-definition render (`curl /health`) is stricter than the baseline design and blocks rollout until the container passes readiness.
 - HTTPS enforcement (ALB redirect + TLS 1.3 policy) is already applied in dev; blueprint noted TLS hardening primarily for production.
 
-**Rollback**
+Rollback
+
 - Re-run the deploy workflow against a previous commit SHA, or select a prior task definition revision for `berthcare-dev-backend` in ECS and force a new deployment.
 
 ## Design Principles in Practice
 
 ### Principle 1: Invisible by Default
+
 **Bad:** "Click 'New Note' to start documenting"
 **Good:** Last visit's notes are already there. Just edit what changed.
 
 ### Principle 2: One-Handed Operation
+
 **Bad:** Primary action button at top of screen
 **Good:** Swipe up to complete (thumb zone, natural gesture)
 
 ### Principle 3: Offline Always Works
+
 **Bad:** "No internet connection" error blocks usage
 **Good:** Everything works offline. Sync happens invisibly when online.
 
 ### Principle 4: Call-First, Data-Second
+
 **Bad:** "Select alert type" dropdown before calling coordinator
 **Good:** Tap "Something's wrong" → Tap "Call Coordinator" → Phone dials immediately
 
 ### Principle 5: No Training Required
+
 **Bad:** Tutorial screens explaining features
 **Good:** The interface is so obvious that tutorials are unnecessary
 
 ## Version History
 
 **Version 1.0** – November 25, 2025
+
 - Initial design system for MVP
 - Three core screens: Today, Visit, Alert
 - Offline-first architecture

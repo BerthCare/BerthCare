@@ -3,6 +3,7 @@
 ## Entity relationship overview
 
 The Prisma schema (see `.kiro/specs/prisma-database-schema/design.md` for the diagram) defines:
+
 - **Caregiver** ↔ **Schedule** (1:N) and **Caregiver** ↔ **Visit** (1:N)
 - **Client** ↔ **Schedule** (1:N) and **Client** ↔ **Visit** (1:N)
 - **Schedule** ↔ **Visit** (1:1) via `Schedule.visit` / `Visit.schedule`
@@ -13,6 +14,7 @@ The Prisma schema (see `.kiro/specs/prisma-database-schema/design.md` for the di
 - **AuditLog** tracks actions for any entity type with actor metadata
 
 Key enums:
+
 - `CaregiverRole`: caregiver | coordinator
 - `ScheduleStatus`: scheduled | completed | cancelled
 - `SyncStatus`: local | syncing | synced | conflict
@@ -23,6 +25,7 @@ Key enums:
 ## JSONB structures
 
 - **Visit.documentation**: JSON object capturing clinical/visit notes. Nested objects are merged on partial updates; arrays are replaced by design. Example:
+  
   ```json
   {
     "subjective": "Client feels well",
@@ -33,6 +36,7 @@ Key enums:
     "plan": ["monitor mobility"]
   }
   ```
+  
 - **Visit.location**: optional JSON with geolocation/context (e.g., `{"lat": 45.5, "lng": -73.6, "accuracy": 12}`).
 - **Alert.location**: optional JSON describing where the alert was initiated.
 - **AuditLog.before / AuditLog.after**: snapshots of entity state for audit; arbitrary JSON.

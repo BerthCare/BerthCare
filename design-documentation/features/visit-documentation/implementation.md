@@ -3,7 +3,8 @@
 ## Component Mapping
 
 **Screen:** `VisitScreen.tsx`
-**Components:**
+Components:
+
 - `TapToEditRow` (custom, based on `forms.md`)
 - `TextInput` (from `forms.md`)
 - `PrimaryButton` (from `buttons.md`)
@@ -11,25 +12,29 @@
 
 ## Data Flow
 
-**On screen load:**
+On screen load:
+
 1. Query last visit from SQLite
 2. Create new visit record (local only)
 3. Copy last visit's documentation
 4. Render pre-filled fields (gray text)
 5. Set `startTime = now()`
 
-**On field edit:**
+On field edit:
+
 1. Update in-memory state
 2. Change text color to black
 3. Add field to `changedFields` array
 4. Debounce auto-save (2 seconds)
 
-**On auto-save:**
+On auto-save:
+
 1. Update SQLite (local)
 2. Add to sync queue
 3. Update sync indicator
 
-**On complete:**
+On complete:
+
 1. Set `endTime = now()`
 2. Capture GPS location (if permission)
 3. Mark schedule as completed
@@ -145,4 +150,4 @@ const VisitScreen = ({ route }) => {
 
 ---
 
-**See other feature folders for Emergency Alert, Offline Sync, and Onboarding.**
+See other feature folders for Emergency Alert, Offline Sync, and Onboarding.

@@ -7,17 +7,20 @@ This document outlines the architectural decisions, technology stack, and perfor
 ## Technology Stack
 
 ### Core Framework
+
 - **React Native** 0.81.5 - Cross-platform mobile framework
 - **Expo SDK** 54.0.0 - Development platform and tooling
 - **TypeScript** 5.9.2 - Type safety and developer productivity
 
 ### Development Tools
+
 - **expo-dev-client** 6.0.18 - Custom development builds
 - **Metro** - JavaScript bundler
 - **ESLint** + **Prettier** - Code quality and formatting
 - **Jest** - Testing framework
 
 ### Key Dependencies
+
 - **React** 19.1.0 - UI library
 - **expo-updates** 29.0.13 - Over-the-air updates
 - **expo-status-bar** 3.0.8 - Status bar management
@@ -29,6 +32,7 @@ This document outlines the architectural decisions, technology stack, and perfor
 We chose **Expo SDK with expo-dev-client** over bare React Native for the following reasons:
 
 #### Advantages
+
 1. **Over-the-Air Updates**: Critical for 3-month pilot phase to deploy fixes without app store approval
 2. **Simplified Configuration**: Managed native dependencies reduce setup complexity
 3. **Custom Native Modules**: expo-dev-client allows adding custom native code when needed
@@ -36,17 +40,21 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 5. **Native Module Support**: All required modules (camera, SQLite, GPS) available through Expo modules
 
 #### Trade-offs
+
 1. **App Size**: ~2-3MB overhead compared to bare React Native
 2. **Build Dependencies**: Some native modules may require custom development builds
 3. **Expo Ecosystem**: Tied to Expo's release cycle and module ecosystem
 
 #### Alternative Considered
+
 **Bare React Native** was considered for unrestricted native access but rejected because:
+
 - OTA updates are critical for the pilot phase
 - All required native functionality is available through Expo modules
 - Development speed is prioritized during the 3-month build phase
 
 ## Authentication & Secure Token Storage
+
 - Auth module lives in `src/lib/auth` and integrates with the API client in `src/lib/api`.
 - Access/refresh tokens and expiry metadata are stored in `react-native-keychain` (iOS Keychain, Android Keystore).
 - App launch restores auth state via `AuthService.restoreAuthState`, and 401 responses trigger a single-flight refresh queue.
@@ -55,6 +63,7 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Deviations: none noted for this feature.
 
 ## Navigation Flow & Auth Gating
+
 - Root navigation is defined in `src/navigation/RootNavigator.tsx` using a single stack navigator.
 - Guest stack renders `Login`; authenticated stack renders `Today`, `Visit`, and `Alert`.
 - `RootNavigator` swaps stacks by changing the navigator `key` (`guest`/`auth`) and sets `initialRouteName` from auth state.
@@ -63,6 +72,7 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 ## Build Performance Analysis
 
 ### Target Requirements
+
 - **Requirement 10.2**: Production builds should complete in under 5 minutes for rapid iteration
 
 ### Performance Verification Results
@@ -72,12 +82,13 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 
 #### EAS Build Service (Remote)
 
-| Build Type | Platform | Status | Duration | Notes |
-|------------|----------|--------|----------|-------|
-| Production | Android | ✅ **Success** | **~5-10 min total** | Queue + build time. [Build Log](https://expo.dev/accounts/merylnlamera/projects/berthcare-mobile/builds/4f6f0dbf-0c29-4ac2-a277-25ff3380b213) |
-| Production | iOS | ❌ **Membership Required** | N/A | Requires paid Apple Developer Program membership ($99/year) |
+| Build Type | Platform | Status                    | Duration            | Notes                                                                                                                                         |
+| ---------- | -------- | ------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production | Android  | ✅ **Success**             | **~5-10 min total** | Queue + build time. [Build Log](https://expo.dev/accounts/merylnlamera/projects/berthcare-mobile/builds/4f6f0dbf-0c29-4ac2-a277-25ff3380b213) |
+| Production | iOS      | ❌ **Membership Required** | N/A                 | Requires paid Apple Developer Program membership ($99/year)                                                                                   |
 
 **EAS Build Findings**:
+
 - **✅ Android Build Success**: Production build completed successfully
 - **❌ iOS Build Blocked**: Requires paid Apple Developer Program membership ($99/year)
 - **Build Performance**: ~3-5 minutes actual build time (meets <5 minute target)
@@ -87,17 +98,19 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 
 #### Local Builds
 
-| Build Type | Platform | Status | Duration | Notes |
-|------------|----------|--------|----------|-------|
-| Production | Android | ❌ Failed | N/A | Requires Java 11+, system has Java 8 |
-| Production | iOS | ⚠️ Not Tested | N/A | Requires Xcode and certificates |
+| Build Type | Platform | Status        | Duration | Notes                                |
+| ---------- | -------- | ------------- | -------- | ------------------------------------ |
+| Production | Android  | ❌ Failed      | N/A      | Requires Java 11+, system has Java 8 |
+| Production | iOS      | ⚠️ Not Tested | N/A      | Requires Xcode and certificates      |
 
 ## Architecture Notes – Mobile Design Tokens
+
 - References reviewed: `.kiro/specs/mobile-design-tokens/design.md`, `.kiro/specs/mobile-design-tokens/requirements.md`, `.kiro/specs/mobile-design-tokens/tasks.md`, and `design-documentation/assets/style-dictionary/config.json`.
 - Implementation aligns with the referenced architecture: Style Dictionary pulls from `design-documentation/assets/design-tokens.json` and emits React Native-friendly outputs to `src/theme/generated/` (`tokens.raw.json`, `tokens.ts`, `tokens.d.ts`), aggregated via `src/theme/tokens.ts`.
 - CI deviation: none. We added a drift guard (`tokens:build:mobile` + `git diff --exit-code src/theme/generated`) as an explicit check in `.github/workflows/ci.yml` to enforce reproducible outputs.
 
 ## Observability Architecture (Sentry)
+
 - Config source: `app.config.ts` sets `extra.sentry` (dsn, environment, release) using `buildSentryRelease` (`APP_IDENTIFIER@appVersion+buildNumber[-sha]`); no Expo plugin is used. Secrets flow via env (`EXPO_PUBLIC_SENTRY_DSN`/`SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`).
 - Runtime bootstrap: `setupObservability` in `src/observability/index.ts` initializes Sentry before `registerRootComponent`; warns and skips when DSN is absent (fail-open).
 - Logging facade: `src/observability/logging.ts` (`captureException`, `captureMessage`, `addBreadcrumb`, `recordUserAction`, `setUserContext`) with Sentry + console fallback and allowlists for tags/extra/user to avoid PII.
@@ -108,35 +121,40 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - PII compliance: `sendDefaultPii=false`; user IDs only in context; redaction rules cover tokens/emails/phones/addresses/headers/free-text; breadcrumbs filtered and capped; tests (`redaction.test.ts`, `logging.test.ts`, `release.test.ts`) guard scrubbing and alignment.
 
 ## Deployment & Rollback Readiness – Mobile Tokens
+
 - Post-merge verification: `npm ci`, `npm run tokens:build:mobile`, `npm test -- --runInBand src/__tests__/tokens.parity.test.ts src/theme/tokens.typecheck.ts src/components/__samples__/TokenButton.test.tsx`, then launch a debug build to confirm the sample TokenButton renders with tokens applied.
 - Rollback plan: revert the token-related commit(s), rerun `npm run tokens:build:mobile` to regenerate `src/theme/generated/*`, and rerun the scoped tests above to ensure parity/type coverage before redeploying.
 
 **Local Build Findings**:
+
 - **Java Version Requirement**: Android builds require Java 11+, system currently has Java 8
 - **Environment Setup**: Local builds need proper Java and Android SDK configuration
 - **Gradle Compatibility**: Build tools require newer Java runtime than currently available
 
 #### Development Builds (Alternative)
 
-| Build Type | Platform | Status | Duration | Notes |
-|------------|----------|--------|----------|-------|
-| Development | Android | ✅ Success | ~1-2 min | After initial setup |
-| Development | iOS | ✅ Success | ~1-2 min | After initial setup |
-| Hot Reload | Both | ✅ Success | <2 sec | Code changes only |
+| Build Type  | Platform | Status    | Duration | Notes               |
+| ----------- | -------- | --------- | -------- | ------------------- |
+| Development | Android  | ✅ Success | ~1-2 min | After initial setup |
+| Development | iOS      | ✅ Success | ~1-2 min | After initial setup |
+| Hot Reload  | Both     | ✅ Success | <2 sec   | Code changes only   |
 
 ### Performance Recommendations
 
 #### For Rapid Iteration (Daily Development)
+
 1. **Use Development Builds**: `npm run android` / `npm run ios` complete in 1-2 minutes
 2. **Leverage Hot Reload**: Code changes reflect in <2 seconds
 3. **Avoid Production Builds**: Reserve for release candidates only
 
 #### For Production Builds
+
 1. **Upgrade EAS Tier**: Paid tiers have faster build queues (target: <5 minutes)
 2. **Set Up Local Environment**: Install Java 11+ for local Android builds
 3. **CI/CD Pipeline**: Automate builds in controlled environment with proper dependencies
 
 #### Build Strategy by Phase
+
 - **Development Phase**: Use development builds and hot reload
 - **Testing Phase**: Use EAS preview builds for internal distribution
 - **Release Phase**: Use EAS production builds for app store submission
@@ -191,16 +209,19 @@ The project supports platform-specific implementations using React Native's plat
 ## Performance Characteristics
 
 ### Bundle Size
+
 - **Development**: ~15-20MB (includes debugging tools)
 - **Production**: ~8-12MB (optimized, minified)
 - **Expo Overhead**: ~2-3MB additional compared to bare React Native
 
 ### Memory Usage
+
 - **Startup**: ~50-80MB RAM usage
 - **Runtime**: ~100-150MB during normal operation
 - **Peak**: ~200-300MB during intensive operations (camera, large lists)
 
 ### Startup Time
+
 - **Cold Start**: 2-4 seconds on modern devices
 - **Warm Start**: <1 second
 - **Hot Reload**: <2 seconds for code changes
@@ -208,18 +229,21 @@ The project supports platform-specific implementations using React Native's plat
 ## Deployment Strategy
 
 ### Development Workflow
+
 1. **Local Development**: Use `npm run android` / `npm run ios`
 2. **Feature Testing**: Use EAS development builds for team testing
 3. **Integration Testing**: Use EAS preview builds for stakeholder review
 4. **Production Release**: Use EAS production builds for app stores
 
 ### Over-the-Air Updates
+
 - **Update Frequency**: As needed during pilot phase
 - **Update Size**: Typically 1-5MB for code changes
 - **Rollback Capability**: Automatic fallback to previous version on failure
 - **Update Channels**: Separate channels for preview and production
 
 ### Build Automation
+
 - **Trigger**: Manual builds during development phase
 - **Future**: CI/CD pipeline for automated builds on code changes
 - **Monitoring**: Build success/failure notifications via Expo dashboard
@@ -227,12 +251,14 @@ The project supports platform-specific implementations using React Native's plat
 ## Security Considerations
 
 ### Data Protection
+
 - **Local Storage**: SQLite database for offline data
 - **Secure Storage**: expo-secure-store for sensitive data (tokens, credentials)
 - **Network**: HTTPS for all API communications
 - **Encryption**: Client-side encryption for sensitive data at rest
 
 ### Build Security
+
 - **Code Signing**: Managed by EAS for production builds
 - **Certificate Management**: Expo handles iOS/Android certificates
 - **Dependency Auditing**: Regular `npm audit` for vulnerability scanning
@@ -241,16 +267,19 @@ The project supports platform-specific implementations using React Native's plat
 ## Future Considerations
 
 ### Scalability
+
 - **Monorepo**: Consider if adding web app or backend services
 - **Code Splitting**: Implement lazy loading for screens as app grows
 - **Performance Monitoring**: Add Sentry or similar for production monitoring
 
 ### Technology Evolution
+
 - **React Native Updates**: Plan for major version upgrades
 - **Expo SDK Updates**: Regular updates for new features and security
 - **New Architecture**: Evaluate React Native's new architecture (Fabric, TurboModules)
 
 ### Build Infrastructure
+
 - **CI/CD Pipeline**: Implement automated testing and builds
 - **Build Optimization**: Investigate build time improvements
 - **Local Build Setup**: Standardize development environment setup

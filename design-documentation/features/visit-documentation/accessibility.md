@@ -27,4 +27,4 @@ All tap-to-edit rows: 44pt minimum height.
 
 ---
 
-**See accessibility/guidelines.md for complete requirements.**
+See accessibility/guidelines.md for complete requirements.

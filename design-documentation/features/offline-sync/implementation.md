@@ -2,7 +2,8 @@
 
 ## Sync Queue Architecture
 
-**SQLite table:**
+SQLite table:
+
 ```sql
 CREATE TABLE sync_queue (
   id TEXT PRIMARY KEY,
@@ -18,14 +19,16 @@ CREATE TABLE sync_queue (
 );
 ```
 
-**Processing:**
+Processing:
+
 1. Query pending items (ORDER BY priority ASC, createdAt ASC)
 2. Process up to 10 items concurrently
 3. Update status on success/failure
 4. Exponential backoff on failure: `min(2^attempts * 1000, 60000)` ms
 5. Max 5 attempts, then mark as failed
 
-**Code example:**
+Code example:
+
 ```typescript
 const processSyncQueue = async () => {
   const items = await db.query(
@@ -71,7 +74,8 @@ const processSyncQueue = async () => {
 
 **Strategy:** Last-write-wins (simple, predictable)
 
-**Process:**
+Process:
+
 1. Client sends `syncVersion` with update
 2. Server compares with current version
 3. If match: Accept update, increment version
@@ -95,4 +99,4 @@ const processSyncQueue = async () => {
 
 ---
 
-**See onboarding-empty-states folder for first-run experience.**
+See onboarding-empty-states folder for first-run experience.

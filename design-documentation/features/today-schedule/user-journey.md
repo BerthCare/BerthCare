@@ -2,11 +2,12 @@
 
 ## Sarah's Morning
 
-**7:02 AM – Sarah opens BerthCare**
+7:02 AM – Sarah opens BerthCare
 
 Sarah is in her car, about to start her day. She has 6 clients scheduled. She opens BerthCare to see who's first.
 
-**What happens:**
+What happens:
+
 1. App opens instantly (<1 second)
 2. Today screen appears (no splash, no loading)
 3. She sees 6 client cards, ordered by time
@@ -18,11 +19,12 @@ Sarah is in her car, about to start her day. She has 6 clients scheduled. She op
 
 ---
 
-**7:58 AM – Sarah arrives at Margaret's home**
+7:58 AM – Sarah arrives at Margaret's home
 
 Sarah parks outside Margaret's house. She opens BerthCare to start the visit.
 
-**What happens:**
+What happens:
+
 1. App opens to Today screen (still cached from earlier)
 2. Margaret's card now shows "In Progress" (blue dot)
 3. Sarah taps Margaret's card
@@ -34,11 +36,12 @@ Sarah parks outside Margaret's house. She opens BerthCare to start the visit.
 
 ---
 
-**8:07 AM – Sarah completes the visit**
+8:07 AM – Sarah completes the visit
 
 Sarah has updated Margaret's wound assessment and taken a photo. She's ready to move on.
 
-**What happens:**
+What happens:
+
 1. Sarah swipes up to complete visit
 2. Haptic feedback (medium impact)
 3. Visit screen slides out
@@ -51,11 +54,12 @@ Sarah has updated Margaret's wound assessment and taken a photo. She's ready to 
 
 ---
 
-**12:30 PM – Sarah checks her afternoon schedule**
+12:30 PM – Sarah checks her afternoon schedule
 
 Sarah is on lunch break. She wants to see who's left for the afternoon.
 
-**What happens:**
+What happens:
+
 1. She opens BerthCare
 2. Today screen shows all 6 clients
 3. First 3 cards show "Completed" (green checkmarks)
@@ -66,11 +70,12 @@ Sarah is on lunch break. She wants to see who's left for the afternoon.
 
 ---
 
-**5:15 PM – Sarah finishes her day**
+5:15 PM – Sarah finishes her day
 
 Sarah has completed all 6 visits. She opens BerthCare to confirm everything is synced.
 
-**What happens:**
+What happens:
+
 1. Today screen shows all 6 clients
 2. All cards show "Completed" (green checkmarks)
 3. Sync status shows "Synced" (green checkmark)
@@ -86,7 +91,8 @@ Sarah has completed all 6 visits. She opens BerthCare to confirm everything is s
 
 **Scenario:** Sarah works in a rural area with no cell service.
 
-**What happens:**
+What happens:
+
 1. All visits are saved locally (SQLite)
 2. Sync status shows "Saved locally" (gray cloud)
 3. When Sarah gets home and connects to WiFi, all visits sync automatically
@@ -100,7 +106,8 @@ Sarah has completed all 6 visits. She opens BerthCare to confirm everything is s
 
 **Scenario:** Margaret is unusually confused. Sarah needs help.
 
-**What happens:**
+What happens:
+
 1. Sarah taps emergency button (top-right, red ⚠)
 2. Emergency modal appears
 3. Sarah taps "Call Coordinator - Linda Chen"
@@ -117,7 +124,8 @@ Sarah has completed all 6 visits. She opens BerthCare to confirm everything is s
 
 **Scenario:** John Smith cancels his visit.
 
-**What happens:**
+What happens:
+
 1. Coordinator (Linda) marks visit as cancelled in system
 2. Sarah's app syncs in background
 3. John's card disappears from Today screen
@@ -130,6 +138,7 @@ Sarah has completed all 6 visits. She opens BerthCare to confirm everything is s
 ## Success Metrics
 
 This user journey succeeds if:
+
 - Sarah finds her next visit in <3 seconds
 - Sarah completes a visit in <60 seconds (documentation time)
 - Sarah never wonders "Did it save?"

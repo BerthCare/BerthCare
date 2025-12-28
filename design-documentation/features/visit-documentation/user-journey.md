@@ -2,11 +2,12 @@
 
 ## Sarah Documents a Visit
 
-**8:05 AM – Sarah opens Margaret's visit**
+8:05 AM – Sarah opens Margaret's visit
 
 Sarah taps Margaret's card on the Today screen. The Visit screen appears instantly.
 
-**What she sees:**
+What she sees:
+
 - Screen title: "Margaret Chen"
 - Last visit's notes, pre-filled (gray text):
   - Blood Pressure: 120/80
@@ -20,11 +21,12 @@ Sarah taps Margaret's card on the Today screen. The Visit screen appears instant
 
 ---
 
-**8:06 AM – Sarah edits the wound assessment**
+8:06 AM – Sarah edits the wound assessment
 
 Sarah taps the "Wound" field. It transforms into an editable input.
 
-**What happens:**
+What happens:
+
 1. Field border appears (blue)
 2. Keyboard opens
 3. Cursor appears at end of text
@@ -39,11 +41,12 @@ Sarah taps the "Wound" field. It transforms into an editable input.
 
 ---
 
-**8:07 AM – Sarah takes a photo**
+8:07 AM – Sarah takes a photo
 
 Sarah taps "Add Photo" button. In-app camera opens.
 
-**What happens:**
+What happens:
+
 1. Camera opens (full screen)
 2. Sarah takes photo of wound
 3. Photo compresses automatically (<500KB)
@@ -56,11 +59,12 @@ Sarah taps "Add Photo" button. In-app camera opens.
 
 ---
 
-**8:07 AM – Sarah completes the visit**
+8:07 AM – Sarah completes the visit
 
 Sarah swipes up on the "Complete Visit" button.
 
-**What happens:**
+What happens:
+
 1. Haptic feedback (medium impact)
 2. Visit screen slides out (300ms)
 3. Today screen appears
@@ -81,4 +85,4 @@ Sarah swipes up on the "Complete Visit" button.
 
 ---
 
-**See other files for screen states, interactions, accessibility, and implementation details.**
+See other files for screen states, interactions, accessibility, and implementation details.

@@ -3,22 +3,26 @@
 Centralized auth module for the BerthCare mobile app. Handles secure token storage, refresh, and auth state restoration.
 
 ## Overview
+
 - Secure storage via `react-native-keychain` (iOS Keychain, Android Keystore).
 - Automatic access token refresh and 401 single-flight handling (via API client integration).
 - Auth state restoration on app launch.
 - Offline grace handling for limited connectivity.
 
 ## Architecture Alignment
+
 - Technical Blueprint Section 5 (Flow 1: App Launch and Schedule Retrieval): [Flow 1](../../../../project-documentation/technical-blueprint.md#flow-1-app-launch-and-schedule-retrieval).
 - Technical Blueprint Section 6 (Security: "Your data is safe"): [Security](../../../../project-documentation/technical-blueprint.md#security-your-data-is-safe).
 - Deviations: none noted for this feature.
 
 ## Security Validation Notes
+
 - Storage uses `react-native-keychain` with AES-GCM and after-first-unlock device-only accessibility.
 - Hardware-backed security is requested with software fallback; cloud sync is disabled.
 - Tokens are never stored in AsyncStorage or plaintext files.
 
 ## Configure Once at App Startup
+
 Call `AuthService.configure` once and reuse the singleton:
 
 ```ts
@@ -39,10 +43,12 @@ await AuthService.getInstance().restoreAuthState();
 ```
 
 Notes:
+
 - `deviceId` must be a stable, device-bound identifier (see P0-LIB-003).
 - If you use a custom API client wrapper, ensure it exposes `setTokenProvider`.
 
 ## Login
+
 ```ts
 import { AuthService } from '@/lib/auth';
 
@@ -57,6 +63,7 @@ if (result.success) {
 ```
 
 ## Access Tokens (Automatic Refresh)
+
 ```ts
 const authService = AuthService.getInstance();
 const token = await authService.getAccessToken();
@@ -69,11 +76,13 @@ if (token) {
 ```
 
 ## Logout
+
 ```ts
 await AuthService.getInstance().logout();
 ```
 
 ## Offline Access
+
 ```ts
 const { canContinue, reason } = await AuthService.getInstance().checkOfflineAccess();
 if (!canContinue) {
@@ -82,6 +91,7 @@ if (!canContinue) {
 ```
 
 ## Error Handling
+
 Use `AuthError` for auth-specific failures:
 
 ```ts
@@ -108,7 +118,9 @@ try {
 ```
 
 ## Testing
+
 Relevant unit tests live under:
+
 - `src/lib/auth/__tests__/auth-service.test.ts`
 - `src/lib/auth/__tests__/auth-service.property.ts`
 - `src/lib/auth/__tests__/secure-storage.property.ts`

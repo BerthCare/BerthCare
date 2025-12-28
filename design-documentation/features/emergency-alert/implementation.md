@@ -3,30 +3,35 @@
 ## Component Mapping
 
 **Screen:** `AlertScreen.tsx` (modal)
-**Components:**
+Components:
+
 - `EmergencyButton` (from `emergency-trigger.md`)
 - `DestructiveButton` (red, large)
 - `TextInput` (optional note)
 
 ## Data Flow
 
-**On emergency button tap:**
+On emergency button tap:
+
 1. Open modal
 2. Pre-create alert record (local)
 3. Capture GPS location (if available)
 
-**On call button tap:**
+On call button tap:
+
 1. Open phone dialer: `Linking.openURL('tel:+17805551234')`
 2. App goes to background
 3. Log call initiation
 
-**On return from call:**
+On return from call:
+
 1. Show optional note field
 2. User adds note (or skips)
 3. Auto-save note
 4. Queue alert for sync
 
-**On sync:**
+On sync:
+
 1. POST alert to server
 2. Server sends email to coordinator
 3. Update sync status
@@ -112,4 +117,4 @@ const AlertScreen = ({ route }) => {
 
 ---
 
-**See other feature folders for Offline Sync and Onboarding.**
+See other feature folders for Offline Sync and Onboarding.

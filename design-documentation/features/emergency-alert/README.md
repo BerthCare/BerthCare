@@ -6,7 +6,8 @@ The emergency alert lets Sarah call for help instantly. In a real emergency, eve
 
 **Purpose:** Get Sarah on the phone with her coordinator in <2 seconds.
 
-**Success criteria:**
+Success criteria:
+
 - Emergency button always accessible
 - Tap → Tap → Phone dials (2 taps, <2 seconds)
 - No forms before the call
@@ -29,4 +30,4 @@ The emergency alert lets Sarah call for help instantly. In a real emergency, eve
 
 ---
 
-**See individual files for detailed specifications.**
+See individual files for detailed specifications.

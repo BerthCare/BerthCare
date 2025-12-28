@@ -4,7 +4,8 @@
 
 **Trigger:** Tap tap-to-edit row
 
-**Behavior:**
+Behavior:
+
 1. Row transforms to input (150ms)
 2. Border appears (blue)
 3. Keyboard opens
@@ -21,7 +22,8 @@
 
 **Trigger:** Swipe up on "Complete Visit" button
 
-**Behavior:**
+Behavior:
+
 1. Haptic feedback (medium)
 2. Screen slides out (300ms)
 3. Visit marked complete
@@ -33,7 +35,8 @@
 
 **Trigger:** Tap "Add Photo"
 
-**Behavior:**
+Behavior:
+
 1. In-app camera opens
 2. Take photo
 3. Photo compresses (<500KB)
@@ -43,4 +46,4 @@
 
 ---
 
-**See implementation.md for code examples.**
+See implementation.md for code examples.
