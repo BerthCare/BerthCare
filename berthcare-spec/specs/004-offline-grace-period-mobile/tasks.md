@@ -19,9 +19,9 @@
 
 **Goal**: Allow cached access when offline within 7-day grace.
 
-- [ ] T004 [P] Update AuthService offline grace decisioning to use access token expiry timestamps during `restoreAuthState`.
-- [ ] T005 [P] Expose offline access decision to app shell (AuthState flag or new OfflineAccessState) and wire into `berthcare-mobile/src/App.tsx`.
-- [ ] T006 [P] Ensure offline state sets `authState.isOffline = true` without forcing reauth while within grace.
+- [x] T004 [P] Update AuthService offline grace decisioning to use access token expiry timestamps during `restoreAuthState`.
+- [x] T005 [P] Expose offline access decision to app shell (AuthState flag or new OfflineAccessState) and wire into `berthcare-mobile/src/App.tsx`.
+- [x] T006 [P] Ensure offline state sets `authState.isOffline = true` without forcing reauth while within grace.
 
 ---
 
@@ -29,9 +29,9 @@
 
 **Goal**: Provide a dismissible "Connect to internet to continue" message and read-only mode.
 
-- [ ] T007 [P] Add `OfflineGraceBanner` (or inline callout) component with dismiss action and accessibility labels.
-- [ ] T008 [P] Show banner when offline grace expired (Today + Visit screens or a global shell).
-- [ ] T009 [P] Enforce read-only mode for cached data (disable edits, creation, and sync actions) while grace expired.
+- [x] T007 [P] Add `OfflineGraceBanner` (or inline callout) component with dismiss action and accessibility labels.
+- [x] T008 [P] Show banner when offline grace expired (Today + Visit screens or a global shell).
+- [x] T009 [P] Enforce read-only mode for cached data (disable edits, creation, and sync actions) while grace expired.
 
 ---
 
@@ -39,26 +39,26 @@
 
 **Goal**: Refresh on reconnect and clear soft block on success.
 
-- [ ] T010 [P] Listen for connectivity restoration and trigger token refresh.
-- [ ] T011 [P] Clear soft block and read-only mode on refresh success; route to Login on failure.
+- [x] T010 [P] Listen for connectivity restoration and trigger token refresh.
+- [x] T011 [P] Clear soft block and read-only mode on refresh success; route to Login on failure.
 
 ---
 
 ## Phase 5: Tests & QA
 
-- [ ] T012 [P] Add unit tests for offline grace logic in `berthcare-mobile/src/lib/auth/__tests__/`.
-- [ ] T013 [P] Add UI tests for banner display, dismissal, and read-only enforcement.
-- [ ] T014 Run `npm test` and `npm run lint` in `berthcare-mobile` and capture results.
+- [x] T012 [P] Add unit tests for offline grace logic in `berthcare-mobile/src/lib/auth/__tests__/`.
+- [x] T013 [P] Add UI tests for banner display, dismissal, and read-only enforcement.
+- [x] T014 Run `npm test` and `npm run lint` in `berthcare-mobile` and capture results.
 
 ---
 
 ## Phase 6: Documentation & Governance
 
-- [ ] T015 Update `berthcare-mobile/src/lib/auth/README.md` with offline grace usage and UI behavior.
-- [ ] T016 Reference Technical Blueprint sections in relevant doc blocks or README updates.
-- [ ] T017 Reference architecture diagrams in docs where applicable (Technical Blueprint diagrams or links).
-- [ ] T018 Update `berthcare-mobile/ARCHITECTURE.md` if auth gating or navigation flow changes.
-- [ ] T019 Update any screen-level README (Today/Visit) to document read-only behavior under grace expiry.
+- [x] T015 Update `berthcare-mobile/src/lib/auth/README.md` with offline grace usage and UI behavior.
+- [x] T016 Reference Technical Blueprint sections in relevant doc blocks or README updates.
+- [x] T017 Reference architecture diagrams in docs where applicable (Technical Blueprint diagrams or links).
+- [x] T018 Update `berthcare-mobile/ARCHITECTURE.md` if auth gating or navigation flow changes.
+- [x] T019 Update any screen-level README (Today/Visit) to document read-only behavior under grace expiry.
 
 ---
 

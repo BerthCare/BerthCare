@@ -14,6 +14,7 @@ type RootNavigatorProps = {
   authConfigured: boolean;
   baseUrl: string;
   onLoginSuccess: () => void;
+  offlineAccess?: { canContinue: boolean; readOnly: boolean; reason?: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -23,6 +24,7 @@ export function RootNavigator({
   authConfigured,
   baseUrl,
   onLoginSuccess,
+  offlineAccess,
 }: RootNavigatorProps) {
   const isAuthenticated = authState.isAuthenticated && !authState.requiresReauth;
   const navigatorKey = isAuthenticated ? 'auth' : 'guest';
@@ -43,18 +45,22 @@ export function RootNavigator({
                 authState={authState}
                 authConfigured={authConfigured}
                 baseUrl={baseUrl}
+                offlineAccess={offlineAccess}
               />
             )}
           </Stack.Screen>
           <Stack.Screen
             name="Visit"
-            component={VisitScreen}
             options={{
               animation: Platform.OS === 'android' ? 'fade' : 'slide_from_right',
               headerShown: true,
               title: 'Visit',
             }}
-          />
+          >
+            {(props) => (
+              <VisitScreen {...props} authState={authState} offlineAccess={offlineAccess} />
+            )}
+          </Stack.Screen>
           <Stack.Screen
             name="Alert"
             component={AlertScreen}

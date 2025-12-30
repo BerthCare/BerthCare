@@ -1069,18 +1069,17 @@ describe('Feature: mobile-secure-token-storage, Property 10: Offline grace perio
           accessToken: fc.string({ minLength: 10, maxLength: 500 }),
           refreshToken: fc.string({ minLength: 10, maxLength: 500 }),
         }),
-        // Generate last online timestamp beyond grace period (7+ days ago)
-        fc.integer({ min: 7 * 24 * 60 * 60 * 1000 + 1000, max: 30 * 24 * 60 * 60 * 1000 }), // 7 to 30 days
+        // Generate access token expiry that is beyond the grace period (expired >7 days ago)
+        fc.integer({ min: 7 * 24 * 60 * 60 * 1000 + 1000, max: 30 * 24 * 60 * 60 * 1000 }), // 7 to 30 days since expiry
         async (tokens, msAgo) => {
           const now = Date.now();
-          const lastOnline = now - msAgo;
+          const accessExpiry = now - msAgo;
 
-          // Pre-populate storage with tokens and expired last online timestamp
+          // Pre-populate storage with tokens and expired access token timestamp
           await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
-          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, (now + 86400000).toString());
+          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, accessExpiry.toString());
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY, (now + 2592000000).toString());
-          await storage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, lastOnline.toString());
 
           // Configure AuthService with 7-day grace period
           AuthService.configure({
@@ -1129,20 +1128,16 @@ describe('Feature: mobile-secure-token-storage, Property 10: Offline grace perio
         async (tokens, gracePeriodDays, withinPeriod) => {
           const now = Date.now();
           const gracePeriodMs = gracePeriodDays * 24 * 60 * 60 * 1000;
-
-          // Calculate last online timestamp based on whether we want to be within or beyond grace period
-          const msAgo = withinPeriod
-            ? Math.floor(gracePeriodMs * 0.5) // 50% of grace period (within)
-            : gracePeriodMs + 1000; // Just beyond grace period
-
-          const lastOnline = now - msAgo;
+          // Calculate access token expiry time such that the time since expiry
+          // matches whether we want to be within or beyond the grace period.
+          const msSinceExpiry = withinPeriod ? Math.floor(gracePeriodMs * 0.5) : gracePeriodMs + 1000;
+          const accessExpiry = now - msSinceExpiry;
 
           // Pre-populate storage
           await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
-          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, (now + 86400000).toString());
+          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, accessExpiry.toString());
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY, (now + 2592000000).toString());
-          await storage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, lastOnline.toString());
 
           // Configure AuthService with custom grace period
           AuthService.configure({
@@ -1175,18 +1170,17 @@ describe('Feature: mobile-secure-token-storage, Property 10: Offline grace perio
           accessToken: fc.string({ minLength: 10, maxLength: 500 }),
           refreshToken: fc.string({ minLength: 10, maxLength: 500 }),
         }),
-        // Generate old last online timestamp (beyond grace period)
+        // Generate time-since-expiry (beyond grace period)
         fc.integer({ min: 8 * 24 * 60 * 60 * 1000, max: 30 * 24 * 60 * 60 * 1000 }),
         async (tokens, msAgo) => {
           const now = Date.now();
-          const oldLastOnline = now - msAgo;
+          const accessExpiry = now - msAgo;
 
-          // Pre-populate storage with expired grace period
+          // Pre-populate storage with expired access token (beyond grace)
           await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokens.accessToken);
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokens.refreshToken);
-          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, (now + 86400000).toString());
+          await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, accessExpiry.toString());
           await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN_EXPIRY, (now + 2592000000).toString());
-          await storage.setItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP, oldLastOnline.toString());
 
           // Configure AuthService
           AuthService.configure({
@@ -1198,18 +1192,18 @@ describe('Feature: mobile-secure-token-storage, Property 10: Offline grace perio
 
           const authService = AuthService.getInstance();
 
-          // Initially should be beyond grace period
+          // Initially should be beyond grace period (based on access expiry)
           const initialWithinGracePeriod = await authService.isWithinOfflineGracePeriod();
           expect(initialWithinGracePeriod).toBe(false);
 
-          // Update last online timestamp
+          // Update last online timestamp (should update stored timestamp and clear isOffline)
           await authService.updateLastOnlineTimestamp();
 
-          // Now should be within grace period
+          // isWithinOfflineGracePeriod remains based on access expiry (still false)
           const afterUpdateWithinGracePeriod = await authService.isWithinOfflineGracePeriod();
-          expect(afterUpdateWithinGracePeriod).toBe(true);
+          expect(afterUpdateWithinGracePeriod).toBe(false);
 
-          // Auth state should no longer be offline
+          // Auth state should no longer be marked offline
           const authState = authService.getAuthState();
           expect(authState.isOffline).toBe(false);
         }
