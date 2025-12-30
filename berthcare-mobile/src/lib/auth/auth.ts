@@ -527,7 +527,52 @@ export class AuthService implements TokenProvider {
    */
   async restoreAuthState(): Promise<AuthState> {
     await this.isAuthenticated();
-    return this.getAuthState();
+
+    // If tokens appear expired during restore, allow a 7-day offline grace
+    // based on the stored access token expiry timestamp (spec requirement).
+    // If the access token expiry is missing or corrupt, treat as expired
+    // and require network per spec.
+    const config = this.ensureConfigured();
+    const state = this.getAuthState();
+
+    if (!state.isAuthenticated && !state.requiresReauth) {
+      // Nothing to do — unauthenticated and not requiring reauth
+      return state;
+    }
+
+    // If already authenticated, return current state
+    if (state.isAuthenticated) {
+      return state;
+    }
+
+    // At this point, tokens appear expired or refresh is required.
+    // Evaluate offline grace using access token expiry timestamp.
+    try {
+      const accessExpiryStr = await config.secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY);
+      if (!accessExpiryStr) {
+        // Missing expiry — treat as expired and require network
+        this.setAuthState({ isAuthenticated: false, isOffline: false, requiresReauth: true });
+        return this.getAuthState();
+      }
+
+      const accessExpiry = Number(accessExpiryStr);
+      const now = Date.now();
+      const gracePeriodMs = (config.offlineGracePeriodDays ?? DEFAULT_OFFLINE_GRACE_PERIOD_DAYS) * 24 * 60 * 60 * 1000;
+
+      // If access token expired but within the configured grace window, allow offline access
+      if (now > accessExpiry && now - accessExpiry < gracePeriodMs) {
+        this.setAuthState({ isAuthenticated: true, isOffline: true, requiresReauth: false });
+        return this.getAuthState();
+      }
+
+      // Otherwise require reauth
+      this.setAuthState({ isAuthenticated: false, isOffline: false, requiresReauth: true });
+      return this.getAuthState();
+    } catch (e) {
+      // On any error reading expiry, treat as expired and require network
+      this.setAuthState({ isAuthenticated: false, isOffline: false, requiresReauth: true });
+      return this.getAuthState();
+    }
   }
 
   // ============================================
@@ -570,21 +615,32 @@ export class AuthService implements TokenProvider {
    */
   async isWithinOfflineGracePeriod(): Promise<boolean> {
     const config = this.ensureConfigured();
+    
+    // Determine offline grace using the stored access token expiry timestamp.
+    // Per spec: if the access token expired less than `offlineGracePeriodDays` ago,
+    // the app may continue functioning offline.
+    const accessExpiryStr = await config.secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY);
 
-    const lastOnlineStr = await config.secureStorage.getItem(STORAGE_KEYS.LAST_ONLINE_TIMESTAMP);
-
-    // If no last online timestamp, we can't determine grace period
-    // This could happen if the user has never been online
-    if (!lastOnlineStr) {
+    if (!accessExpiryStr) {
+      // Missing or corrupt expiry — treat as expired (no grace)
       return false;
     }
 
-    const lastOnline = Number(lastOnlineStr);
-    const now = Date.now();
-    const gracePeriodMs =
-      (config.offlineGracePeriodDays ?? DEFAULT_OFFLINE_GRACE_PERIOD_DAYS) * 24 * 60 * 60 * 1000;
+    const accessExpiry = Number(accessExpiryStr);
+    if (!Number.isFinite(accessExpiry)) {
+      return false;
+    }
 
-    return now - lastOnline < gracePeriodMs;
+    const now = Date.now();
+    const gracePeriodMs = (config.offlineGracePeriodDays ?? DEFAULT_OFFLINE_GRACE_PERIOD_DAYS) * 24 * 60 * 60 * 1000;
+
+    // If token is still valid (expires in future), we're within grace
+    if (!isTokenExpired(accessExpiry, now)) {
+      return true;
+    }
+
+    // Token expired — allow if within grace window since expiry
+    return now - accessExpiry < gracePeriodMs;
   }
 
   /**
@@ -619,25 +675,18 @@ export class AuthService implements TokenProvider {
       return { canContinue: false, reason: 'NoTokens' };
     }
 
-    // Check if within offline grace period
+    // Check if within offline grace period (based on access token expiry)
     const withinGracePeriod = await this.isWithinOfflineGracePeriod();
 
     if (!withinGracePeriod) {
       // Grace period expired - signal that network is required
-      this.setAuthState({
-        ...this.authState,
-        isOffline: true,
-        requiresReauth: true,
-      });
+      this.setAuthState({ ...this.authState, isOffline: true, requiresReauth: true });
       return { canContinue: false, reason: 'OfflineGracePeriodExpired' };
     }
 
     // Within grace period - can continue using cached token
-    this.setAuthState({
-      ...this.authState,
-      isAuthenticated: true,
-      isOffline: true,
-    });
+    // Ensure we do NOT force re-authentication while offline within the grace window.
+    this.setAuthState({ ...this.authState, isAuthenticated: true, isOffline: true, requiresReauth: false });
     return { canContinue: true };
   }
 
@@ -817,6 +866,31 @@ export class AuthService implements TokenProvider {
     } finally {
       // Reset refresh state
       this.isRefreshing = false;
+    }
+  }
+
+  /**
+   * Attempt to refresh tokens and return a result object.
+   * Suitable for use during connectivity recovery.
+   *
+   * @returns { success: true } on successful refresh, { success: false, error: AuthError } on failure
+   */
+  async refreshTokens(): Promise<
+    | { success: true }
+    | { success: false; error: AuthError }
+  > {
+    try {
+      const result = await this.refreshAccessToken();
+      if (result) {
+        return { success: true };
+      }
+      return { success: false, error: new AuthError('TokenRefresh', 'Token refresh returned null') };
+    } catch (error) {
+      const authError =
+        error instanceof AuthError
+          ? error
+          : new AuthError('TokenRefresh', 'Token refresh failed', error instanceof Error ? error : undefined);
+      return { success: false, error: authError };
     }
   }
 

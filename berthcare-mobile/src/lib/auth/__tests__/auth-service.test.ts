@@ -280,7 +280,8 @@ describe('AuthService unit tests', () => {
     it('requires reauth when both tokens are expired', async () => {
       const fakeNow = 1_700_000_400_000;
       jest.spyOn(Date, 'now').mockReturnValue(fakeNow);
-
+      // Access token expired recently (within grace), so restore should allow
+      // offline access per offline-grace policy (access token expiry-based).
       await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, 'expired-access');
       await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, 'expired-refresh');
       await storage.setItem(STORAGE_KEYS.ACCESS_TOKEN_EXPIRY, (fakeNow - 10_000).toString());
@@ -289,9 +290,9 @@ describe('AuthService unit tests', () => {
       const authService = AuthService.getInstance();
       const state = await authService.restoreAuthState();
 
-      expect(state.isAuthenticated).toBe(false);
-      expect(state.requiresReauth).toBe(true);
-      expect(state.isOffline).toBe(false);
+      expect(state.isAuthenticated).toBe(true);
+      expect(state.requiresReauth).toBe(false);
+      expect(state.isOffline).toBe(true);
     });
   });
 

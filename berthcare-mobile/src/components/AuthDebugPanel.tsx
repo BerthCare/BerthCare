@@ -16,6 +16,7 @@ type AuthDebugPanelProps = {
   baseUrl: string;
   isAuthConfigured: boolean;
   initialAuthState: AuthState;
+  disabled?: boolean;
 };
 
 function formatTimestamp(timestamp: number | null): string {
@@ -34,6 +35,7 @@ export function AuthDebugPanel({
   baseUrl,
   isAuthConfigured,
   initialAuthState,
+  disabled = false,
 }: AuthDebugPanelProps) {
   const [email, setEmail] = useState('caregiver@example.com');
   const [password, setPassword] = useState('password123');
@@ -46,7 +48,7 @@ export function AuthDebugPanel({
   });
   const [status, setStatus] = useState<string>('Idle');
   const [loading, setLoading] = useState<boolean>(false);
-  const controlsDisabled = loading || !isAuthConfigured;
+  const controlsDisabled = loading || !isAuthConfigured || disabled;
 
   const authService = useMemo(() => AuthService.getInstance(), []);
 

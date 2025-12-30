@@ -59,6 +59,7 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Access/refresh tokens and expiry metadata are stored in `react-native-keychain` (iOS Keychain, Android Keystore).
 - App launch restores auth state via `AuthService.restoreAuthState`, and 401 responses trigger a single-flight refresh queue.
 - Login UI lives in `src/screens/login` and calls `AuthService.login`, while the app shell listens for `onLoginSuccess` to refresh auth state.
+- **Offline Grace Period** (P1-AUTH-004): Token expiry timestamp is used to compute a 7-day offline grace window. Users can continue offline with read-only access if within the grace period. See [Offline Grace Period](#offline-grace-period-p1-auth-004) section below for detailed design and implementation.
 - Technical Blueprint alignment: [Section 5 (Flow 1)](../project-documentation/technical-blueprint.md#flow-1-app-launch-and-schedule-retrieval) and [Section 6 (Security)](../project-documentation/technical-blueprint.md#security-your-data-is-safe).
 - Deviations: none noted for this feature.
 
@@ -68,6 +69,66 @@ We chose **Expo SDK with expo-dev-client** over bare React Native for the follow
 - Guest stack renders `Login`; authenticated stack renders `Today`, `Visit`, and `Alert`.
 - `RootNavigator` swaps stacks by changing the navigator `key` (`guest`/`auth`) and sets `initialRouteName` from auth state.
 - `src/App.tsx` calls `resetRoot` to `Today` on first successful authentication to prevent back navigation to `Login`.
+
+## Offline Grace Period (P1-AUTH-004)
+
+### Design Decision: Expiry-Based 7-Day Window
+
+- **Rationale**: Allows the app to function offline for 7 days without requiring network connectivity, supporting care workers who may work in areas with limited connectivity. Uses server-issued token expiry timestamp to compute the grace window, avoiding clock-skew issues and ensuring consistent behavior across devices.
+- **Storage**: Access token expiry is stored locally in `react-native-keychain` alongside the access token. The grace window is computed as: grace available if `(now - accessTokenExpiryTime) < 7 days`.
+- **Architecture Pattern**: Inverts the typical "expired token = forced reauth" pattern—instead, offline users can continue with read-only access to cached data within the grace window. This is a soft-block UX (dismissible banner) paired with read-only enforcement rather than a hard redirect to login.
+- **Enforcement Layer**: Two-tier approach:
+  - **UI Layer** (soft block): `OfflineGraceBanner` component displays a dismissible warning when offline without grace. Dismissal does NOT re-enable writes.
+  - **Logic Layer** (hard block): Helper functions `canPerformWrites()` and `getReadOnlyMessage()` in `src/lib/offline-access.ts` enforce read-only mode at the action level, preventing data mutations even if UI is bypassed.
+
+### Implementation Modules
+
+- **Core Logic** (`src/lib/auth/auth.ts`): 
+  - `isWithinOfflineGracePeriod()` – computes grace availability using expiry timestamp.
+  - `checkOfflineAccess()` – returns offline access state (`{ canContinue, readOnly, reason }`).
+  - `refreshTokens()` – public method to attempt token refresh; queues refresh on 401 responses.
+  
+- **Connectivity Monitoring** (`src/lib/connectivity.ts`):
+  - `useConnectivityMonitor()` hook – monitors device connectivity (AppState + periodic HTTP ping).
+  - Triggers automatic token refresh on offline→online transition via app shell callback.
+  - Fallback to login route if refresh fails (expired grace).
+  
+- **Read-Only Enforcement** (`src/lib/offline-access.ts`):
+  - `canPerformWrites(state)` – checks if writes are permitted (auth + not offline + within grace).
+  - `getReadOnlyMessage(state)` – returns user-friendly message explaining read-only status.
+  
+- **UI Layer** (`src/components/OfflineGraceBanner.tsx`):
+  - Dismissible banner component integrated into `src/App.tsx` global shell.
+  - Displays when offline without grace; dismissal does NOT affect `canPerformWrites()` logic.
+  - Paired with screen-level read-only indicators on `Today` and `Visit` screens.
+
+### App Shell Integration
+
+- **Bootstrap Flow** (`src/App.tsx`):
+  1. Restore auth state via `AuthService.restoreAuthState()`.
+  2. Check offline access via `AuthService.checkOfflineAccess()`.
+  3. Route to `Today` if within grace; route to `Login` if grace expired.
+  4. Render `OfflineGraceBanner` globally when offline without grace.
+  
+- **Recovery Flow** (connectivity monitoring):
+  1. Detect offline→online transition via `useConnectivityMonitor()`.
+  2. Attempt token refresh via `AuthService.refreshTokens()`.
+  3. On success: clear banner, re-enable writes, stay on current screen.
+  4. On failure: route to `Login` (grace expired or refresh failed).
+
+### Technical Blueprint Alignment
+
+- **Blueprint Section 2 (UX Guardrail 4)**: "Users see a clear, non-blocking message if offline and nearing grace expiry. Message is dismissible; cached data remains readable."
+- **Blueprint Section 5 (Flow 1)**: App launch restores auth state and checks offline access before routing to authenticated screens.
+- **Blueprint Section 6 (Security)**: Token expiry and grace window are computed server-side (token issued by backend); no client-side clock manipulation can extend the grace period.
+- **Blueprint Section 2 (Offline Capability)**: App supports offline-first data access patterns with automatic reconnect/recovery flows.
+
+### Related Documentation
+
+- [AuthService README](src/lib/auth/README.md) – Comprehensive offline grace API documentation, usage examples, and edge case handling.
+- [CONNECTIVITY_RECOVERY.md](docs/CONNECTIVITY_RECOVERY.md) – Detailed recovery flow implementation and test patterns.
+- [Connectivity Monitoring Hook](src/lib/connectivity.ts) – Device connectivity detection and recovery triggers.
+- [Read-Only Helpers](src/lib/offline-access.ts) – Write permission and messaging helpers.
 
 ## Build Performance Analysis
 
